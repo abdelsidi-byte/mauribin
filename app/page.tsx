@@ -1,6 +1,5 @@
 import { fetchScores, fetchArticles } from "@/lib/data";
 import { ClientHome } from "@/components/ClientHome";
-import { WorldCupBanner } from "@/components/WorldCupBanner";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -15,9 +14,6 @@ export default async function HomePage() {
   const articles = articlesData.articles || [];
 
   return (
-    <>
-      <WorldCupBanner />
-      <ClientHome matches={matches} articles={articles} />
-    </>
+    <ClientHome matches={matches} articles={articles} />
   );
 }
