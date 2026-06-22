@@ -98,8 +98,63 @@ export interface Article {
 }
 
 async function fetchKickxoffMatches(): Promise<Match[]> {
-  // Using our own World Cup 2026 data directly - kickxoff.com scraping is unreliable
-  return getFallbackMatches();
+  try {
+    const res = await fetch("https://www.kickxoff.com/", {
+      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
+      cache: "no-store",
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const html = await res.text();
+
+    // Extract JSON data embedded in Next.js script tags
+    // Pattern: "initial":[...] or self.__next_f.push([1,"2:[..."])
+    const patterns = [
+      /"initial":(\[[\s\S]*?\])\}\]\}\]/,
+      /self\.__next_f\.push\(\[1,"2:\\"(\[[\s\S]*?\])/,
+    ];
+
+    for (const pattern of patterns) {
+      const match = html.match(pattern);
+      if (!match) continue;
+
+      try {
+        // Unescape JSON
+        let jsonStr = match[1]
+          .replace(/\\"/g, '"')
+          .replace(/\\n/g, ' ')
+          .replace(/\\r/g, '')
+          .replace(/\\'/g, "'");
+
+        // Find the array of matches - it's after "initial":
+        const arrayMatch = jsonStr.match(/\[[\s\S]*?\{[\s\S]*?"home"[\s\S]*?\}\][\s\S]*?\]/);
+        if (!arrayMatch) continue;
+
+        const parsed = JSON.parse(arrayMatch[0]);
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].home) {
+          return parsed.map((m: any, i: number) => ({
+            home: m.home,
+            away: m.away,
+            homeFlag: getFlag(m.home),
+            awayFlag: getFlag(m.away),
+            homeScore: m.homeScore,
+            awayScore: m.awayScore,
+            state: m.state || (m.label?.toLowerCase().includes("ft") ? "ft" : "upcoming"),
+            label: m.label || (m.homeScore === null ? "Upcoming" : "FT"),
+            utcDate: m.utcDate,
+            _index: i,
+          }));
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+
+    // Fallback to local data
+    return getFallbackMatches();
+  } catch (e) {
+    console.error("kickxoff fetch error:", e);
+    return getFallbackMatches();
+  }
 }
 
 async function fetchBBCArabicSports(): Promise<Article[]> {
@@ -144,33 +199,8 @@ async function fetchBBCArabicSports(): Promise<Article[]> {
 
 function getFallbackMatches(): Match[] {
   const now = new Date("2026-06-23T12:00:00Z");
-  const worldCupMatches = [
-    // Group Stage - finished matches
-    { home: "Argentina", away: "Peru", homeScore: 2, awayScore: 0, daysAgo: 14, state: "finished" },
-    { home: "Chile", away: "Canada", homeScore: 1, awayScore: 1, daysAgo: 14, state: "finished" },
-    { home: "Spain", away: "Netherlands", homeScore: 1, awayScore: 0, daysAgo: 14, state: "finished" },
-    { home: "England", away: "Italy", homeScore: 0, awayScore: 1, daysAgo: 14, state: "finished" },
-    { home: "Germany", away: "Portugal", homeScore: 2, awayScore: 1, daysAgo: 13, state: "finished" },
-    { home: "France", away: "Sweden", homeScore: 3, awayScore: 0, daysAgo: 13, state: "finished" },
-    { home: "Brazil", away: "Uruguay", homeScore: 1, awayScore: 1, daysAgo: 12, state: "finished" },
-    { home: "Colombia", away: "Ecuador", homeScore: 2, awayScore: 0, daysAgo: 12, state: "finished" },
-    { home: "Mexico", away: "USA", homeScore: 1, awayScore: 2, daysAgo: 11, state: "finished" },
-    { home: "Costa Rica", away: "Panama", homeScore: 0, awayScore: 1, daysAgo: 11, state: "finished" },
-    { home: "Belgium", away: "Croatia", homeScore: 1, awayScore: 2, daysAgo: 10, state: "finished" },
-    { home: "Denmark", away: "Serbia", homeScore: 0, awayScore: 0, daysAgo: 10, state: "finished" },
-    { home: "Morocco", away: "Egypt", homeScore: 1, awayScore: 0, daysAgo: 9, state: "finished" },
-    { home: "Algeria", away: "Nigeria", homeScore: 1, awayScore: 1, daysAgo: 9, state: "finished" },
-    { home: "Japan", away: "Australia", homeScore: 2, awayScore: 1, daysAgo: 8, state: "finished" },
-    { home: "Saudi Arabia", away: "South Korea", homeScore: 0, awayScore: 1, daysAgo: 8, state: "finished" },
-    { home: "Poland", away: "Ukraine", homeScore: 3, awayScore: 1, daysAgo: 7, state: "finished" },
-    { home: "Hungary", away: "Turkey", homeScore: 1, awayScore: 2, daysAgo: 7, state: "finished" },
-    // Live match
-    { home: "Senegal", away: "Ghana", homeScore: 1, awayScore: 1, daysAgo: 0, state: "live" },
-    // Upcoming matches
-    { home: "France", away: "Iraq", homeScore: null, awayScore: null, daysAgo: -1, state: "upcoming", label: "Today 21:00 UTC" },
-    { home: "Norway", away: "Algeria", homeScore: null, awayScore: null, daysAgo: -1, state: "upcoming", label: "Tue 18:00 UTC" },
-    { home: "Argentina", away: "Chile", homeScore: null, awayScore: null, daysAgo: -1, state: "upcoming", label: "Tue 21:00 UTC" },
-    { home: "Brazil", away: "Colombia", homeScore: null, awayScore: null, daysAgo: -2, state: "upcoming", label: "Wed 00:00 UTC" },
+  const worldCupMatches: any[] = [
+    // No live matches right now - next match is France vs Iraq
   ];
 
   return worldCupMatches.map((m, i) => ({

@@ -212,33 +212,8 @@ async function fetchBBCArabicNews(): Promise<any[]> {
 
 function getFallbackMatches(): any[] {
   const now = new Date("2026-06-23T12:00:00Z");
-  const worldCupMatches = [
-    // Finished matches
-    { home: "Argentina", away: "Peru", homeScore: 2, awayScore: 0, daysAgo: 14 },
-    { home: "Chile", away: "Canada", homeScore: 1, awayScore: 1, daysAgo: 14 },
-    { home: "Spain", away: "Netherlands", homeScore: 1, awayScore: 0, daysAgo: 14 },
-    { home: "England", away: "Italy", homeScore: 0, awayScore: 1, daysAgo: 14 },
-    { home: "Germany", away: "Portugal", homeScore: 2, awayScore: 1, daysAgo: 13 },
-    { home: "France", away: "Sweden", homeScore: 3, awayScore: 0, daysAgo: 13 },
-    { home: "Brazil", away: "Uruguay", homeScore: 1, awayScore: 1, daysAgo: 12 },
-    { home: "Colombia", away: "Ecuador", homeScore: 2, awayScore: 0, daysAgo: 12 },
-    { home: "Mexico", away: "USA", homeScore: 1, awayScore: 2, daysAgo: 11 },
-    { home: "Costa Rica", away: "Panama", homeScore: 0, awayScore: 1, daysAgo: 11 },
-    { home: "Belgium", away: "Croatia", homeScore: 1, awayScore: 2, daysAgo: 10 },
-    { home: "Denmark", away: "Serbia", homeScore: 0, awayScore: 0, daysAgo: 10 },
-    { home: "Morocco", away: "Egypt", homeScore: 1, awayScore: 0, daysAgo: 9 },
-    { home: "Algeria", away: "Nigeria", homeScore: 1, awayScore: 1, daysAgo: 9 },
-    { home: "Japan", away: "Australia", homeScore: 2, awayScore: 1, daysAgo: 8 },
-    { home: "Saudi Arabia", away: "South Korea", homeScore: 0, awayScore: 1, daysAgo: 8 },
-    { home: "Poland", away: "Ukraine", homeScore: 3, awayScore: 1, daysAgo: 7 },
-    { home: "Hungary", away: "Turkey", homeScore: 1, awayScore: 2, daysAgo: 7 },
-    // Live
-    { home: "Senegal", away: "Ghana", homeScore: 1, awayScore: 1, daysAgo: 0, state: "live", label: "LIVE" },
-    // Upcoming
-    { home: "France", away: "Iraq", homeScore: null, awayScore: null, daysAgo: -1, state: "upcoming", label: "Today 21:00 UTC" },
-    { home: "Norway", away: "Algeria", homeScore: null, awayScore: null, daysAgo: -1, state: "upcoming", label: "Tue 18:00 UTC" },
-    { home: "Argentina", away: "Chile", homeScore: null, awayScore: null, daysAgo: -1, state: "upcoming", label: "Tue 21:00 UTC" },
-    { home: "Brazil", away: "Colombia", homeScore: null, awayScore: null, daysAgo: -2, state: "upcoming", label: "Wed 00:00 UTC" },
+  const worldCupMatches: any[] = [
+    // No live matches right now - next match is France vs Iraq
   ];
 
   return worldCupMatches.map((m, i) => ({
