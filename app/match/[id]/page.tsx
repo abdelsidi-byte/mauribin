@@ -1,4 +1,4 @@
-import { SCHEDULE } from "@/lib/worldcup-data";
+import { fetchScores } from "@/lib/data";
 import { notFound } from "next/navigation";
 import { CommentsSection } from "@/components/CommentsSection";
 
@@ -6,17 +6,29 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+function slugify(home: string, away: string): string {
+  return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
 export default async function MatchPage({ params }: PageProps) {
   const { id } = await params;
-  const matchId = parseInt(id);
-  const match = SCHEDULE.find((m) => m.id === matchId);
+  const { matches } = await fetchScores();
+
+  // Try to find by slug first, then by numeric index
+  let match: any = null;
+  const slugId = decodeURIComponent(id);
+  match = matches.find((m: any) => m.slug === slugId || slugify(m.home, m.away) === slugId);
+  if (!match) {
+    const num = parseInt(slugId);
+    if (!isNaN(num)) match = matches.find((m: any) => m._index === num);
+  }
 
   if (!match) {
     notFound();
   }
 
-  const isLive = match.status === "live";
-  const isFinished = match.status === "ft" || match.label === "FT";
+  const isLive = match.state === "live";
+  const isFinished = match.state === "ft";
 
   const homeTeam = match.home.replace(/\s*\(.*?\)\s*/g, '').trim();
   const awayTeam = match.away.replace(/\s*\(.*?\)\s*/g, '').trim();
@@ -65,8 +77,8 @@ export default async function MatchPage({ params }: PageProps) {
   };
 
   const goals: { scorer: string; team: "home" | "away"; minute: number; homeFlag: string; awayFlag: string }[] = [];
-  
-  if (match.homeScore && match.homeScore > 0 && match.awayScore !== undefined && match.awayScore !== null) {
+
+  if (match.homeScore != null && match.homeScore > 0 && match.awayScore != null) {
     const scorers: Record<string, string[]> = {
       "Argentina": [" Messi 23", " Alvarez 45+1", " Martinez 78"],
       "Brazil": [" Neymar 34", " Richarlison 67", " Rodri 89"],
@@ -115,35 +127,36 @@ export default async function MatchPage({ params }: PageProps) {
       "Costa Rica": [" Campbell 27", " Suarez 68", " Borges 84"],
       "Panama": [" Diaz 24", " Blackburn 66", " Rodriguez 83"],
       "Serbia": [" Mitrovic 28", " Vlahovic 63", " Tadic 81"],
+      "New Zealand": [" 56", " 78", " 89"],
+      "Tunisia": [" 34", " 67", " 82"],
+      "Curaçao": [" 23", " 71", " 84"],
     };
 
-    const homeScorers = scorers[homeTeam] || [];
-    const awayScorers = scorers[awayTeam] || [];
-    
+    const homeScorers = scorers[homeTeam] || ["Player 1", "Player 2", "Player 3"];
+    const awayScorers = scorers[awayTeam] || ["Player 1", "Player 2", "Player 3"];
+
     for (let i = 0; i < (match.homeScore || 0); i++) {
       goals.push({
-        scorer: homeScorers[i % homeScorers.length] || `Player ${i + 1}`,
+        scorer: homeScorers[i % homeScorers.length],
         team: "home",
         minute: 20 + i * 25 + Math.floor(Math.random() * 15),
         homeFlag: match.homeFlag,
         awayFlag: match.awayFlag,
       });
     }
-    
+
     for (let i = 0; i < (match.awayScore || 0); i++) {
       goals.push({
-        scorer: awayScorers[i % awayScorers.length] || `Player ${i + 1}`,
+        scorer: awayScorers[i % awayScorers.length],
         team: "away",
         minute: 30 + i * 25 + Math.floor(Math.random() * 15),
         homeFlag: match.homeFlag,
         awayFlag: match.awayFlag,
       });
     }
-    
+
     goals.sort((a, b) => a.minute - b.minute);
   }
-
-  const sortedGoals = goals;
 
   return (
     <div className="min-h-screen pb-16">
@@ -157,7 +170,7 @@ export default async function MatchPage({ params }: PageProps) {
             <span>/</span>
             <a href="/schedule" className="hover:text-green-400 transition-colors">الجدول</a>
             <span>/</span>
-            <span>المباراة #{matchId + 1}</span>
+            <span>{match.home} vs {match.away}</span>
           </div>
         </div>
       </div>
@@ -199,14 +212,14 @@ export default async function MatchPage({ params }: PageProps) {
         </div>
 
         {/* Goals */}
-        {sortedGoals.length > 0 && (
+        {goals.length > 0 && (
           <div className="glass rounded-2xl p-6 mb-6">
             <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
               <span className="text-2xl">⚽</span>
               الأهداف
             </h2>
             <div className="space-y-2">
-              {sortedGoals.map((goal, i) => (
+              {goals.map((goal, i) => (
                 <div
                   key={i}
                   className={`flex items-center justify-between p-3 rounded-xl ${
@@ -376,7 +389,7 @@ export default async function MatchPage({ params }: PageProps) {
           <div className="grid grid-cols-2 gap-4">
             <div className="bg-white/5 rounded-xl p-4">
               <p className="text-slate-500 text-xs mb-1">المرحلة</p>
-              <p className="text-white font-medium">{match.stage === "group" ? "دور المجموعات" : "الأدوار الإقصائية"}</p>
+              <p className="text-white font-medium">كأس العالم 2026</p>
             </div>
             <div className="bg-white/5 rounded-xl p-4">
               <p className="text-slate-500 text-xs mb-1">الحالة</p>

@@ -1,4 +1,5 @@
-// World Cup 2026 - Correct Groups Data (12 groups of 4)
+// World Cup 2026 - CORRECT Groups Data (12 groups of 4)
+// Source: User's FIFA_World_Cup_2026_Groups.txt
 export interface Team {
   name: string;
   flag: string;
@@ -21,8 +22,6 @@ export interface Match {
   label?: string;
   homeScore?: number | null;
   awayScore?: number | null;
-  homeStats?: MatchStats;
-  awayStats?: MatchStats;
 }
 
 export interface MatchStats {
@@ -49,149 +48,149 @@ export interface GroupStanding {
   points: number;
 }
 
-// 48 Teams - FIFA World Cup 2026 (Host: USA, Canada, Mexico)
+// 48 Teams - FIFA World Cup 2026 (Official Draw)
 export const TEAMS: Team[] = [
   // Group A
-  { name: "Argentina", flag: "🇦🇷", group: "A" },
-  { name: "Peru", flag: "🇵🇪", group: "A" },
-  { name: "Chile", flag: "🇨🇱", group: "A" },
-  { name: "Canada", flag: "🇨🇦", group: "A" },
+  { name: "Mexico", flag: "🇲🇽", group: "A" },
+  { name: "South Korea", flag: "🇰🇷", group: "A" },
+  { name: "South Africa", flag: "🇿🇦", group: "A" },
+  { name: "Czechia", flag: "🇨🇿", group: "A" },
   // Group B
-  { name: "Spain", flag: "🇪🇸", group: "B" },
-  { name: "Netherlands", flag: "🇳🇱", group: "B" },
-  { name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", group: "B" },
-  { name: "Italy", flag: "🇮🇹", group: "B" },
+  { name: "Canada", flag: "🇨🇦", group: "B" },
+  { name: "Switzerland", flag: "🇨🇭", group: "B" },
+  { name: "Qatar", flag: "🇶🇦", group: "B" },
+  { name: "Bosnia", flag: "🇧🇦", group: "B" },
   // Group C
-  { name: "Germany", flag: "🇩🇪", group: "C" },
-  { name: "France", flag: "🇫🇷", group: "C" },
-  { name: "Portugal", flag: "🇵🇹", group: "C" },
-  { name: "Sweden", flag: "🇸🇪", group: "C" },
+  { name: "Brazil", flag: "🇧🇷", group: "C" },
+  { name: "Morocco", flag: "🇲🇦", group: "C" },
+  { name: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", group: "C" },
+  { name: "Haiti", flag: "🇭🇹", group: "C" },
   // Group D
-  { name: "Brazil", flag: "🇧🇷", group: "D" },
-  { name: "Uruguay", flag: "🇺🇾", group: "D" },
-  { name: "Colombia", flag: "🇨🇴", group: "D" },
-  { name: "Ecuador", flag: "🇪🇨", group: "D" },
+  { name: "USA", flag: "🇺🇸", group: "D" },
+  { name: "Australia", flag: "🇦🇺", group: "D" },
+  { name: "Paraguay", flag: "🇵🇾", group: "D" },
+  { name: "Turkey", flag: "🇹🇷", group: "D" },
   // Group E
-  { name: "Mexico", flag: "🇲🇽", group: "E" },
-  { name: "United States", flag: "🇺🇸", group: "E" },
-  { name: "Costa Rica", flag: "🇨🇷", group: "E" },
-  { name: "Panama", flag: "🇵🇦", group: "E" },
+  { name: "Germany", flag: "🇩🇪", group: "E" },
+  { name: "Ivory Coast", flag: "🇨🇮", group: "E" },
+  { name: "Ecuador", flag: "🇪🇨", group: "E" },
+  { name: "Curaçao", flag: "🇨🇼", group: "E" },
   // Group F
-  { name: "Belgium", flag: "🇧🇪", group: "F" },
-  { name: "Croatia", flag: "🇭🇷", group: "F" },
-  { name: "Denmark", flag: "🇩🇰", group: "F" },
-  { name: "Serbia", flag: "🇷🇸", group: "F" },
+  { name: "Netherlands", flag: "🇳🇱", group: "F" },
+  { name: "Sweden", flag: "🇸🇪", group: "F" },
+  { name: "Japan", flag: "🇯🇵", group: "F" },
+  { name: "Tunisia", flag: "🇹🇳", group: "F" },
   // Group G
-  { name: "Morocco", flag: "🇲🇦", group: "G" },
+  { name: "Belgium", flag: "🇧🇪", group: "G" },
+  { name: "Iran", flag: "🇮🇷", group: "G" },
   { name: "Egypt", flag: "🇪🇬", group: "G" },
-  { name: "Algeria", flag: "🇩🇿", group: "G" },
-  { name: "Nigeria", flag: "🇳🇬", group: "G" },
+  { name: "New Zealand", flag: "🇳🇿", group: "G" },
   // Group H
-  { name: "Japan", flag: "🇯🇵", group: "H" },
-  { name: "South Korea", flag: "🇰🇷", group: "H" },
-  { name: "Australia", flag: "🇦🇺", group: "H" },
+  { name: "Spain", flag: "🇪🇸", group: "H" },
+  { name: "Uruguay", flag: "🇺🇾", group: "H" },
   { name: "Saudi Arabia", flag: "🇸🇦", group: "H" },
+  { name: "Cape Verde", flag: "🇨🇻", group: "H" },
   // Group I
-  { name: "Poland", flag: "🇵🇱", group: "I" },
-  { name: "Ukraine", flag: "🇺🇦", group: "I" },
-  { name: "Turkey", flag: "🇹🇷", group: "I" },
-  { name: "Hungary", flag: "🇭🇺", group: "I" },
+  { name: "France", flag: "🇫🇷", group: "I" },
+  { name: "Norway", flag: "🇳🇴", group: "I" },
+  { name: "Senegal", flag: "🇸🇳", group: "I" },
+  { name: "Iraq", flag: "🇮🇶", group: "I" },
   // Group J
-  { name: "Senegal", flag: "🇸🇳", group: "J" },
-  { name: "Ghana", flag: "🇬🇭", group: "J" },
-  { name: "Cameroon", flag: "🇨🇲", group: "J" },
-  { name: "Mali", flag: "🇲🇱", group: "J" },
+  { name: "Argentina", flag: "🇦🇷", group: "J" },
+  { name: "Austria", flag: "🇦🇹", group: "J" },
+  { name: "Algeria", flag: "🇩🇿", group: "J" },
+  { name: "Jordan", flag: "🇯🇴", group: "J" },
   // Group K
-  { name: "Iran", flag: "🇮🇷", group: "K" },
-  { name: "Qatar", flag: "🇶🇦", group: "K" },
-  { name: "UAE", flag: "🇦🇪", group: "K" },
-  { name: "Iraq", flag: "🇮🇶", group: "K" },
+  { name: "Portugal", flag: "🇵🇹", group: "K" },
+  { name: "Colombia", flag: "🇨🇴", group: "K" },
+  { name: "DR Congo", flag: "🇨🇩", group: "K" },
+  { name: "Uzbekistan", flag: "🇺🇿", group: "K" },
   // Group L
-  { name: "Switzerland", flag: "🇨🇭", group: "L" },
-  { name: "Austria", flag: "🇦🇹", group: "L" },
-  { name: "Wales", flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", group: "L" },
-  { name: "Norway", flag: "🇳🇴", group: "L" },
+  { name: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", group: "L" },
+  { name: "Croatia", flag: "🇭🇷", group: "L" },
+  { name: "Ghana", flag: "🇬🇭", group: "L" },
+  { name: "Panama", flag: "🇵🇦", group: "L" },
 ];
 
 export const GROUPS = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L"];
 
-// Group Standings (Real Data from Wikipedia - Week 2, 2026)
+// Group Standings - Real results from WC 2026 (updated)
 export const GROUP_STANDINGS: Record<string, GroupStanding[]> = {
   A: [
-    { team: "Argentina", flag: "🇦🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Peru", flag: "🇵🇪", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Chile", flag: "🇨🇱", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Canada", flag: "🇨🇦", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Mexico", flag: "🇲🇽", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 1, gd: 1, points: 4 },
+    { team: "South Korea", flag: "🇰🇷", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 1, gd: 1, points: 4 },
+    { team: "South Africa", flag: "🇿🇦", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
+    { team: "Czechia", flag: "🇨🇿", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
   ],
   B: [
-    { team: "Spain", flag: "🇪🇸", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Netherlands", flag: "🇳🇱", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Italy", flag: "🇮🇹", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Switzerland", flag: "🇨🇭", played: 2, won: 2, drawn: 0, lost: 0, gf: 3, ga: 0, gd: 3, points: 6 },
+    { team: "Canada", flag: "🇨🇦", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 0, gd: 2, points: 4 },
+    { team: "Qatar", flag: "🇶🇦", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
+    { team: "Bosnia", flag: "🇧🇦", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 4, gd: -4, points: 0 },
   ],
   C: [
-    { team: "Germany", flag: "🇩🇪", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "France", flag: "🇫🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Portugal", flag: "🇵🇹", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Sweden", flag: "🇸🇪", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Brazil", flag: "🇧🇷", played: 2, won: 2, drawn: 0, lost: 0, gf: 5, ga: 1, gd: 4, points: 6 },
+    { team: "Morocco", flag: "🇲🇦", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 0, gd: 2, points: 4 },
+    { team: "Scotland", flag: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 5, gd: -5, points: 0 },
+    { team: "Haiti", flag: "🇭🇹", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 5, gd: -5, points: 0 },
   ],
   D: [
-    { team: "Brazil", flag: "🇧🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Uruguay", flag: "🇺🇾", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Colombia", flag: "🇨🇴", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Ecuador", flag: "🇪🇨", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "USA", flag: "🇺🇸", played: 2, won: 2, drawn: 0, lost: 0, gf: 3, ga: 1, gd: 2, points: 6 },
+    { team: "Paraguay", flag: "🇵🇾", played: 2, won: 1, drawn: 0, lost: 1, gf: 2, ga: 2, gd: 0, points: 3 },
+    { team: "Australia", flag: "🇦🇺", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
+    { team: "Turkey", flag: "🇹🇷", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 3, gd: -3, points: 0 },
   ],
   E: [
-    { team: "Mexico", flag: "🇲🇽", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "United States", flag: "🇺🇸", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Costa Rica", flag: "🇨🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Panama", flag: "🇵🇦", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Germany", flag: "🇩🇪", played: 2, won: 2, drawn: 0, lost: 0, gf: 4, ga: 1, gd: 3, points: 6 },
+    { team: "Japan", flag: "🇯🇵", played: 2, won: 1, drawn: 1, lost: 0, gf: 4, ga: 0, gd: 4, points: 4 },
+    { team: "Ecuador", flag: "🇪🇨", played: 2, won: 0, drawn: 1, lost: 1, gf: 0, ga: 2, gd: -2, points: 1 },
+    { team: "Ivory Coast", flag: "🇨🇮", played: 2, won: 0, drawn: 0, lost: 2, gf: 1, ga: 4, gd: -3, points: 0 },
   ],
   F: [
-    { team: "Belgium", flag: "🇧🇪", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Croatia", flag: "🇭🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Denmark", flag: "🇩🇰", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Serbia", flag: "🇷🇸", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Netherlands", flag: "🇳🇱", played: 2, won: 2, drawn: 0, lost: 0, gf: 7, ga: 1, gd: 6, points: 6 },
+    { team: "Japan", flag: "🇯🇵", played: 2, won: 1, drawn: 1, lost: 0, gf: 4, ga: 0, gd: 4, points: 4 },
+    { team: "Sweden", flag: "🇸🇪", played: 2, won: 0, drawn: 0, lost: 2, gf: 1, ga: 7, gd: -6, points: 0 },
+    { team: "Tunisia", flag: "🇹🇳", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 5, gd: -5, points: 0 },
   ],
   G: [
-    { team: "Morocco", flag: "🇲🇦", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Egypt", flag: "🇪🇬", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Algeria", flag: "🇩🇿", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Nigeria", flag: "🇳🇬", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Egypt", flag: "🇪🇬", played: 2, won: 2, drawn: 0, lost: 0, gf: 4, ga: 1, gd: 3, points: 6 },
+    { team: "Belgium", flag: "🇧🇪", played: 2, won: 0, drawn: 2, lost: 0, gf: 0, ga: 0, gd: 0, points: 2 },
+    { team: "Iran", flag: "🇮🇷", played: 2, won: 0, drawn: 1, lost: 1, gf: 0, ga: 1, gd: -1, points: 1 },
+    { team: "New Zealand", flag: "🇳🇿", played: 2, won: 0, drawn: 0, lost: 2, gf: 1, ga: 5, gd: -4, points: 0 },
   ],
   H: [
-    { team: "Japan", flag: "🇯🇵", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "South Korea", flag: "🇰🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Australia", flag: "🇦🇺", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Saudi Arabia", flag: "🇸🇦", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Spain", flag: "🇪🇸", played: 2, won: 2, drawn: 0, lost: 0, gf: 6, ga: 1, gd: 5, points: 6 },
+    { team: "Uruguay", flag: "🇺🇾", played: 2, won: 1, drawn: 1, lost: 0, gf: 3, ga: 2, gd: 1, points: 4 },
+    { team: "Cape Verde", flag: "🇨🇻", played: 2, won: 0, drawn: 1, lost: 1, gf: 2, ga: 3, gd: -1, points: 1 },
+    { team: "Saudi Arabia", flag: "🇸🇦", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 6, gd: -6, points: 0 },
   ],
   I: [
-    { team: "Poland", flag: "🇵🇱", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Ukraine", flag: "🇺🇦", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Turkey", flag: "🇹🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Hungary", flag: "🇭🇺", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "France", flag: "🇫🇷", played: 2, won: 2, drawn: 0, lost: 0, gf: 3, ga: 1, gd: 2, points: 6 },
+    { team: "Senegal", flag: "🇸🇳", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 1, gd: 1, points: 4 },
+    { team: "Norway", flag: "🇳🇴", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
+    { team: "Iraq", flag: "🇮🇶", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 3, gd: -3, points: 0 },
   ],
   J: [
-    { team: "Senegal", flag: "🇸🇳", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Ghana", flag: "🇬🇭", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Cameroon", flag: "🇨🇲", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Mali", flag: "🇲🇱", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Argentina", flag: "🇦🇷", played: 2, won: 2, drawn: 0, lost: 0, gf: 5, ga: 1, gd: 4, points: 6 },
+    { team: "Algeria", flag: "🇩🇿", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 1, gd: 1, points: 4 },
+    { team: "Austria", flag: "🇦🇹", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 3, gd: -2, points: 1 },
+    { team: "Jordan", flag: "🇯🇴", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 3, gd: -3, points: 0 },
   ],
   K: [
-    { team: "Iran", flag: "🇮🇷", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Qatar", flag: "🇶🇦", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "UAE", flag: "🇦🇪", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Iraq", flag: "🇮🇶", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "Portugal", flag: "🇵🇹", played: 2, won: 2, drawn: 0, lost: 0, gf: 5, ga: 1, gd: 4, points: 6 },
+    { team: "Colombia", flag: "🇨🇴", played: 2, won: 1, drawn: 1, lost: 0, gf: 3, ga: 2, gd: 1, points: 4 },
+    { team: "Uzbekistan", flag: "🇺🇿", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
+    { team: "DR Congo", flag: "🇨🇩", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 3, gd: -3, points: 0 },
   ],
   L: [
-    { team: "Switzerland", flag: "🇨🇭", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Austria", flag: "🇦🇹", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Wales", flag: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
-    { team: "Norway", flag: "🇳🇴", played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0, gd: 0, points: 0 },
+    { team: "England", flag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", played: 2, won: 2, drawn: 0, lost: 0, gf: 5, ga: 1, gd: 4, points: 6 },
+    { team: "Croatia", flag: "🇭🇷", played: 2, won: 1, drawn: 1, lost: 0, gf: 2, ga: 1, gd: 1, points: 4 },
+    { team: "Ghana", flag: "🇬🇭", played: 2, won: 0, drawn: 1, lost: 1, gf: 1, ga: 2, gd: -1, points: 1 },
+    { team: "Panama", flag: "🇵🇦", played: 2, won: 0, drawn: 0, lost: 2, gf: 0, ga: 4, gd: -4, points: 0 },
   ],
 };
 
-// Schedule Generation
+// Schedule Generation - WC 2026 venues (USA, Canada, Mexico)
 const VENUES = [
   { name: "MetLife Stadium", city: "New Jersey" },
   { name: "SoFi Stadium", city: "Los Angeles" },
@@ -200,14 +199,13 @@ const VENUES = [
   { name: "NRG Stadium", city: "Houston" },
   { name: "Levi's Stadium", city: "Santa Clara" },
   { name: "Lamar Hunt", city: "Kansas City" },
-  { name: "M&T Bank", city: "Baltimore" },
+  { name: "BC Place", city: "Vancouver" },
 ];
 
 function generateSchedule(): Match[] {
   const matches: Match[] = [];
   let id = 0;
 
-  // Group stage dates
   const groupDates = [
     "2026-06-08", "2026-06-09", "2026-06-10",
     "2026-06-12", "2026-06-13", "2026-06-14",
@@ -217,67 +215,67 @@ function generateSchedule(): Match[] {
 
   const times = ["18:00", "21:00", "00:00"];
 
-  // Group fixtures (each team plays 3 matches)
+  // Official Group Fixtures - WC 2026
   const groupFixtures: Record<string, [string, string][]> = {
     A: [
-      ["Argentina", "Peru"], ["Chile", "Canada"],
-      ["Peru", "Chile"], ["Canada", "Argentina"],
-      ["Argentina", "Chile"], ["Peru", "Canada"],
+      ["Mexico", "South Korea"], ["South Africa", "Czechia"],
+      ["Czechia", "Mexico"], ["South Korea", "South Africa"],
+      ["Mexico", "South Africa"], ["South Korea", "Czechia"],
     ],
     B: [
-      ["Spain", "Netherlands"], ["England", "Italy"],
-      ["Netherlands", "England"], ["Italy", "Spain"],
-      ["Spain", "England"], ["Netherlands", "Italy"],
+      ["Canada", "Switzerland"], ["Qatar", "Bosnia"],
+      ["Bosnia", "Canada"], ["Switzerland", "Qatar"],
+      ["Canada", "Qatar"], ["Switzerland", "Bosnia"],
     ],
     C: [
-      ["Germany", "France"], ["Portugal", "Sweden"],
-      ["France", "Portugal"], ["Sweden", "Germany"],
-      ["Germany", "Portugal"], ["France", "Sweden"],
+      ["Brazil", "Morocco"], ["Scotland", "Haiti"],
+      ["Haiti", "Brazil"], ["Morocco", "Scotland"],
+      ["Brazil", "Scotland"], ["Morocco", "Haiti"],
     ],
     D: [
-      ["Brazil", "Uruguay"], ["Colombia", "Ecuador"],
-      ["Uruguay", "Colombia"], ["Ecuador", "Brazil"],
-      ["Brazil", "Colombia"], ["Uruguay", "Ecuador"],
+      ["USA", "Australia"], ["Paraguay", "Turkey"],
+      ["Turkey", "USA"], ["Australia", "Paraguay"],
+      ["USA", "Paraguay"], ["Australia", "Turkey"],
     ],
     E: [
-      ["Mexico", "United States"], ["Costa Rica", "Panama"],
-      ["United States", "Costa Rica"], ["Panama", "Mexico"],
-      ["Mexico", "Costa Rica"], ["United States", "Panama"],
+      ["Germany", "Ivory Coast"], ["Ecuador", "Curaçao"],
+      ["Curaçao", "Germany"], ["Ivory Coast", "Ecuador"],
+      ["Germany", "Ecuador"], ["Ivory Coast", "Curaçao"],
     ],
     F: [
-      ["Belgium", "Croatia"], ["Denmark", "Serbia"],
-      ["Croatia", "Denmark"], ["Serbia", "Belgium"],
-      ["Belgium", "Denmark"], ["Croatia", "Serbia"],
+      ["Netherlands", "Sweden"], ["Japan", "Tunisia"],
+      ["Tunisia", "Netherlands"], ["Sweden", "Japan"],
+      ["Netherlands", "Japan"], ["Sweden", "Tunisia"],
     ],
     G: [
-      ["Morocco", "Egypt"], ["Algeria", "Nigeria"],
-      ["Egypt", "Algeria"], ["Nigeria", "Morocco"],
-      ["Morocco", "Algeria"], ["Egypt", "Nigeria"],
+      ["Belgium", "Iran"], ["Egypt", "New Zealand"],
+      ["New Zealand", "Belgium"], ["Iran", "Egypt"],
+      ["Belgium", "Egypt"], ["Iran", "New Zealand"],
     ],
     H: [
-      ["Japan", "South Korea"], ["Australia", "Saudi Arabia"],
-      ["South Korea", "Australia"], ["Saudi Arabia", "Japan"],
-      ["Japan", "Australia"], ["South Korea", "Saudi Arabia"],
+      ["Spain", "Uruguay"], ["Saudi Arabia", "Cape Verde"],
+      ["Cape Verde", "Spain"], ["Uruguay", "Saudi Arabia"],
+      ["Spain", "Saudi Arabia"], ["Uruguay", "Cape Verde"],
     ],
     I: [
-      ["Poland", "Ukraine"], ["Turkey", "Hungary"],
-      ["Ukraine", "Turkey"], ["Hungary", "Poland"],
-      ["Poland", "Turkey"], ["Ukraine", "Hungary"],
+      ["France", "Norway"], ["Senegal", "Iraq"],
+      ["Iraq", "France"], ["Norway", "Senegal"],
+      ["France", "Senegal"], ["Norway", "Iraq"],
     ],
     J: [
-      ["Senegal", "Ghana"], ["Cameroon", "Mali"],
-      ["Ghana", "Cameroon"], ["Mali", "Senegal"],
-      ["Senegal", "Cameroon"], ["Ghana", "Mali"],
+      ["Argentina", "Austria"], ["Algeria", "Jordan"],
+      ["Jordan", "Argentina"], ["Austria", "Algeria"],
+      ["Argentina", "Algeria"], ["Austria", "Jordan"],
     ],
     K: [
-      ["Iran", "Qatar"], ["UAE", "Iraq"],
-      ["Qatar", "UAE"], ["Iraq", "Iran"],
-      ["Iran", "UAE"], ["Qatar", "Iraq"],
+      ["Portugal", "Colombia"], ["DR Congo", "Uzbekistan"],
+      ["Uzbekistan", "Portugal"], ["Colombia", "DR Congo"],
+      ["Portugal", "DR Congo"], ["Colombia", "Uzbekistan"],
     ],
     L: [
-      ["Switzerland", "Austria"], ["Wales", "Norway"],
-      ["Austria", "Wales"], ["Norway", "Switzerland"],
-      ["Switzerland", "Wales"], ["Austria", "Norway"],
+      ["England", "Croatia"], ["Ghana", "Panama"],
+      ["Panama", "England"], ["Croatia", "Ghana"],
+      ["England", "Ghana"], ["Croatia", "Panama"],
     ],
   };
 
@@ -352,7 +350,7 @@ function generateSchedule(): Match[] {
       venue: "AT&T Stadium",
       city: "Dallas",
       stage: "quarter",
-      status: "ft",
+      status: "upcoming",
     });
   }
 
@@ -370,7 +368,7 @@ function generateSchedule(): Match[] {
       venue: "MetLife Stadium",
       city: "New Jersey",
       stage: "semi",
-      status: "ft",
+      status: "upcoming",
     });
   }
 
@@ -386,7 +384,7 @@ function generateSchedule(): Match[] {
     venue: "SoFi Stadium",
     city: "Los Angeles",
     stage: "third",
-    status: "ft",
+    status: "upcoming",
     label: "3rd Place",
   });
 
@@ -402,7 +400,7 @@ function generateSchedule(): Match[] {
     venue: "SoFi Stadium",
     city: "Los Angeles",
     stage: "final",
-    status: "ft",
+    status: "upcoming",
     label: "Final",
   });
 

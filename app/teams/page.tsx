@@ -1,10 +1,16 @@
 import { GROUPS, TEAMS } from "@/lib/worldcup-data";
 
+const GROUP_NAMES: Record<string, string> = {
+  A: "المجموعة أ", B: "المجموعة ب", C: "المجموعة ج", D: "المجموعة د",
+  E: "المجموعة هـ", F: "المجموعة و", G: "المجموعة ز", H: "المجموعة ح",
+  I: "المجموعة ط", J: "المجموعة ي", K: "المجموعة ك", L: "المجموعة ل",
+};
+
 export default function TeamsPage() {
   return (
     <div className="min-h-screen pb-16">
       {/* Header */}
-      <div className="relative overflow-hidden bg-gradient-to-br from-emerald-900 via-green-800 to-emerald-950">
+      <div className="relative overflow-hidden bg-gradient-to-br from-green-900 via-green-800 to-green-950">
         <div className="absolute inset-0 opacity-10">
           <div className="absolute inset-0" style={{
             backgroundImage: "repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.05) 40px, rgba(255,255,255,0.05) 80px)",
@@ -12,9 +18,9 @@ export default function TeamsPage() {
         </div>
         <div className="container mx-auto px-4 py-12 relative">
           <h1 className="text-4xl md:text-5xl font-bold text-white text-center mb-2">
-            👥 المنتخبات المشاركة
+            🏆 المنتخبات المشاركة
           </h1>
-          <p className="text-emerald-200 text-center">48 منتخب في 12 مجموعة</p>
+          <p className="text-green-200 text-center">48 منتخب في 12 مجموعة</p>
         </div>
       </div>
 
@@ -24,11 +30,11 @@ export default function TeamsPage() {
           {GROUPS.map((group) => {
             const groupTeams = TEAMS.filter((t) => t.group === group);
             return (
-              <div key={group} className="glass-card rounded-2xl overflow-hidden">
+              <div key={group} className="glass rounded-2xl overflow-hidden">
                 {/* Group Header */}
-                <div className="bg-gradient-to-r from-emerald-600 to-green-700 px-4 py-3">
+                <div className="bg-gradient-to-r from-green-600 to-green-700 px-4 py-3">
                   <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                    <span>المجموعة</span>
+                    <span>{GROUP_NAMES[group]}</span>
                     <span className="text-xl">{group}</span>
                   </h2>
                 </div>

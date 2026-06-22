@@ -3,6 +3,7 @@ import Link from "next/link";
 
 interface Match {
   _index: number;
+  slug?: string;
   home: string;
   away: string;
   homeFlag: string;
@@ -148,7 +149,7 @@ export function ClientHome({ matches, articles }: ClientHomeProps) {
 
               {liveMatches[0] && (
                 <Link
-                  href={`/match/${liveMatches[0]._index}`}
+                  href={`/match/${liveMatches[0].slug || liveMatches[0]._index}`}
                   className="group relative block rounded-3xl p-6 md:p-10 bg-gradient-to-br from-slate-900/95 to-slate-950 border-2 border-red-500/40 hover:border-red-500/70 transition-all overflow-hidden"
                 >
                   <div className="absolute inset-0 rounded-3xl border-2 border-red-500/30 animate-pulse pointer-events-none" />
@@ -191,7 +192,7 @@ export function ClientHome({ matches, articles }: ClientHomeProps) {
             </div>
           )}
 
-          {/* Results */}
+          {/* Results - Horizontal Scroll */}
           {finishedMatches.length > 0 && (
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
@@ -199,32 +200,29 @@ export function ClientHome({ matches, articles }: ClientHomeProps) {
                 <div className="flex-1 h-px bg-gradient-to-r from-[#006233]/40 to-transparent" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {finishedMatches.slice(0, 9).map((match) => (
+              <div className="flex overflow-x-auto hide-scrollbar gap-3 pb-2">
+                {finishedMatches.slice(0, 12).map((match) => (
                   <Link
                     key={match._index}
-                    href={`/match/${match._index}`}
-                    className="group relative rounded-2xl p-4 bg-slate-900/70 border border-slate-800 hover:border-[#006233]/60 hover:bg-slate-900 transition-all"
+                    href={`/match/${match.slug || match._index}`}
+                    className="group shrink-0 rounded-2xl p-4 bg-slate-900/80 border border-slate-800 hover:border-[#006233]/60 hover:bg-slate-900 transition-all min-w-[220px]"
                   >
-                    <div className="flex items-center justify-between gap-3" dir="rtl">
-                      {/* Home */}
-                      <div className="flex-1 text-right min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5 justify-end">
-                          <span className="text-white font-medium text-sm truncate">{teamAr(match.home)}</span>
-                          <span className="text-2xl shrink-0">{match.homeFlag}</span>
-                        </div>
-                        <div className="flex items-center gap-2 justify-end">
-                          <span className="text-white font-medium text-sm truncate">{teamAr(match.away)}</span>
-                          <span className="text-2xl shrink-0">{match.awayFlag}</span>
-                        </div>
+                    <div className="flex flex-col items-center gap-2" dir="rtl">
+                      {/* Teams */}
+                      <div className="flex items-center gap-3 w-full justify-between">
+                        <span className="text-white font-medium text-sm">{teamAr(match.home)}</span>
+                        <span className="text-2xl">{match.homeFlag}</span>
                       </div>
-
+                      <div className="flex items-center gap-3 w-full justify-between">
+                        <span className="text-white font-medium text-sm">{teamAr(match.away)}</span>
+                        <span className="text-2xl">{match.awayFlag}</span>
+                      </div>
                       {/* Score */}
-                      <div className="text-center shrink-0 px-3 py-1 rounded-xl bg-slate-950 border border-slate-800">
-                        <div className="text-xl md:text-2xl font-black text-white tabular-nums whitespace-nowrap">
+                      <div className="text-center px-4 py-1.5 rounded-xl bg-slate-950 border border-slate-800 mt-1">
+                        <div className="text-xl font-black text-white tabular-nums">
                           {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
                         </div>
-                        <div className="text-[10px] text-[#FFD700] font-bold mt-0.5">انتهت</div>
+                        <div className="text-[10px] text-[#FFD700] font-bold">انتهت</div>
                       </div>
                     </div>
                   </Link>
@@ -233,7 +231,7 @@ export function ClientHome({ matches, articles }: ClientHomeProps) {
             </div>
           )}
 
-          {/* Upcoming */}
+          {/* Upcoming - Horizontal Scroll */}
           {upcomingMatches.length > 0 && (
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
@@ -241,30 +239,27 @@ export function ClientHome({ matches, articles }: ClientHomeProps) {
                 <div className="flex-1 h-px bg-gradient-to-r from-[#FFD700]/30 to-transparent" />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {upcomingMatches.slice(0, 6).map((match) => (
+              <div className="flex overflow-x-auto hide-scrollbar gap-3 pb-2">
+                {upcomingMatches.slice(0, 8).map((match) => (
                   <Link
                     key={match._index}
-                    href={`/match/${match._index}`}
-                    className="group rounded-2xl p-4 bg-slate-900/70 border border-slate-800 hover:border-[#FFD700]/50 hover:bg-slate-900 transition-all"
+                    href={`/match/${match.slug || match._index}`}
+                    className="group shrink-0 rounded-2xl p-4 bg-slate-900/80 border border-slate-800 hover:border-[#FFD700]/50 hover:bg-slate-900 transition-all min-w-[220px]"
                   >
-                    <div className="flex items-center justify-between gap-3" dir="rtl">
-                      {/* Home */}
-                      <div className="flex-1 text-right min-w-0">
-                        <div className="flex items-center gap-2 mb-1.5 justify-end">
-                          <span className="text-slate-200 font-medium text-sm truncate">{teamAr(match.home)}</span>
-                          <span className="text-2xl shrink-0">{match.homeFlag}</span>
-                        </div>
-                        <div className="flex items-center gap-2 justify-end">
-                          <span className="text-slate-200 font-medium text-sm truncate">{teamAr(match.away)}</span>
-                          <span className="text-2xl shrink-0">{match.awayFlag}</span>
-                        </div>
+                    <div className="flex flex-col items-center gap-2" dir="rtl">
+                      {/* Teams */}
+                      <div className="flex items-center gap-3 w-full justify-between">
+                        <span className="text-slate-200 font-medium text-sm">{teamAr(match.home)}</span>
+                        <span className="text-2xl">{match.homeFlag}</span>
                       </div>
-
+                      <div className="flex items-center gap-3 w-full justify-between">
+                        <span className="text-slate-200 font-medium text-sm">{teamAr(match.away)}</span>
+                        <span className="text-2xl">{match.awayFlag}</span>
+                      </div>
                       {/* Time */}
-                      <div className="text-center shrink-0 px-3 py-1 rounded-xl bg-slate-950 border border-slate-800">
+                      <div className="text-center px-4 py-1.5 rounded-xl bg-slate-950 border border-slate-800 mt-1">
                         <div className="text-xs text-[#FFD700] font-bold mb-0.5">قريباً</div>
-                        <div className="text-[10px] text-slate-400 whitespace-nowrap" dir="ltr">
+                        <div className="text-[10px] text-slate-400" dir="ltr">
                           {labelAr(match.state, match.label)}
                         </div>
                       </div>

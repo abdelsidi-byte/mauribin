@@ -4,6 +4,7 @@ import Link from "next/link";
 
 interface Match {
   _index: number;
+  slug?: string;
   home: string;
   away: string;
   homeFlag: string;
@@ -100,30 +101,46 @@ export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
   const items = [...matches, ...matches];
 
   return (
-    <div className="w-full relative overflow-hidden">
+    <div className="w-full relative overflow-hidden" style={{ background: "linear-gradient(90deg, #006233 0%, #004225 50%, #006233 100%)" }}>
       {/* LED Strip Background */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#006233]/50 to-black" />
-      <div className="absolute inset-0 pitch-stripes opacity-30" />
+      <div className="absolute inset-0" style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.3) 0%, rgba(0,0,0,0.5) 50%, rgba(0,0,0,0.3) 100%)" }} />
+      <div className="absolute inset-0 pitch-stripes opacity-20" />
       
-            {/* Top glow line */}
-            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ffd700]/50 to-transparent" />
+      {/* Top glow line */}
+      <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(90deg, transparent, #ffd700, transparent)" }} />
       
-            {/* Bottom glow line */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ffd700]/30 to-transparent" />
+      {/* Bottom glow line */}
+      <div className="absolute bottom-0 left-0 right-0 h-0.5" style={{ background: "linear-gradient(90deg, transparent, #ffd70044, transparent)" }} />
 
-      <div className="relative py-3">
+      {/* Live indicator - left */}
+      <div className="absolute left-0 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 pl-2">
+        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <span className="text-red-400 text-xs font-bold">LIVE</span>
+      </div>
+
+      {/* Live indicator - right */}
+      <div className="absolute right-0 top-1/2 -translate-y-1/2 z-10 flex items-center gap-1 pr-2">
+        <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
+        <span className="text-red-400 text-xs font-bold">LIVE</span>
+      </div>
+
+      <div className="relative py-3.5">
         {/* Scoreboard style container */}
-        <div className="flex items-center overflow-x-auto hide-scrollbar gap-3 px-4">
+        <div className="flex items-center overflow-x-auto hide-scrollbar gap-4 px-6">
           {matches.map((match) => (
             <Link
               key={`match-${match._index}`}
-              href={`/match/${match._index}`}
-              className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-black/60 hover:bg-black/80 border border-[#ffd700]/30 transition-all shrink-0 group"
+              href={`/match/${match.slug || match._index}`}
+              className={`inline-flex items-center gap-3 px-5 py-2.5 rounded-xl transition-all shrink-0 group ${
+                match.state === "live"
+                  ? "bg-gradient-to-r from-red-900/80 via-red-800/60 to-red-900/80 border-2 border-red-500/60 shadow-lg shadow-red-500/20"
+                  : "bg-black/70 hover:bg-black/90 border border-[#ffd700]/30"
+              }`}
             >
               {/* Home Team */}
               <div className="flex items-center gap-2">
                 <span className="text-2xl group-hover:scale-110 transition-transform">{match.homeFlag}</span>
-                <span className="text-white font-bold text-sm hidden sm:block" dir="rtl">{teamAr(match.home)}</span>
+                <span className="text-white font-bold text-sm" dir="rtl">{teamAr(match.home)}</span>
               </div>
 
               {/* Scoreboard LED Panel */}
@@ -139,15 +156,15 @@ export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
 
               {/* Away Team */}
               <div className="flex items-center gap-2">
-                <span className="text-white font-bold text-sm hidden sm:block" dir="rtl">{teamAr(match.away)}</span>
+                <span className="text-white font-bold text-sm" dir="rtl">{teamAr(match.away)}</span>
                 <span className="text-2xl group-hover:scale-110 transition-transform">{match.awayFlag}</span>
               </div>
 
               {/* Status Badge */}
               {match.state === "live" && (
-                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#d01c1f]/20 border border-[#d01c1f]/40">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#d01c1f] live-dot" />
-                  <span className="text-[#d01c1f] text-[10px] font-bold tracking-wider">مباشر</span>
+                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-red-600/80 border border-red-400/50">
+                  <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+                  <span className="text-white text-[10px] font-bold tracking-wider">مباشر</span>
                 </div>
               )}
               {match.state === "halftime" && (
@@ -155,13 +172,13 @@ export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
                   <span className="text-[#ffd700] text-[10px] font-bold">الشوط الثاني</span>
                 </div>
               )}
-              {match.state === "finished" && (
+              {(match.state === "ft" || match.state === "finished") && (
                 <div className="px-2 py-0.5 rounded-full bg-slate-500/20 border border-slate-500/40">
-                  <span className="text-slate-400 text-[10px] font-bold">انتهى</span>
+                  <span className="text-slate-400 text-[10px] font-bold">انتهت</span>
                 </div>
               )}
               {match.state === "upcoming" && (
-                <div className="px-2 py-0.5 rounded-full bg-[#006233]/20 border border-[#006233]/40">
+                <div className="px-2 py-0.5 rounded-full bg-[#006233]/40 border border-[#006233]/60">
                   <span className="text-[#ffd700] text-[10px] font-bold">قادم</span>
                 </div>
               )}
