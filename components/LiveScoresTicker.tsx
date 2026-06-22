@@ -1,7 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
+import Link from "next/link";
 
 interface Match {
+  _index: number;
   home: string;
   away: string;
   homeFlag: string;
@@ -12,80 +14,141 @@ interface Match {
   label: string;
 }
 
-export function LiveScoresTicker() {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [loading, setLoading] = useState(true);
+interface TickerProps {
+  initialMatches?: Match[];
+}
 
-  useEffect(() => {
-    async function fetchScores() {
-      try {
-        const res = await fetch("/api/live-scores");
-        const data = await res.json();
-        if (data.matches) setMatches(data.matches);
-      } catch (err) {
-        console.error("Failed to fetch scores:", err);
-      } finally {
-        setLoading(false);
+export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [matches, setMatches] = useState<Match[]>(initialMatches);
+
+  const fetchMatches = useCallback(async () => {
+    try {
+      const res = await fetch("/api/live-scores", {
+        cache: "no-store",
+        headers: { "Cache-Control": "no-cache" },
+      });
+      const data = await res.json();
+      if (data.matches && data.matches.length > 0) {
+        setMatches(data.matches);
       }
+    } catch (e) {
+      // silently keep current data
     }
-    fetchScores();
-    const interval = setInterval(fetchScores, 60000);
-    return () => clearInterval(interval);
   }, []);
 
-  if (loading || matches.length === 0) return null;
+  // Poll every 30 seconds
+  useEffect(() => {
+    fetchMatches();
+    const interval = setInterval(fetchMatches, 30_000);
+    return () => clearInterval(interval);
+  }, [fetchMatches]);
 
-  const liveMatches = matches.filter((m) => m.state === "live");
+  // Scroll animation
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el || matches.length === 0) return;
+
+    el.style.transform = "translateX(0)";
+
+    let pos = 0;
+    const speed = 50; // pixels per second
+    let lastTime = performance.now();
+
+    const animate = (currentTime: number) => {
+      const delta = (currentTime - lastTime) / 1000;
+      lastTime = currentTime;
+
+      pos += speed * delta;
+      const halfWidth = el.scrollWidth / 2;
+
+      if (pos >= halfWidth) {
+        pos = 0;
+      }
+
+      el.style.transform = `translateX(-${pos}px)`;
+      requestAnimationFrame(animate);
+    };
+
+    const animId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(animId);
+  }, [matches]);
+
+  if (!matches || matches.length === 0) return null;
+
+  // Duplicate for seamless loop
+  const items = [...matches, ...matches];
 
   return (
-    <div className="w-full bg-gradient-to-r from-green-900 via-green-800 to-green-900 border-b border-green-700 overflow-hidden">
-      {liveMatches.length > 0 && (
-        <div className="flex items-center gap-2 px-4 py-1.5 bg-green-600 animate-pulse">
-          <span className="w-2 h-2 bg-white rounded-full" />
-          <span className="text-xs font-bold tracking-widest text-white">مباشر</span>
-        </div>
-      )}
-      <div className="relative overflow-hidden">
-        <div className="animate-ticker">
-          {[...matches, ...matches].map((match, i) => (
-            <div
-              key={`${match.home}-${match.away}-${i}`}
-              className="flex items-center gap-2 px-6 py-2 whitespace-nowrap border-slate-700"
-              style={{ borderLeftWidth: "1px" }}
+    <div className="w-full relative overflow-hidden">
+      {/* LED Strip Background */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black via-[#006233]/50 to-black" />
+      <div className="absolute inset-0 pitch-stripes opacity-30" />
+      
+            {/* Top glow line */}
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ffd700]/50 to-transparent" />
+      
+            {/* Bottom glow line */}
+            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#ffd700]/30 to-transparent" />
+
+      <div className="relative py-3">
+        {/* Scoreboard style container */}
+        <div className="flex items-center overflow-x-auto hide-scrollbar gap-3 px-4">
+          {matches.map((match) => (
+            <Link
+              key={`match-${match._index}`}
+              href={`/match/${match._index}`}
+              className="inline-flex items-center gap-3 px-4 py-2 rounded-xl bg-black/60 hover:bg-black/80 border border-[#ffd700]/30 transition-all shrink-0 group"
             >
-              <span className="text-lg">{match.homeFlag}</span>
-              <span className="text-sm font-medium text-white">{match.home}</span>
-              <span className={`text-sm font-bold px-2 py-0.5 rounded ${
-                match.state === "live" ? "bg-green-600 text-white" : "bg-slate-700 text-slate-200"
-              }`}>
-                {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
-              </span>
-              <span className="text-sm font-medium text-white">{match.away}</span>
-              <span className="text-lg">{match.awayFlag}</span>
+              {/* Home Team */}
+              <div className="flex items-center gap-2">
+                <span className="text-2xl group-hover:scale-110 transition-transform">{match.homeFlag}</span>
+                <span className="text-white font-bold text-sm hidden sm:block">{match.home}</span>
+              </div>
+
+              {/* Scoreboard LED Panel */}
+              <div className="scoreboard-led rounded-lg px-3 py-1 flex items-center gap-2">
+                <span className={`led-score text-xl font-bold ${match.homeScore !== null ? 'text-green-400' : 'text-slate-500'}`}>
+                  {match.homeScore ?? "-"}
+                </span>
+                <span className="text-slate-600 text-lg font-bold">:</span>
+                <span className={`led-score text-xl font-bold ${match.awayScore !== null ? 'text-green-400' : 'text-slate-500'}`}>
+                  {match.awayScore ?? "-"}
+                </span>
+              </div>
+
+              {/* Away Team */}
+              <div className="flex items-center gap-2">
+                <span className="text-white font-bold text-sm hidden sm:block">{match.away}</span>
+                <span className="text-2xl group-hover:scale-110 transition-transform">{match.awayFlag}</span>
+              </div>
+
+              {/* Status Badge */}
               {match.state === "live" && (
-                <span className="text-xs font-bold text-green-300">● مباشر</span>
+                <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#d01c1f]/20 border border-[#d01c1f]/40">
+                  <span className="w-1.5 h-1.5 rounded-full bg-[#d01c1f] live-dot" />
+                  <span className="text-[#d01c1f] text-[10px] font-bold tracking-wider">مباشر</span>
+                </div>
+              )}
+              {match.state === "halftime" && (
+                <div className="px-2 py-0.5 rounded-full bg-[#ffd700]/20 border border-[#ffd700]/40">
+                  <span className="text-[#ffd700] text-[10px] font-bold">الشوط الثاني</span>
+                </div>
+              )}
+              {match.state === "finished" && (
+                <div className="px-2 py-0.5 rounded-full bg-slate-500/20 border border-slate-500/40">
+                  <span className="text-slate-400 text-[10px] font-bold">انتهى</span>
+                </div>
               )}
               {match.state === "upcoming" && (
-                <span className="text-xs text-slate-400">{match.label}</span>
+                <div className="px-2 py-0.5 rounded-full bg-[#006233]/20 border border-[#006233]/40">
+                  <span className="text-[#ffd700] text-[10px] font-bold">قادم</span>
+                </div>
               )}
-            </div>
+            </Link>
           ))}
         </div>
       </div>
-      <style jsx>{`
-        @keyframes ticker {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-50%); }
-        }
-        .animate-ticker {
-          animation: ticker 40s linear infinite;
-          display: flex;
-          width: max-content;
-        }
-        .animate-ticker:hover {
-          animation-play-state: paused;
-        }
-      `}</style>
     </div>
   );
 }
