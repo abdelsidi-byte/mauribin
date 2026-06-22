@@ -171,23 +171,7 @@ async function fetchBBCArabicNews(): Promise<any[]> {
 }
 
 function getFallbackMatches(): any[] {
-  const now = new Date("2026-06-23T12:00:00Z");
-  const worldCupMatches: any[] = [
-    // No live matches right now - next match is France vs Iraq
-  ];
-
-  return worldCupMatches.map((m, i) => ({
-    home: m.home,
-    away: m.away,
-    homeFlag: getFlag(m.home),
-    awayFlag: getFlag(m.away),
-    homeScore: m.homeScore,
-    awayScore: m.awayScore,
-    state: m.state || "ft",
-    label: m.label || "FT",
-    utcDate: new Date(now.getTime() - (m.daysAgo * 86400000)).toISOString(),
-    _index: i,
-  }));
+  return []; // No fake data - use API-Football only
 }
 
 export async function GET() {
