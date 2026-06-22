@@ -1,75 +1,54 @@
 import { NextResponse } from "next/server";
 
 const FLAG_MAP: Record<string, string> = {
-  Belgium: "🇧🇪",
-  Iran: "🇮🇷",
-  Spain: "🇪🇸",
-  "Saudi Arabia": "🇸🇦",
-  Tunisia: "🇹🇳",
-  Japan: "🇯🇵",
-  Ecuador: "🇪🇨",
-  "Cape Verde": "🇨🇻",
-  Germany: "🇩🇪",
-  "Ivory Coast": "🇨🇮",
-  Netherlands: "🇳🇱",
-  Sweden: "🇸🇪",
-  Turkey: "🇹🇷",
-  Paraguay: "🇵🇾",
-  Brazil: "🇧🇷",
-  Haiti: "🇭🇹",
-  Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  Morocco: "🇲🇦",
-  USA: "🇺🇸",
-  Australia: "🇦🇺",
-  Mexico: "🇲🇽",
-  "Korea Republic": "🇰🇷",
-  "New Zealand": "🇳🇿",
-  Egypt: "🇪🇬",
-  Argentina: "🇦🇷",
-  Austria: "🇦🇹",
-  France: "🇫🇷",
-  Iraq: "🇮🇶",
-  Norway: "🇳🇴",
-  Senegal: "🇸🇳",
-  Uruguay: "🇺🇾",
-  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  Italy: "🇮🇹",
-  Portugal: "🇵🇹",
-  Poland: "🇵🇱",
-  Switzerland: "🇨🇭",
-  Croatia: "🇭🇷",
-  Denmark: "🇩🇰",
-  Serbia: "🇷🇸",
-  Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
-  Ukraine: "🇺🇦",
-  Hungary: "🇭🇺",
-  "Czech Republic": "🇨🇿",
-  "South Africa": "🇿🇦",
-  "Costa Rica": "🇨🇷",
-  Panama: "🇵🇦",
-  Jamaica: "🇯🇲",
-  Canada: "🇨🇦",
-  Peru: "🇵🇪",
-  Chile: "🇨🇱",
-  Colombia: "🇨🇴",
-  Venezuela: "🇻🇪",
-  Bolivia: "🇧🇴",
-  Cameroon: "🇨🇲",
-  Mali: "🇲🇱",
-  Ghana: "🇬🇭",
-  Algeria: "🇩🇿",
-  Nigeria: "🇳🇬",
-  Qatar: "🇶🇦",
-  UAE: "🇦🇪",
-  Jordan: "🇯🇴",
-  Uzbekistan: "🇺🇿",
-  Oman: "🇴🇲",
-  Bahrain: "🇧🇭",
-  Kuwait: "🇰🇼",
-  Yemen: "🇾🇪",
-  Syria: "🇸🇾",
-  Libya: "🇱🇾",
-  Sudan: "🇸🇩",
+  Belgium: "🇧🇪", Iran: "🇮🇷", Spain: "🇪🇸", "Saudi Arabia": "🇸🇦",
+  Tunisia: "🇹🇳", Japan: "🇯🇵", Ecuador: "🇪🇨", "Cape Verde": "🇨🇻",
+  Germany: "🇩🇪", "Ivory Coast": "🇨🇮", "Côte d'Ivoire": "🇨🇮",
+  Netherlands: "🇳🇱", Sweden: "🇸🇪", Paraguay: "🇵🇾",
+  Brazil: "🇧🇷", Haiti: "🇭🇹", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Morocco: "🇲🇦",
+  USA: "🇺🇸", "United States": "🇺🇸", Australia: "🇦🇺", Mexico: "🇲🇽",
+  "Korea Republic": "🇰🇷", "South Korea": "🇰🇷", "New Zealand": "🇳🇿",
+  Egypt: "🇪🇬", Argentina: "🇦🇷", Austria: "🇦🇹", France: "🇫🇷",
+  Iraq: "🇮🇶", Norway: "🇳🇴", Senegal: "🇸🇳", Uruguay: "🇺🇾",
+  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Italy: "🇮🇹", Portugal: "🇵🇹", Poland: "🇵🇱",
+  Switzerland: "🇨🇭", Croatia: "🇭🇷", Denmark: "🇩🇰", Serbia: "🇷🇸",
+  Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", Ukraine: "🇺🇦", Hungary: "🇭🇺",
+  "Czech Republic": "🇨🇿", "Czechia": "🇨🇿", "South Africa": "🇿🇦",
+  "Costa Rica": "🇨🇷", Panama: "🇵🇦", Jamaica: "🇯🇲", Canada: "🇨🇦",
+  Peru: "🇵🇪", Chile: "🇨🇱", Colombia: "🇨🇴", Venezuela: "🇻🇪",
+  Bolivia: "🇧🇴", Cameroon: "🇨🇲", Mali: "🇲🇱", Ghana: "🇬🇭",
+  Algeria: "🇩🇿", Nigeria: "🇳🇬", Qatar: "🇶🇦", UAE: "🇦🇪",
+  Jordan: "🇯🇴", Uzbekistan: "🇺🇿", Oman: "🇴🇲", Bahrain: "🇧🇭",
+  Kuwait: "🇰🇼", Yemen: "🇾🇪", Syria: "🇸🇾", Libya: "🇱🇾", Sudan: "🇸🇩",
+  "Bosnia and Herzegovina": "🇧🇦", "Bosnia": "🇧🇦", "Dominican Republic": "🇩🇴",
+  "Curaçao": "🇨🇼", "DR Congo": "🇨🇩", "Congo": "🇨🇩",
+  "New Caledonia": "🇳🇨", "Faroe Islands": "🇫🇴", "North Korea": "🇰🇵",
+  "Republic of Ireland": "🇮🇪", Ireland: "🇮🇪", "Northern Ireland": "🇬🇧",
+  "Trinidad and Tobago": "🇹🇹", Honduras: "🇭🇳", ElSalvador: "🇸🇻",
+  "El Salvador": "🇸🇻", Guatemala: "🇬🇹", Nicaragua: "🇳🇮",
+  China: "🇨🇳", "Hong Kong": "🇭🇰", Taiwan: "🇹🇼", Macao: "🇲🇴",
+  India: "🇮🇳", Pakistan: "🇵🇰", Bangladesh: "🇧🇩", "Sri Lanka": "🇱🇰",
+  Thailand: "🇹🇭", Vietnam: "🇻🇳", Indonesia: "🇮🇩", Malaysia: "🇲🇾",
+  Singapore: "🇸🇬", Philippines: "🇵🇭", Myanmar: "🇲🇲", Cambodia: "🇰🇭",
+  Mongolia: "🇲🇳", Kazakhstan: "🇰🇿",
+  Iceland: "🇮🇸", Finland: "🇫🇮", Estonia: "🇪🇪", Latvia: "🇱🇻",
+  Lithuania: "🇱🇹", Belarus: "🇧🇾", Moldova: "🇲🇩", Romania: "🇷🇴",
+  Bulgaria: "🇧🇬", Greece: "🇬🇷", Turkey: "🇹🇷",
+  Albania: "🇦🇱", "North Macedonia": "🇲🇰", Kosovo: "🇽🇰",
+  Montenegro: "🇲🇪", Slovenia: "🇸🇮", Slovakia: "🇸🇰",
+  "Liechtenstein": "🇱🇮", Luxembourg: "🇱🇺", Malta: "🇲🇹",
+  Israel: "🇮🇱", Palestine: "🇵🇸", Lebanon: "🇱🇧",
+  Comoros: "🇰🇲", Madagascar: "🇲🇬", Mauritius: "🇲🇺", Seychelles: "🇸🇨",
+  Mauritania: "🇲🇷", "Burkina Faso": "🇧🇫",
+  "Guinea-Bissau": "🇬🇼", Guinea: "🇬🇳", "Sierra Leone": "🇸🇱",
+  Liberia: "🇱🇷", Togo: "🇹🇬", Benin: "🇧🇯", "Equatorial Guinea": "🇬🇶",
+  Gabon: "🇬🇦", "Central African Republic": "🇨🇫", Chad: "🇹🇩",
+  Niger: "🇳🇪", Gambia: "🇬🇲",
+  Uganda: "🇺🇬", Kenya: "🇰🇪", Tanzania: "🇹🇿", Rwanda: "🇷🇼",
+  Burundi: "🇧🇮", Ethiopia: "🇪🇹", Eritrea: "🇪🇷", Djibouti: "🇩🇯",
+  Somalia: "🇸🇴", "South Sudan": "🇸🇸", Zimbabwe: "🇿🇼",
+  Zambia: "🇿🇲", Malawi: "🇲🇼", Mozambique: "🇲🇿", Angola: "🇦🇴",
+  Namibia: "🇳🇦", Botswana: "🇧🇼", Lesotho: "🇱🇸", Eswatini: "🇸🇿",
 };
 
 function getFlag(team: string): string {
@@ -98,62 +77,103 @@ export interface Article {
 }
 
 async function fetchKickxoffMatches(): Promise<Match[]> {
+  const API_KEY = "c0e4608bccd8e7dc832fee613e8bc378";
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+
   try {
-    const res = await fetch("https://www.kickxoff.com/", {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" },
-      cache: "no-store",
-    });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const html = await res.text();
+    // Try fetching World Cup fixtures for yesterday, today, tomorrow
+    const dates = [yesterday, today, tomorrow];
+    const allMatches: any[] = [];
 
-    // Extract JSON data embedded in Next.js script tags
-    // Pattern: "initial":[...] or self.__next_f.push([1,"2:[..."])
-    const patterns = [
-      /"initial":(\[[\s\S]*?\])\}\]\}\]/,
-      /self\.__next_f\.push\(\[1,"2:\\"(\[[\s\S]*?\])/,
-    ];
-
-    for (const pattern of patterns) {
-      const match = html.match(pattern);
-      if (!match) continue;
-
+    for (const date of dates) {
       try {
-        // Unescape JSON
-        let jsonStr = match[1]
-          .replace(/\\"/g, '"')
-          .replace(/\\n/g, ' ')
-          .replace(/\\r/g, '')
-          .replace(/\\'/g, "'");
+        const res = await fetch(
+          `https://v3.football.api-sports.io/fixtures?date=${date}`,
+          {
+            headers: { "x-apisports-key": API_KEY },
+            cache: "no-store",
+          }
+        );
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data.errors && Object.keys(data.errors).length > 0) continue;
 
-        // Find the array of matches - it's after "initial":
-        const arrayMatch = jsonStr.match(/\[[\s\S]*?\{[\s\S]*?"home"[\s\S]*?\}\][\s\S]*?\]/);
-        if (!arrayMatch) continue;
-
-        const parsed = JSON.parse(arrayMatch[0]);
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].home) {
-          return parsed.map((m: any, i: number) => ({
-            home: m.home,
-            away: m.away,
-            homeFlag: getFlag(m.home),
-            awayFlag: getFlag(m.away),
-            homeScore: m.homeScore,
-            awayScore: m.awayScore,
-            state: m.state || (m.label?.toLowerCase().includes("ft") ? "ft" : "upcoming"),
-            label: m.label || (m.homeScore === null ? "Upcoming" : "FT"),
-            utcDate: m.utcDate,
-            _index: i,
-          }));
-        }
+        // Filter only World Cup matches
+        const wcMatches = (data.response || []).filter(
+          (f: any) => f.league?.name?.includes("World Cup")
+        );
+        allMatches.push(...wcMatches);
       } catch (e) {
         continue;
       }
     }
 
-    // Fallback to local data
-    return getFallbackMatches();
+    if (allMatches.length === 0) {
+      console.log("No WC matches from API-Football, using fallback");
+      return getFallbackMatches();
+    }
+
+    // Map API-Football response to our Match format
+    return allMatches.map((f: any, i: number) => {
+      const home = f.teams.home.name;
+      const away = f.teams.away.name;
+      const hg = f.goals.home;
+      const ag = f.goals.away;
+      const status = f.fixture.status.short; // FT, 1H, 2H, NS, etc.
+      const date = f.fixture.date;
+
+      let state = "upcoming";
+      let label = "Upcoming";
+      if (status === "FT" || status === "AET" || status === "PEN") {
+        state = "ft";
+        label = "FT";
+      } else if (["1H", "2H", "HT", "ET", "BT", "P", "LIVE"].includes(status)) {
+        state = "live";
+        label = "مباشر";
+      } else if (status === "NS") {
+        state = "upcoming";
+        label = formatUpcomingDate(date);
+      } else {
+        state = "upcoming";
+        label = status;
+      }
+
+      return {
+        home,
+        away,
+        homeFlag: getFlag(home),
+        awayFlag: getFlag(away),
+        homeScore: hg,
+        awayScore: ag,
+        state,
+        label,
+        utcDate: date,
+        _index: i,
+      };
+    });
   } catch (e) {
-    console.error("kickxoff fetch error:", e);
+    console.error("API-Football fetch error:", e);
     return getFallbackMatches();
+  }
+}
+
+function formatUpcomingDate(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    const now = new Date();
+    const hours = d.getUTCHours().toString().padStart(2, "0");
+    const mins = d.getUTCMinutes().toString().padStart(2, "0");
+
+    if (d.toDateString() === now.toDateString()) {
+      return `اليوم ${hours}:${mins} ت ع`;
+    }
+    const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    const dayName = days[d.getUTCDay()];
+    return `${dayName} ${hours}:${mins} ت ع`;
+  } catch {
+    return isoDate;
   }
 }
 

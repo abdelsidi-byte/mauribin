@@ -1,142 +1,102 @@
 import { NextResponse } from "next/server";
 
 const FLAG_MAP: Record<string, string> = {
-  Belgium: "🇧🇪",
-  Iran: "🇮🇷",
-  Spain: "🇪🇸",
-  "Saudi Arabia": "🇸🇦",
-  Tunisia: "🇹🇳",
-  Japan: "🇯🇵",
-  Ecuador: "🇪🇨",
-  "Cape Verde": "🇨🇻",
-  Germany: "🇩🇪",
-  "Ivory Coast": "🇨🇮",
-  Netherlands: "🇳🇱",
-  Sweden: "🇸🇪",
-  Turkey: "🇹🇷",
-  Paraguay: "🇵🇾",
-  Brazil: "🇧🇷",
-  Haiti: "🇭🇹",
-  Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-  Morocco: "🇲🇦",
-  USA: "🇺🇸",
-  Australia: "🇦🇺",
-  Mexico: "🇲🇽",
-  "Korea Republic": "🇰🇷",
-  "New Zealand": "🇳🇿",
-  Egypt: "🇪🇬",
-  Argentina: "🇦🇷",
-  Austria: "🇦🇹",
-  France: "🇫🇷",
-  Iraq: "🇮🇶",
-  Norway: "🇳🇴",
-  Senegal: "🇸🇳",
-  Uruguay: "🇺🇾",
-  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
-  Italy: "🇮🇹",
-  Portugal: "🇵🇹",
-  Poland: "🇵🇱",
-  Switzerland: "🇨🇭",
-  Croatia: "🇭🇷",
-  Denmark: "🇩🇰",
-  Serbia: "🇷🇸",
-  Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿",
-  Ukraine: "🇺🇦",
-  Hungary: "🇭🇺",
-  "Czech Republic": "🇨🇿",
-  "South Africa": "🇿🇦",
-  "Costa Rica": "🇨🇷",
-  Panama: "🇵🇦",
-  Canada: "🇨🇦",
-  Peru: "🇵🇪",
-  Chile: "🇨🇱",
-  Colombia: "🇨🇴",
-  "South Korea": "🇰🇷",
-  Algeria: "🇩🇿",
-  Uzbekistan: "🇺🇿",
-  Ghana: "🇬🇭",
-  Jordan: "🇯🇴",
-  Nigeria: "🇳🇬",
+  Belgium: "🇧🇪", Iran: "🇮🇷", Spain: "🇪🇸", "Saudi Arabia": "🇸🇦",
+  Tunisia: "🇹🇳", Japan: "🇯🇵", Ecuador: "🇪🇨", "Cape Verde": "🇨🇻",
+  Germany: "🇩🇪", "Ivory Coast": "🇨🇮", "Côte d'Ivoire": "🇨🇮",
+  Netherlands: "🇳🇱", Sweden: "🇸🇪", Turkey: "🇹🇷", Paraguay: "🇵🇾",
+  Brazil: "🇧🇷", Haiti: "🇭🇹", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Morocco: "🇲🇦",
+  USA: "🇺🇸", "United States": "🇺🇸", Australia: "🇦🇺", Mexico: "🇲🇽",
+  "Korea Republic": "🇰🇷", "South Korea": "🇰🇷", "New Zealand": "🇳🇿",
+  Egypt: "🇪🇬", Argentina: "🇦🇷", Austria: "🇦🇹", France: "🇫🇷",
+  Iraq: "🇮🇶", Norway: "🇳🇴", Senegal: "🇸🇳", Uruguay: "🇺🇾",
+  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Italy: "🇮🇹", Portugal: "🇵🇹", Poland: "🇵🇱",
+  Switzerland: "🇨🇭", Croatia: "🇭🇷", Denmark: "🇩🇰", Serbia: "🇷🇸",
+  Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", Ukraine: "🇺🇦", Hungary: "🇭🇺",
+  "Czech Republic": "🇨🇿", "Czechia": "🇨🇿", "South Africa": "🇿🇦",
+  "Costa Rica": "🇨🇷", Panama: "🇵🇦", Jamaica: "🇯🇲", Canada: "🇨🇦",
+  Peru: "🇵🇪", Chile: "🇨🇱", Colombia: "🇨🇴", Venezuela: "🇻🇪",
+  Bolivia: "🇧🇴", Cameroon: "🇨🇲", Mali: "🇲🇱", Ghana: "🇬🇭",
+  Algeria: "🇩🇿", Nigeria: "🇳🇬", Qatar: "🇶🇦", UAE: "🇦🇪",
+  Jordan: "🇯🇴", Uzbekistan: "🇺🇿", Oman: "🇴🇲", Bahrain: "🇧🇭",
+  Kuwait: "🇰🇼", Yemen: "🇾🇪", Syria: "🇸🇾", Libya: "🇱🇾", Sudan: "🇸🇩",
+  "Curaçao": "🇨🇼", "DR Congo": "🇨🇩",
 };
 
 function getFlag(team: string): string {
   return FLAG_MAP[team] || "🏳️";
 }
 
-function decodeHtmlEntities(str: string): string {
-  return str
-    .replace(/\\"/g, '"')
-    .replace(/\\n/g, " ")
-    .replace(/\\r/g, "")
-    .replace(/\\'/g, "'");
-}
-
 async function fetchKickxoffMatches(): Promise<any[]> {
+  const API_KEY = "c0e4608bccd8e7dc832fee613e8bc378";
+  const today = new Date().toISOString().split("T")[0];
+  const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
+  const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+  const dates = [yesterday, today, tomorrow];
+
   try {
-    const html = await fetch("https://www.kickxoff.com/", {
-      headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36" }
-    }).then(r => r.text());
-
-    // Extract JSON data embedded in the page
-    const dataMatch = html.match(/self\.__next_f\.push\(\[1,"2:(\[[\s\S]*?)\]\)\n\]/);
-    if (dataMatch) {
-      const jsonStr = dataMatch[1].replace(/\\"/g, '"').replace(/\\n/g, ' ');
-      // Parse the embedded JSON
-      const cleanJson = jsonStr.replace(/^[^[]*/, '').replace(/[^]]$/, '');
+    const allMatches: any[] = [];
+    for (const date of dates) {
       try {
-        const parsed = JSON.parse(cleanJson);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          const matches = parsed[0]?.props?.pageProps?.matches ||
-                          parsed[0]?.props?.matches ||
-                          parsed[0];
-          if (Array.isArray(matches)) {
-            return matches.map((m: any) => ({
-              home: m.home,
-              away: m.away,
-              homeFlag: getFlag(m.home),
-              awayFlag: getFlag(m.away),
-              homeScore: m.homeScore,
-              awayScore: m.awayScore,
-              state: m.state || (m.label?.toLowerCase().includes('ft') ? 'ft' : 'upcoming'),
-              label: m.label || (m.homeScore === null ? 'Upcoming' : 'FT'),
-              utcDate: m.utcDate,
-            }));
-          }
-        }
-      } catch (e) {
-        console.error("Parse error:", e);
-      }
+        const res = await fetch(
+          `https://v3.football.api-sports.io/fixtures?date=${date}`,
+          { headers: { "x-apisports-key": API_KEY }, cache: "no-store" }
+        );
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data.errors && Object.keys(data.errors).length > 0) continue;
+        const wcMatches = (data.response || []).filter(
+          (f: any) => f.league?.name?.includes("World Cup")
+        );
+        allMatches.push(...wcMatches);
+      } catch (e) { continue; }
     }
 
-    // Also try to extract from script tags
-    const scriptMatch = html.match(/"initial":(\[[\s\S]*?)\]\}\]\}\]/);
-    if (scriptMatch) {
-      try {
-        const jsonStr = scriptMatch[1].replace(/\\"/g, '"');
-        const parsed = JSON.parse(jsonStr);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          return parsed.map((m: any) => ({
-            home: m.home,
-            away: m.away,
-            homeFlag: getFlag(m.home),
-            awayFlag: getFlag(m.away),
-            homeScore: m.homeScore,
-            awayScore: m.awayScore,
-            state: m.state || (m.homeScore === null ? 'upcoming' : 'ft'),
-            label: m.label || (m.homeScore === null ? 'Upcoming' : 'FT'),
-            utcDate: m.utcDate,
-          }));
-        }
-      } catch (e) {
-        console.error("Script parse error:", e);
-      }
-    }
+    if (allMatches.length === 0) return getFallbackMatches();
 
-    return getFallbackMatches();
+    return allMatches.map((f: any, i: number) => {
+      const home = f.teams.home.name;
+      const away = f.teams.away.name;
+      const hg = f.goals.home;
+      const ag = f.goals.away;
+      const status = f.fixture.status.short;
+      const date = f.fixture.date;
+
+      let state = "upcoming";
+      let label = "Upcoming";
+      if (status === "FT" || status === "AET" || status === "PEN") {
+        state = "ft"; label = "FT";
+      } else if (["1H", "2H", "HT", "ET", "BT", "P", "LIVE"].includes(status)) {
+        state = "live"; label = "LIVE";
+      } else if (status === "NS") {
+        state = "upcoming";
+        label = formatUpcomingDate(date);
+      }
+
+      return {
+        home, away,
+        homeFlag: getFlag(home),
+        awayFlag: getFlag(away),
+        homeScore: hg, awayScore: ag,
+        state, label, utcDate: date, _index: i,
+      };
+    });
   } catch (e) {
-    console.error("kickxoff fetch error:", e);
+    console.error("API-Football error:", e);
     return getFallbackMatches();
   }
+}
+
+function formatUpcomingDate(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    const now = new Date();
+    const hours = d.getUTCHours().toString().padStart(2, "0");
+    const mins = d.getUTCMinutes().toString().padStart(2, "0");
+    if (d.toDateString() === now.toDateString()) return `اليوم ${hours}:${mins} ت ع`;
+    const days = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+    return `${days[d.getUTCDay()]} ${hours}:${mins} ت ع`;
+  } catch { return isoDate; }
 }
 
 async function fetchBBCArabicNews(): Promise<any[]> {
