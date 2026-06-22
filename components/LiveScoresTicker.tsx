@@ -18,6 +18,26 @@ interface TickerProps {
   initialMatches?: Match[];
 }
 
+const TEAM_AR: Record<string, string> = {
+  Argentina: "الأرجنتين", Austria: "النمسا", France: "فرنسا", Iraq: "العراق",
+  Norway: "النرويج", Senegal: "السنغال", Algeria: "الجزائر", Ghana: "غانا",
+  England: "إنجلترا", Italy: "إيطاليا", Germany: "ألمانيا", Portugal: "البرتغال",
+  Sweden: "السويد", Brazil: "البرازيل", Uruguay: "أوروغواي", Colombia: "كولومبيا",
+  Ecuador: "الإكوادور", Mexico: "المكسيك", USA: "أمريكا", Chile: "تشيلي",
+  Canada: "كندا", Spain: "إسبانيا", Netherlands: "هولندا", Belgium: "بلجيكا",
+  Croatia: "كرواتيا", Denmark: "الدنمارك", Serbia: "صربيا", Morocco: "المغرب",
+  Egypt: "مصر", Nigeria: "نيجيريا", Japan: "اليابان", Australia: "أستراليا",
+  "Saudi Arabia": "السعودية", "South Korea": "كوريا الجنوبية",
+  "Costa Rica": "كوستاريكا", Panama: "بنما", Peru: "بيرو", Iran: "إيران",
+  Tunisia: "تونس", "Cape Verde": "الرأس الأخضر", Turkey: "تركيا",
+  Paraguay: "باراغواي", Haiti: "هايتي", Poland: "بولندا", Ukraine: "أوكرانيا",
+  Hungary: "المجر", Switzerland: "سويسرا", Wales: "ويلز",
+  "Czech Republic": "التشيك", Cameroon: "الكاميرون", Mali: "مالي",
+  Qatar: "قطر", UAE: "الإمارات", Jordan: "الأردن", Uzbekistan: "أوزبكستان",
+  "New Zealand": "نيوزيلندا", "Ivory Coast": "ساحل العاج", Curaçao: "كوراساو",
+};
+function teamAr(name: string): string { return TEAM_AR[name] || name; }
+
 export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [matches, setMatches] = useState<Match[]>(initialMatches);
@@ -103,7 +123,7 @@ export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
               {/* Home Team */}
               <div className="flex items-center gap-2">
                 <span className="text-2xl group-hover:scale-110 transition-transform">{match.homeFlag}</span>
-                <span className="text-white font-bold text-sm hidden sm:block">{match.home}</span>
+                <span className="text-white font-bold text-sm hidden sm:block" dir="rtl">{teamAr(match.home)}</span>
               </div>
 
               {/* Scoreboard LED Panel */}
@@ -119,7 +139,7 @@ export function LiveScoresTicker({ initialMatches = [] }: TickerProps) {
 
               {/* Away Team */}
               <div className="flex items-center gap-2">
-                <span className="text-white font-bold text-sm hidden sm:block">{match.away}</span>
+                <span className="text-white font-bold text-sm hidden sm:block" dir="rtl">{teamAr(match.away)}</span>
                 <span className="text-2xl group-hover:scale-110 transition-transform">{match.awayFlag}</span>
               </div>
 

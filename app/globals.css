@@ -22,32 +22,24 @@
   
   body {
     font-family: var(--font-arabic);
-    background: linear-gradient(180deg, #004225 0%, #006233 50%, #004225 100%);
-    background-attachment: fixed;
+    background: #0a0f0d;
     color: #f1f5f9;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
     position: relative;
   }
 
-  /* Subtle grass texture overlay - Mauritanian green tint */
+  /* Subtle accent line at top only */
   body::before {
     content: '';
     position: fixed;
     top: 0;
     left: 0;
     right: 0;
-    bottom: 0;
-    background-image: 
-      repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0, 98, 51, 0.03) 2px,
-        rgba(0, 98, 51, 0.03) 4px
-      );
+    height: 3px;
+    background: linear-gradient(90deg, #006233 0%, #FFD700 50%, #D01C1F 100%);
     pointer-events: none;
-    z-index: 0;
+    z-index: 100;
   }
 
   /* Custom scrollbar - Mauritanian green & gold */
