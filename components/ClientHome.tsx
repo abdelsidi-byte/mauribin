@@ -94,48 +94,95 @@ function NextMatchHero({ match }: { match: Match }) {
   
   const homeTeam = match.home || match.team1 || "?";
   const awayTeam = match.away || match.team2 || "?";
+  const homeCrest = match.homeCrest || match.homeFlag || "";
+  const awayCrest = match.awayCrest || match.awayFlag || "";
   const homeFlag = match.homeFlag || match.team1Flag || "🏳️";
   const awayFlag = match.awayFlag || match.team2Flag || "🏳️";
+
+  // Use crest URL if available, otherwise emoji flag
+  const homeLogo = homeCrest || homeFlag;
+  const awayLogo = awayCrest || awayFlag;
+  const isHomeUrl = homeCrest.startsWith("http");
+  const isAwayUrl = awayCrest.startsWith("http");
+  const isLive = match.state === "live";
+  const homeScore = match.homeScore ?? null;
+  const awayScore = match.awayScore ?? null;
   
   return (
     <div className="mb-10 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-[#FFD700] mb-4 text-center">⚽ المباراة القادمة</h2>
+      <h2 className="text-2xl font-bold text-[#FFD700] mb-4 text-center">⚽ {isLive ? "مباراة مباشرة" : "المباراة القادمة"}</h2>
       <div className="bg-gradient-to-br from-[#006233] via-[#004225] to-[#002815] rounded-3xl p-8 shadow-2xl border border-[#FFD700]/30">
         {/* Date & Countdown */}
         <div className="text-center mb-6">
-          <p className="text-[#FFD700] text-lg font-bold mb-2">
-            {matchDate.toLocaleDateString("ar-EG", {
-              weekday: "long",
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit"
-            })}
-          </p>
-          <div className="inline-block bg-black/30 rounded-full px-6 py-2">
-            <span className="text-2xl font-black text-white">{timeUntil}</span>
-          </div>
+          {isLive ? (
+            <div className="flex items-center justify-center gap-3 mb-2">
+              <span className="relative flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+              </span>
+              <span className="text-red-400 text-2xl font-black animate-pulse">مباشر</span>
+              <span className="relative flex h-4 w-4">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
+              </span>
+            </div>
+          ) : (
+            <p className="text-[#FFD700] text-lg font-bold mb-2">
+              {matchDate.toLocaleDateString("ar-EG", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+              })}
+            </p>
+          )}
+          {!isLive && (
+            <div className="inline-block bg-black/30 rounded-full px-6 py-2">
+              <span className="text-2xl font-black text-white">{timeUntil}</span>
+            </div>
+          )}
         </div>
         
         {/* Teams */}
         <div className="flex items-center justify-between gap-4">
           {/* Home Team */}
           <div className="flex-1 text-center">
-            <div className="text-6xl mb-3">{homeFlag}</div>
+            <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
+              {isHomeUrl ? (
+                <img src={homeLogo} alt={homeTeam} className="max-h-full max-w-full object-contain" />
+              ) : (
+                <span className="text-6xl">{homeLogo}</span>
+              )}
+            </div>
             <h3 className="text-2xl font-black text-white">{teamAr(homeTeam)}</h3>
             <p className="text-slate-300 text-sm">{homeTeam}</p>
           </div>
           
           {/* VS */}
           <div className="text-center px-6">
-            <div className="text-5xl font-black text-[#FFD700]">VS</div>
-            <p className="text-slate-300 mt-2 text-sm">كأس العالم</p>
+            {isLive && homeScore !== null ? (
+              <div className="flex items-center gap-2">
+                <span className="text-4xl font-black text-white">{homeScore}</span>
+                <span className="text-2xl font-black text-[#FFD700]">-</span>
+                <span className="text-4xl font-black text-white">{awayScore}</span>
+              </div>
+            ) : (
+              <div className="text-5xl font-black text-[#FFD700]">VS</div>
+            )}
+            <p className="text-slate-300 mt-2 text-sm">{isLive ? "الدقيقة 45'" : "كأس العالم"}</p>
           </div>
           
           {/* Away Team */}
           <div className="flex-1 text-center">
-            <div className="text-6xl mb-3">{awayFlag}</div>
+            <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
+              {isAwayUrl ? (
+                <img src={awayLogo} alt={awayTeam} className="max-h-full max-w-full object-contain" />
+              ) : (
+                <span className="text-6xl">{awayLogo}</span>
+              )}
+            </div>
             <h3 className="text-2xl font-black text-white">{teamAr(awayTeam)}</h3>
             <p className="text-slate-300 text-sm">{awayTeam}</p>
           </div>
