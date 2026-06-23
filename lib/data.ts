@@ -171,9 +171,9 @@ function getFallbackMatches(): Match[] {
     { home: "Uruguay", away: "Cape Verde", homeScore: 2, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 4 },
     { home: "New Zealand", away: "Egypt", homeScore: 1, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 5 },
     { home: "Argentina", away: "Austria", homeScore: 2, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T20:00:00Z", _index: 6 },
-    { home: "France", away: "Iraq", homeScore: 1, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-23T14:00:00Z", _index: 7 },
-    { home: "Norway", away: "Senegal", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 00:00 ت ع", utcDate: "2026-06-23T22:00:00Z", _index: 8 },
-    { home: "Jordan", away: "Algeria", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 03:00 ت ع", utcDate: "2026-06-24T01:00:00Z", _index: 9 },
+    { home: "France", away: "Iraq", homeScore: 3, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 7 },
+    { home: "Norway", away: "Senegal", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 8 },
+    { home: "Jordan", away: "Algeria", homeScore: 1, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-22T20:00:00Z", _index: 9 },
     { home: "Portugal", away: "Uzbekistan", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 17:00 ت ع", utcDate: "2026-06-24T15:00:00Z", _index: 10 },
     { home: "England", away: "Ghana", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 20:00 ت ع", utcDate: "2026-06-24T18:00:00Z", _index: 11 },
     { home: "Panama", away: "Croatia", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 23:00 ت ع", utcDate: "2026-06-24T21:00:00Z", _index: 12 },
@@ -189,9 +189,12 @@ function getFallbackMatches(): Match[] {
 export async function fetchScores() {
   try {
     const matches = await fetchKickxoffMatches();
+    if (!matches || matches.length === 0) {
+      return { matches: getFallbackMatches() };
+    }
     return { matches };
   } catch {
-    return { matches: [] };
+    return { matches: getFallbackMatches() };
   }
 }
 
