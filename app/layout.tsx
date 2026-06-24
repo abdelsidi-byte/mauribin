@@ -8,6 +8,7 @@ import { BankilyAd } from "@/components/BankilyAd";
 import { GoogleAdSense, AdSlot } from "@/components/GoogleAdSense";
 import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
+import { PWAProvider } from "@/components/PWAProvider";
 
 // ISR enabled - cache for 30 seconds, regenerate in background
 export const dynamic = "force-static";
@@ -67,6 +68,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     <html lang="ar" dir="rtl" className={`${inter.variable} ${arabic.variable}`}>
       <body className="font-arabic bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col">
         <Analytics />
+        <PWAProvider />
         <Navigation />
         <LiveScoresTicker initialMatches={matches} />
         <main className="flex-1">

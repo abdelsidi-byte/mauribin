@@ -1,16 +1,42 @@
 {
   "name": "Mauribin - كأس العالم 2026",
   "short_name": "Mauribin",
-  "description": "موقع Mauribin لأخبار كرة القدم وكأس العالم 2026",
+  "description": "موقع Mauribin لأخبار كرة القدم وكأس العالم 2026 - نتائج مباشرة، أخبار، جدول الترتيب",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "portrait-primary",
   "background_color": "#000000",
   "theme_color": "#006233",
   "lang": "ar",
   "dir": "rtl",
-  "categories": ["sports", "news"],
+  "categories": ["sports", "news", "entertainment"],
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "shortcuts": [
+    {
+      "name": "⚽ مباشر",
+      "short_name": "مباشر",
+      "description": "المباريات المباشرة الآن",
+      "url": "/?filter=live",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "📰 الأخبار",
+      "short_name": "الأخبار",
+      "description": "آخر أخبار كأس العالم",
+      "url": "/news",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "🏆 الترتيب",
+      "short_name": "الترتيب",
+      "description": "جدول ترتيب المجموعات",
+      "url": "/standings",
+      "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
   "icons": [
     {
       "src": "/icons/icon-192.png",
@@ -30,5 +56,7 @@
       "type": "image/png",
       "purpose": "maskable"
     }
-  ]
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
 }
