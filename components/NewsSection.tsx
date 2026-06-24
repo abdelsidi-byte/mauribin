@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 
 interface NewsItem {
   title: string;
+  titleAr?: string;
   link: string;
   pubDate: string;
   score: string | null;
@@ -15,9 +16,17 @@ export function NewsSection() {
   useEffect(() => {
     async function fetchNews() {
       try {
-        const res = await fetch("/news_data.json");
-        if (!res.ok) throw new Error("No news file");
-        const data = await res.json();
+        // Try API route first, fall back to static JSON
+        let data;
+        try {
+          const res = await fetch("/api/news");
+          if (res.ok) data = await res.json();
+        } catch { /* fall through */ }
+        if (!data) {
+          const res = await fetch("/news_data.json");
+          if (!res.ok) return;
+          data = await res.json();
+        }
         setNews(data.news || []);
       } catch {
         // Silent fail - news is optional
@@ -47,7 +56,7 @@ export function NewsSection() {
   if (!news.length) return null;
 
   const scores = news.filter((n) => n.score).slice(0, 6);
-  const headlines = news.filter((n) => !n.score).slice(0, 5);
+  const headlines = news.filter((n) => !n.score).slice(0, 8);
 
   return (
     <section className="mb-8" dir="rtl">
@@ -81,8 +90,8 @@ export function NewsSection() {
                   >
                     <span className="text-emerald-400 text-lg">⚽</span>
                     <span className="text-amber-300 font-bold text-sm">{item.score}</span>
-                    <span className="text-slate-300 text-xs group-hover:text-amber-400 transition-colors truncate">
-                      {item.title.replace(/[^-–\d\s]/g, "").trim()}
+                    <span className="text-slate-300 text-xs group-hover:text-amber-400 transition-colors truncate flex-1">
+                      {item.titleAr || item.title.replace(/[^-–\d\s]/g, "").trim()}
                     </span>
                   </a>
                 ))}
@@ -107,7 +116,7 @@ export function NewsSection() {
                   >
                     <span className="text-blue-400 mt-0.5">📰</span>
                     <span className="text-slate-300 text-sm leading-relaxed group-hover:text-amber-400 transition-colors">
-                      {item.title}
+                      {item.titleAr || item.title}
                     </span>
                   </a>
                 ))}
@@ -124,7 +133,7 @@ export function NewsSection() {
             rel="noopener noreferrer"
             className="text-xs text-slate-500 hover:text-amber-400 transition-colors"
           >
-            المصدر: BBC Sport | يتم التحديث تلقائياً
+            المصدر: BBC Sport + Google News | يتم التحديث تلقائياً
           </a>
         </div>
       </div>
