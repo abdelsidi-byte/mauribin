@@ -45,13 +45,16 @@ function getMatchState(status: string): { state: string; label: string } {
 export async function GET() {
   try {
     const today = new Date().toISOString().split("T")[0];
+    const twoDaysAgo = new Date(Date.now() - 2 * 86400000).toISOString().split("T")[0];
     const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
     
+    // Fetch range: 2 days ago to tomorrow to catch live + recent + upcoming
     const res = await fetch(
-      `https://api.football-data.org/v4/competitions/WC/matches?date=${today}&date=${tomorrow}`,
+      `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${twoDaysAgo}&dateTo=${tomorrow}`,
       {
         headers: { "X-Auth-Token": API_KEY },
         next: { revalidate: 0 },
+        cache: "no-store",
       }
     );
 
