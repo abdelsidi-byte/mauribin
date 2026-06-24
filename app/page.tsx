@@ -1,5 +1,6 @@
 import { fetchScores, fetchArticles } from "@/lib/data";
 import { ClientHome } from "@/components/ClientHome";
+import { getMatchState } from "@/lib/matchState";
 
 // Direct fetch from football-data.org API
 async function getWorldCupMatches() {
@@ -17,7 +18,9 @@ async function getWorldCupMatches() {
       const home = m.homeTeam;
       const away = m.awayTeam;
       const score = m.score?.fullTime || { home: null, away: null };
-      const status = m.status === "FINISHED" ? "ft" : m.status === "LIVE" ? "live" : "upcoming";
+      
+      // Use getMatchState for proper status mapping with defensive time check
+      const status = getMatchState(m.status, m.utcDate, "football-data");
       
       // Generate slug from id
       const slug = `wc-${m.id}`;
@@ -33,6 +36,11 @@ async function getWorldCupMatches() {
       const hours = date.getUTCHours().toString().padStart(2, "0");
       const mins = date.getUTCMinutes().toString().padStart(2, "0");
       const label = `${dayName} ${hours}:${mins} ت ع`;
+      
+      // Log unknown statuses for monitoring
+      if (!["live", "finished", "upcoming"].includes(status)) {
+        console.warn(`[page.tsx] Unknown status "${m.status}" for ${home.name} vs ${away.name}, defaulting to upcoming`);
+      }
       
       return {
         _index: 1000 + idx,

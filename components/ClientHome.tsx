@@ -215,6 +215,8 @@ function MatchCard({
   const awayTeam = match.away || match.team2 || "?";
   const homeFlag = match.homeFlag || match.team1Flag || "🏳️";
   const awayFlag = match.awayFlag || match.team2Flag || "🏳️";
+  const isHomeUrl = homeFlag.startsWith("http");
+  const isAwayUrl = awayFlag.startsWith("http");
   
   const prevScore = useRef<{ home: number | null; away: number | null }>({
     home: match.homeScore,
@@ -273,9 +275,13 @@ function MatchCard({
         {/* Teams */}
         <div className="space-y-3">
           {/* Home */}
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{match.homeFlag}</span>
-            <span className="text-white font-medium text-sm flex-1">{teamAr(match.home)}</span>
+          <div className="flex items-center gap-3 min-w-0">
+            {isHomeUrl ? (
+              <img src={homeFlag} alt={homeTeam} className="w-8 h-8 object-contain shrink-0" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            ) : (
+              <span className="text-2xl shrink-0">{homeFlag}</span>
+            )}
+            <span className="text-white font-medium text-sm flex-1 min-w-0 break-words leading-tight">{teamAr(match.home)}</span>
             <span
               className={`text-2xl font-black ${
                 showGoal === "home"
@@ -290,9 +296,13 @@ function MatchCard({
           </div>
 
           {/* Away */}
-          <div className="flex items-center gap-3">
-            <span className="text-2xl">{match.awayFlag}</span>
-            <span className="text-white font-medium text-sm flex-1">{teamAr(match.away)}</span>
+          <div className="flex items-center gap-3 min-w-0">
+            {isAwayUrl ? (
+              <img src={awayFlag} alt={awayTeam} className="w-8 h-8 object-contain shrink-0" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+            ) : (
+              <span className="text-2xl shrink-0">{awayFlag}</span>
+            )}
+            <span className="text-white font-medium text-sm flex-1 min-w-0 break-words leading-tight">{teamAr(match.away)}</span>
             <span
               className={`text-2xl font-black ${
                 showGoal === "away"
