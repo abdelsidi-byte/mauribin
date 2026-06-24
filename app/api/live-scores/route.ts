@@ -54,6 +54,8 @@ function getFallbackMatches(): any[] {
     { home: "Switzerland", away: "Canada", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 14 },
     { home: "Morocco", away: "Haiti", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z", _index: 15 },
     { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z", _index: 16 },
+    { home: "South Africa", away: "Korea Republic", homeScore: null, awayScore: null, state: "upcoming", label: "غداً 01:00", utcDate: "2026-06-25T01:00:00Z", _index: 17 },
+    { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "غداً 01:00", utcDate: "2026-06-25T01:00:00Z", _index: 18 },
   ];
   return matches.map(m => ({ ...m, slug: slugify(m.home, m.away), homeFlag: getFlag(m.home), awayFlag: getFlag(m.away) }));
 }
