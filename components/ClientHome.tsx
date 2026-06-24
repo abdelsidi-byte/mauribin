@@ -23,7 +23,7 @@ const TEAM_AR: Record<string, string> = {
   Cameroon: "الكاميرون", Mali: "مالي", Qatar: "قطر", UAE: "الإمارات",
   Jordan: "الأردن", Uzbekistan: "أوزبكستان", "New Zealand": "نيوزيلندا",
   "Ivory Coast": "ساحل العاج", Curaçao: "كوراساو", "South Africa": "جنوب أفريقيا",
-  "Bosnia": "البوسنة", Scotland: "أسكتلندا",
+  "Bosnia": "البوسنة", "Bosnia-Herzegovina": "البوسنة والهرسك", "Bosnia and Herzegovina": "البوسنة والهرسك", Scotland: "أسكتلندا",
 };
 
 function teamAr(name: string): string {
@@ -260,58 +260,46 @@ function MatchCard({
       )}
       <Link
         href={`/match/${match.slug || match._index}`}
-        className={`group block shrink-0 rounded-2xl p-4 bg-slate-900/80 border transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-green-900/30 hover:border-[#FFD700]/50 ${
+        className={`group block w-full rounded-2xl p-4 bg-slate-900/90 border transition-all duration-300 hover:scale-[1.02] hover:shadow-xl hover:shadow-red-900/20 hover:border-red-500/50 ${
           isLive ? "border-red-500/60 shadow-lg shadow-red-900/20" : "border-slate-700/50"
         }`}
       >
         {/* Live badge */}
         {isLive && (
-          <div className="flex items-center gap-2 mb-3">
+          <div className="flex items-center justify-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
             <span className="text-red-400 text-xs font-bold">مباشر</span>
           </div>
         )}
 
-        {/* Teams */}
-        <div className="space-y-3">
+        {/* Teams with centered score */}
+        <div className="space-y-2">
           {/* Home */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {isHomeUrl ? (
-              <img src={homeFlag} alt={homeTeam} className="w-8 h-8 object-contain shrink-0" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <img src={homeFlag} alt={homeTeam} className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             ) : (
-              <span className="text-2xl shrink-0">{homeFlag}</span>
+              <span className="text-xl shrink-0">{homeFlag}</span>
             )}
-            <span className="text-white font-medium text-sm flex-1 min-w-0 break-words leading-tight">{teamAr(match.home)}</span>
-            <span
-              className={`text-2xl font-black ${
-                showGoal === "home"
-                  ? "text-[#FFD700] animate-pulse"
-                  : isLive
-                  ? "text-white"
-                  : "text-slate-400"
-              }`}
-            >
+            <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{teamAr(match.home)}</span>
+            <span className={`text-xl font-black text-center min-w-[24px] ${
+              showGoal === "home" ? "text-[#FFD700] animate-pulse" : isLive ? "text-white" : "text-slate-300"
+            }`}>
               {match.homeScore !== null ? match.homeScore : (isLive ? "0" : "-")}
             </span>
           </div>
 
           {/* Away */}
-          <div className="flex items-center gap-3 min-w-0">
+          <div className="flex items-center gap-2 min-w-0">
             {isAwayUrl ? (
-              <img src={awayFlag} alt={awayTeam} className="w-8 h-8 object-contain shrink-0" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <img src={awayFlag} alt={awayTeam} className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             ) : (
-              <span className="text-2xl shrink-0">{awayFlag}</span>
+              <span className="text-xl shrink-0">{awayFlag}</span>
             )}
-            <span className="text-white font-medium text-sm flex-1 min-w-0 break-words leading-tight">{teamAr(match.away)}</span>
-            <span
-              className={`text-2xl font-black ${
-                showGoal === "away"
-                  ? "text-[#FFD700] animate-pulse"
-                  : isLive
-                  ? "text-white"
-                  : "text-slate-400"
-              }`}
-            >
+            <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{teamAr(match.away)}</span>
+            <span className={`text-xl font-black text-center min-w-[24px] ${
+              showGoal === "away" ? "text-[#FFD700] animate-pulse" : isLive ? "text-white" : "text-slate-300"
+            }`}>
               {match.awayScore !== null ? match.awayScore : (isLive ? "0" : "-")}
             </span>
           </div>
@@ -426,6 +414,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
     }, 4000);
   }, []);
 
+  // Combine and deduplicate live matches by slug
   const liveMatches = matches.filter((m) => m.state === "live");
   const finishedMatches = matches.filter((m) => m.state === "ft" || m.state === "finished");
   const upcomingMatches = matches.filter((m) => m.state === "upcoming");
@@ -434,6 +423,16 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   const wcLiveMatches = worldCupMatches.filter((m) => m.state === "live");
   const wcFinishedMatches = worldCupMatches.filter((m) => m.state === "ft");
   const wcUpcomingMatches = worldCupMatches.filter((m) => m.state === "upcoming");
+
+  // Deduplicated live matches - by team pair, not slug
+  const allLiveMatches = [...liveMatches, ...wcLiveMatches];
+  const seenTeams = new Set<string>();
+  const uniqueLiveMatches = allLiveMatches.filter((m) => {
+    const key = `${m.home}|${m.away}`.toLowerCase();
+    if (seenTeams.has(key)) return false;
+    seenTeams.add(key);
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#006233]/8 via-slate-950 to-slate-950">
@@ -461,25 +460,20 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             </p>
           </div>
 
-          {/* Featured LIVE Matches */}
-          {(liveMatches.length > 0 || wcLiveMatches.length > 0) && (
+          {/* Featured LIVE Matches - Sofascore Style */}
+          {uniqueLiveMatches.length > 0 && (
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
-                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-600/30">
-                  <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
-                  مباشر الآن ({liveMatches.length + wcLiveMatches.length})
+                <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-600/30 animate-pulse">
+                  <span className="w-2 h-2 rounded-full bg-white" />
+                  مباشر الآن ({uniqueLiveMatches.length})
                 </div>
                 <div className="flex-1 h-px bg-gradient-to-r from-red-500/40 to-transparent" />
               </div>
-              <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                {liveMatches.map((match) => (
-                  <div key={match._index} className="shrink-0 w-[260px]">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                {uniqueLiveMatches.map((match) => (
+                  <div key={match.slug || match._index} className="w-full">
                     <MatchCard match={match} onGoal={handleGoal} />
-                  </div>
-                ))}
-                {wcLiveMatches.map((match, idx) => (
-                  <div key={`wc-live-${idx}`} className="shrink-0 w-[260px]">
-                    <MatchCard match={match as Match} onGoal={handleGoal} />
                   </div>
                 ))}
               </div>

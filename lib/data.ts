@@ -18,7 +18,7 @@ const FLAG_MAP: Record<string, string> = {
   Algeria: "🇩🇿", Nigeria: "🇳🇬", Qatar: "🇶🇦", UAE: "🇦🇪",
   Jordan: "🇯🇴", Uzbekistan: "🇺🇿", Oman: "🇴🇲", Bahrain: "🇧🇭",
   Kuwait: "🇰🇼", Yemen: "🇾🇪", Syria: "🇸🇾", Libya: "🇱🇾", Sudan: "🇸🇩",
-  "Bosnia and Herzegovina": "🇧🇦", "Bosnia": "🇧🇦", "Dominican Republic": "🇩🇴",
+  "Bosnia-Herzegovina": "🇧🇦", "Bosnia and Herzegovina": "🇧🇦", "Bosnia": "🇧🇦", "Dominican Republic": "🇩🇴",
   "Curaçao": "🇨🇼", "DR Congo": "🇨🇩", "Congo": "🇨🇩",
   "New Caledonia": "🇳🇨", "Faroe Islands": "🇫🇴", "North Korea": "🇰🇵",
   "Republic of Ireland": "🇮🇪", Ireland: "🇮🇪", "Northern Ireland": "🇬🇧",
@@ -175,8 +175,10 @@ function getFallbackMatches(): Match[] {
     { home: "Norway", away: "Senegal", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 8 },
     { home: "Jordan", away: "Algeria", homeScore: 1, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-22T20:00:00Z", _index: 9 },
     { home: "Portugal", away: "Uzbekistan", homeScore: 5, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-24T15:00:00Z", _index: 10 },
-    { home: "England", away: "Ghana", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 20:00 ت ع", utcDate: "2026-06-24T18:00:00Z", _index: 11 },
-    { home: "Panama", away: "Croatia", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 23:00 ت ع", utcDate: "2026-06-24T21:00:00Z", _index: 12 },
+    { home: "Bosnia-Herzegovina", away: "Qatar", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 13 },
+    { home: "Switzerland", away: "Canada", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 14 },
+    { home: "Morocco", away: "Haiti", homeScore: null, awayScore: null, state: "upcoming", label: "اليوم 22:00", utcDate: "2026-06-25T22:00:00Z", _index: 15 },
+    { home: "Scotland", away: "Brazil", homeScore: null, awayScore: null, state: "upcoming", label: "اليوم 22:00", utcDate: "2026-06-25T22:00:00Z", _index: 16 },
   ];
   return matches.map(m => ({
     ...m,

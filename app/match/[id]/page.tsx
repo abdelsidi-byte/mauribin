@@ -10,28 +10,94 @@ function slugify(home: string, away: string): string {
   return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
 }
 
+// Fetch World Cup matches from football-data.org API
+async function getWorldCupMatches() {
+  try {
+    const API_KEY = "74324d6063934f75b808c611780d7b68";
+    const res = await fetch(`https://api.football-data.org/v4/competitions/WC/matches`, {
+      headers: { "X-Auth-Token": API_KEY },
+      next: { revalidate: 60 }
+    });
+    const data = await res.json();
+    const matches: any[] = data.matches || [];
+
+    return matches.map((m: any, idx: number) => {
+      const home = m.homeTeam || {};
+      const away = m.awayTeam || {};
+      const score = m.score?.fullTime || { home: null, away: null };
+      const status = m.status === "FINISHED" ? "ft" : m.status === "LIVE" ? "live" : "upcoming";
+
+      const slug = `wc-${m.id}`;
+      const homeCrest = home.crest?.replace("http://", "https://") || "";
+      const awayCrest = away.crest?.replace("http://", "https://") || "";
+      const date = new Date(m.utcDate);
+      const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+      const dayName = dayNames[date.getDay()];
+      const hours = date.getUTCHours().toString().padStart(2, "0");
+      const mins = date.getUTCMinutes().toString().padStart(2, "0");
+      const label = `${dayName} ${hours}:${mins} ت ع`;
+
+      return {
+        _index: 1000 + idx,
+        slug,
+        home: home.shortName || home.name,
+        away: away.shortName || away.name,
+        homeFlag: homeCrest,
+        awayFlag: awayCrest,
+        homeScore: score.home,
+        awayScore: score.away,
+        state: status,
+        label,
+        utcDate: m.utcDate,
+        homeCrest,
+        awayCrest,
+        competition: m.competition?.name || "World Cup",
+      };
+    });
+  } catch {
+    return [];
+  }
+}
+
 export default async function MatchPage({ params }: PageProps) {
   const { id } = await params;
-  const { matches } = await fetchScores();
+
+  // Fetch both custom matches AND World Cup matches
+  const [{ matches }, worldCupMatches] = await Promise.all([
+    fetchScores(),
+    getWorldCupMatches(),
+  ]);
+
+  // Combine all matches
+  const allMatches = [...matches, ...worldCupMatches];
 
   // Try to find by slug first, then by numeric index
   let match: any = null;
   const slugId = decodeURIComponent(id);
-  match = matches.find((m: any) => m.slug === slugId || slugify(m.home, m.away) === slugId);
+  match = allMatches.find((m: any) => m.slug === slugId || slugify(m.home, m.away) === slugId);
   if (!match) {
     const num = parseInt(slugId);
-    if (!isNaN(num)) match = matches.find((m: any) => m._index === num);
+    if (!isNaN(num)) match = allMatches.find((m: any) => m._index === num);
   }
 
   if (!match) {
-    notFound();
+    return (
+      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-6xl mb-4">⚽</div>
+          <h1 className="text-2xl font-bold text-white mb-2">المباراة غير موجودة</h1>
+          <p className="text-slate-400 mb-4">تعذر العثور على تفاصيل هذه المباراة</p>
+          <a href="/" className="text-[#FFD700] hover:underline">العودة للرئيسية</a>
+        </div>
+      </div>
+    );
   }
 
   const isLive = match.state === "live";
   const isFinished = match.state === "ft";
 
-  const homeTeam = match.home.replace(/\s*\(.*?\)\s*/g, '').trim();
-  const awayTeam = match.away.replace(/\s*\(.*?\)\s*/g, '').trim();
+  const homeTeam = (match.home || "فريق").replace(/\s*\(.*?\)\s*/g, '').trim();
+  const awayTeam = (match.away || "فريق").replace(/\s*\(.*?\)\s*/g, '').trim();
   const youtubeSearchQuery = `${homeTeam} vs ${awayTeam} World Cup 2026 highlights`;
   const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeSearchQuery)}`;
 
@@ -76,7 +142,21 @@ export default async function MatchPage({ params }: PageProps) {
     homePassAccuracy: { label: "دقة التمرير", suffix: "%" },
   };
 
-  const goals: { scorer: string; team: "home" | "away"; minute: number; homeFlag: string; awayFlag: string }[] = [];
+  // Handle flag/logo display - URL vs emoji
+  const homeFlag = match.homeFlag || "🏳️";
+  const awayFlag = match.awayFlag || "🏳️";
+  const isHomeFlagUrl = homeFlag.startsWith("http");
+  const isAwayFlagUrl = awayFlag.startsWith("http");
+
+  const FlagImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
+    isHomeFlagUrl ? (
+      <img src={src} alt={alt} className={className} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+    ) : (
+      <span className={className}>{src}</span>
+    )
+  );
+
+  const goals: { scorer: string; team: "home" | "away"; minute: number }[] = [];
 
   if (match.homeScore != null && match.homeScore > 0 && match.awayScore != null) {
     const scorers: Record<string, string[]> = {
@@ -140,8 +220,6 @@ export default async function MatchPage({ params }: PageProps) {
         scorer: homeScorers[i % homeScorers.length],
         team: "home",
         minute: 20 + i * 25 + Math.floor(Math.random() * 15),
-        homeFlag: match.homeFlag,
-        awayFlag: match.awayFlag,
       });
     }
 
@@ -150,8 +228,6 @@ export default async function MatchPage({ params }: PageProps) {
         scorer: awayScorers[i % awayScorers.length],
         team: "away",
         minute: 30 + i * 25 + Math.floor(Math.random() * 15),
-        homeFlag: match.homeFlag,
-        awayFlag: match.awayFlag,
       });
     }
 
@@ -186,7 +262,13 @@ export default async function MatchPage({ params }: PageProps) {
           <div className="relative flex items-center justify-center gap-8">
             {/* Home */}
             <div className="flex-1 text-center">
-              <div className="text-6xl mb-3">{match.homeFlag}</div>
+              <div className="mb-3 flex justify-center">
+                {isHomeFlagUrl ? (
+                  <img src={homeFlag} alt={match.home} className="w-20 h-20 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                ) : (
+                  <span className="text-6xl">{homeFlag}</span>
+                )}
+              </div>
               <div className="text-xl font-bold text-white">{match.home}</div>
             </div>
 
@@ -205,7 +287,13 @@ export default async function MatchPage({ params }: PageProps) {
 
             {/* Away */}
             <div className="flex-1 text-center">
-              <div className="text-6xl mb-3">{match.awayFlag}</div>
+              <div className="mb-3 flex justify-center">
+                {isAwayFlagUrl ? (
+                  <img src={awayFlag} alt={match.away} className="w-20 h-20 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                ) : (
+                  <span className="text-6xl">{awayFlag}</span>
+                )}
+              </div>
               <div className="text-xl font-bold text-white">{match.away}</div>
             </div>
           </div>
