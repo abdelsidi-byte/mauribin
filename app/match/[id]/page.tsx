@@ -1,6 +1,5 @@
 import { fetchScores } from "@/lib/data";
-import { notFound } from "next/navigation";
-import { CommentsSection } from "@/components/CommentsSection";
+import { CommentsSectionWrapper } from "@/components/CommentsSectionWrapper";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -18,16 +17,24 @@ async function getWorldCupMatches() {
       headers: { "X-Auth-Token": API_KEY },
       next: { revalidate: 60 }
     });
+    if (!res.ok) {
+      console.error(`[getWorldCupMatches] API error: ${res.status}`);
+      return [];
+    }
     const data = await res.json();
-    const matches: any[] = data.matches || [];
+    const matches: any[] = data?.matches || [];
 
     return matches.map((m: any, idx: number) => {
       const home = m.homeTeam || {};
       const away = m.awayTeam || {};
       const score = m.score?.fullTime || { home: null, away: null };
-      const status = m.status === "FINISHED" ? "ft" : m.status === "LIVE" ? "live" : "upcoming";
+      const rawStatus = m.status || "";
+      let status = "upcoming";
+      if (rawStatus === "FINISHED" || rawStatus === "FT" || rawStatus === "FULL_TIME") status = "ft";
+      else if (rawStatus === "IN_PLAY" || rawStatus === "LIVE" || rawStatus === "FIRST_HALF" || rawStatus === "SECOND_HALF" || rawStatus === "HT") status = "live";
 
-      const slug = `wc-${m.id}`;
+      const matchId = m.id;
+      const slug = `wc-${matchId}`;
       const homeCrest = home.crest?.replace("http://", "https://") || "";
       const awayCrest = away.crest?.replace("http://", "https://") || "";
       const date = new Date(m.utcDate);
@@ -39,13 +46,14 @@ async function getWorldCupMatches() {
 
       return {
         _index: 1000 + idx,
+        id: matchId,
         slug,
-        home: home.shortName || home.name,
-        away: away.shortName || away.name,
+        home: home.shortName || home.name || "فريق",
+        away: away.shortName || away.name || "فريق",
         homeFlag: homeCrest,
         awayFlag: awayCrest,
-        homeScore: score.home,
-        awayScore: score.away,
+        homeScore: score.home ?? null,
+        awayScore: score.away ?? null,
         state: status,
         label,
         utcDate: m.utcDate,
@@ -54,31 +62,64 @@ async function getWorldCupMatches() {
         competition: m.competition?.name || "World Cup",
       };
     });
-  } catch {
+  } catch (err) {
+    console.error("[getWorldCupMatches] Error:", err);
     return [];
   }
 }
 
 export default async function MatchPage({ params }: PageProps) {
   const { id } = await params;
+  console.log("[MatchPage] Loading match ID:", id);
 
   // Fetch both custom matches AND World Cup matches
-  const [{ matches }, worldCupMatches] = await Promise.all([
-    fetchScores(),
-    getWorldCupMatches(),
-  ]);
+  let customMatches: any[] = [];
+  let worldCupMatches: any[] = [];
+  
+  try {
+    const scoresData = await fetchScores();
+    customMatches = scoresData?.matches || [];
+  } catch (err) {
+    console.error("[MatchPage] fetchScores error:", err);
+  }
+
+  try {
+    worldCupMatches = await getWorldCupMatches();
+  } catch (err) {
+    console.error("[MatchPage] getWorldCupMatches error:", err);
+  }
 
   // Combine all matches
-  const allMatches = [...matches, ...worldCupMatches];
+  const allMatches = [...customMatches, ...worldCupMatches];
+  console.log("[MatchPage] Total matches:", allMatches.length, "Custom:", customMatches.length, "WC:", worldCupMatches.length);
 
   // Try to find by slug first, then by numeric index
   let match: any = null;
-  const slugId = decodeURIComponent(id);
-  match = allMatches.find((m: any) => m.slug === slugId || slugify(m.home, m.away) === slugId);
+  const slugId = decodeURIComponent(id || "");
+  
+  // Try exact slug match
+  match = allMatches.find((m: any) => {
+    const matchSlug = m.slug || "";
+    return matchSlug === slugId || slugify(m.home || "", m.away || "") === slugId;
+  });
+  
+  // Try wc-{id} pattern
+  if (!match) {
+    match = allMatches.find((m: any) => {
+      const matchSlug = m.slug || "";
+      return matchSlug === `wc-${slugId}` || matchSlug === slugId;
+    });
+  }
+  
+  // Try numeric ID
   if (!match) {
     const num = parseInt(slugId);
-    if (!isNaN(num)) match = allMatches.find((m: any) => m._index === num);
+    if (!isNaN(num)) {
+      match = allMatches.find((m: any) => m._index === num || m.id === num);
+    }
   }
+
+  console.log("[MatchPage] Match found:", match ? "yes" : "no", match?.home, "vs", match?.away);
 
   if (!match) {
     return (
@@ -145,352 +186,193 @@ export default async function MatchPage({ params }: PageProps) {
   // Handle flag/logo display - URL vs emoji
   const homeFlag = match.homeFlag || "🏳️";
   const awayFlag = match.awayFlag || "🏳️";
-  const isHomeFlagUrl = homeFlag.startsWith("http");
-  const isAwayFlagUrl = awayFlag.startsWith("http");
+  const homeFlagIsUrl = homeFlag && typeof homeFlag === "string" && homeFlag.startsWith("http");
+  const awayFlagIsUrl = awayFlag && typeof awayFlag === "string" && awayFlag.startsWith("http");
 
-  const FlagImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => (
-    isHomeFlagUrl ? (
-      <img src={src} alt={alt} className={className} onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-    ) : (
-      <span className={className}>{src}</span>
-    )
-  );
+  const FlagImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
+    if (src && typeof src === "string" && src.startsWith("http")) {
+      return <img src={src} alt={alt} className={className} onError={(e) => { e.currentTarget.style.display = 'none'; }} />;
+    }
+    return <span className={className}>{src || "🏳️"}</span>;
+  };
 
   const goals: { scorer: string; team: "home" | "away"; minute: number }[] = [];
 
   if (match.homeScore != null && match.homeScore > 0 && match.awayScore != null) {
     const scorers: Record<string, string[]> = {
-      "Argentina": [" Messi 23", " Alvarez 45+1", " Martinez 78"],
-      "Brazil": [" Neymar 34", " Richarlison 67", " Rodri 89"],
-      "Germany": [" Muller 12", " Havertz 56", " Werner 82"],
-      "France": [" Mbappe 28", " Dembele 71", " Giroud 88"],
-      "Spain": [" Morata 19", " Pedri 54", " Olmo 76"],
-      "Portugal": [" Ronaldo 25", " Bruno Fernandes 63", " B.Silva 84"],
-      "England": [" Kane 37", " Saka 68", " Foden 79"],
-      "Netherlands": [" Depay 22", " Gakpo 55", " Simons 81"],
-      "Italy": [" Immobile 31", " Raspadori 72", " Scamacca 87"],
-      "Belgium": [" De Bruyne 29", " Lukaku 58", " Trossard 83"],
-      "Croatia": [" Modric 26", " Kovacic 67", " Petkovic 85"],
-      "Denmark": [" Eriksen 21", " Hojlund 64", " Dolberg 80"],
-      "Uruguay": [" Suarez 33", " Nunez 71", " Bentancur 86"],
-      "Mexico": [" Jimenez 28", " Lozano 62", " Vega 84"],
-      "United States": [" Pulisic 24", " Weah 67", " Reyna 82"],
-      "Japan": [" Minamino 19", " Kubo 58", " Maeda 79"],
-      "Morocco": [" Hakimi 32", " En-Nesyri 69", " Ounahi 87"],
-      "Egypt": [" Salah 27", " Trezeguet 71", " Mostafa 84"],
-      "Algeria": [" Mahrez 23", " Slimani 66", " Brahimi 83"],
-      "Nigeria": [" Osimhen 31", " Iwobi 68", " Kvaratskhelia 85"],
-      "South Korea": [" Son 24", " Kim 67", " Lee 82"],
-      "Australia": [" Duke 29", " Goodwin 71", " Maclaren 86"],
-      "Saudi Arabia": [" Al-Burayk 22", " Al-Rubai 63", " Al-Shehri 80"],
-      "Poland": [" Lewandowski 34", " Zielinski 68", " Milik 84"],
-      "Ukraine": [" Dovbyk 28", " Mudryk 65", " Yaremchuk 82"],
-      "Turkey": [" Yilmaz 25", " Calhanoglu 67", " Under 83"],
-      "Hungary": [" Szoboszlai 31", " Sallai 72", " Varga 85"],
-      "Senegal": [" Mane 24", " Sarr 68", " Diedhiou 84"],
-      "Ghana": [" Kudus 27", " Ayew 66", " Williams 83"],
-      "Cameroon": [" Ekambi 29", " Choupo-Moting 71", " Ngadeu 85"],
-      "Mali": [" Djenepo 23", " Haidara 67", " Sissoko 81"],
-      "Iran": [" Azmoun 26", " Jahanbakhsh 68", " Taremi 83"],
-      "Qatar": [" Almoez 28", " Afif 64", " Al-Hajri 82"],
-      "UAE": [" Mabkhout 24", " Al-Ahbabi 67", " Abdulrahman 84"],
-      "Iraq": [" Ali 31", " Ali Adnan 71", " Dawood 85"],
-      "Switzerland": [" Xhaka 25", " Shaqiri 66", " Embolo 81"],
-      "Austria": [" Arnautovic 27", " Sabitzer 68", " Gregoritsch 84"],
-      "Wales": [" Bale 23", " Ramsey 67", " Johnson 82"],
-      "Norway": [" Haaland 24", " Odegaard 68", " Sorloth 83"],
-      "Peru": [" Guerrero 28", " Lapadula 63", " Cueva 84"],
-      "Chile": [" Sanchez 26", " Vargas 67", " Medel 82"],
-      "Canada": [" Davies 22", " David 65", " Larin 81"],
-      "Colombia": [" Diaz 29", " James 68", " Borre 85"],
-      "Ecuador": [" Valencia 23", " Enner 67", " Plata 82"],
-      "Costa Rica": [" Campbell 27", " Suarez 68", " Borges 84"],
-      "Panama": [" Diaz 24", " Blackburn 66", " Rodriguez 83"],
-      "Serbia": [" Mitrovic 28", " Vlahovic 63", " Tadic 81"],
-      "New Zealand": [" 56", " 78", " 89"],
-      "Tunisia": [" 34", " 67", " 82"],
-      "Curaçao": [" 23", " 71", " 84"],
+      "Argentina": ["Messi 23'", "Alvarez 45+1'", "Martinez 78'"],
+      "Brazil": ["Neymar 34'", "Richarlison 67'", "Rodri 89'"],
+      "Germany": ["Muller 12'", "Havertz 56'", "Werner 82'"],
+      "France": ["Mbappe 28'", "Dembele 71'", "Giroud 88'"],
+      "Spain": ["Morata 19'", "Pedri 54'", "Olmo 76'"],
+      "Portugal": ["Ronaldo 25'", "Bruno Fernandes 63'", "B.Silva 84'"],
+      "England": ["Kane 37'", "Saka 68'", "Foden 79'"],
+      "Netherlands": ["Depay 22'", "Gakpo 55'", "Simons 81'"],
+      "Morocco": ["Hakimi 32'", "En-Nesyri 69'", "Ounahi 87'"],
+      "Croatia": ["Modric 26'", "Kovacic 67'", "Petkovic 85'"],
+      "Mexico": ["Jimenez 28'", "Lozano 62'", "Vega 84'"],
+      "United States": ["Pulisic 24'", "Weah 67'", "Reyna 82'"],
+      "Japan": ["Minamino 19'", "Kubo 58'", "Maeda 79'"],
+      "Senegal": ["Sarr 23'", "Mane 56'", "Diouf 82'"],
+      "Iraq": ["Mohammed 34'", "Ali 67'", "Hussein 85'"],
     };
-
-    const homeScorers = scorers[homeTeam] || ["Player 1", "Player 2", "Player 3"];
-    const awayScorers = scorers[awayTeam] || ["Player 1", "Player 2", "Player 3"];
-
+    
+    const homeScorers = scorers[homeTeam] || ["هدف 1 23'", "هدف 2 56'", "هدف 3 78'"];
+    const awayScorers = scorers[awayTeam] || ["هدف 1 34'", "هدف 2 67'", "هدف 3 89'"];
+    
     for (let i = 0; i < (match.homeScore || 0); i++) {
-      goals.push({
-        scorer: homeScorers[i % homeScorers.length],
-        team: "home",
-        minute: 20 + i * 25 + Math.floor(Math.random() * 15),
-      });
+      goals.push({ scorer: homeScorers[i % homeScorers.length], team: "home", minute: 20 + i * 25 });
     }
-
     for (let i = 0; i < (match.awayScore || 0); i++) {
-      goals.push({
-        scorer: awayScorers[i % awayScorers.length],
-        team: "away",
-        minute: 30 + i * 25 + Math.floor(Math.random() * 15),
-      });
+      goals.push({ scorer: awayScorers[i % awayScorers.length], team: "away", minute: 30 + i * 25 });
     }
-
-    goals.sort((a, b) => a.minute - b.minute);
   }
 
+  goals.sort((a, b) => a.minute - b.minute);
+
+  const statKeys = ["Possession", "Shots", "ShotsOnTarget", "Corners", "Fouls", "YellowCards", "RedCards", "Offsides", "Passes", "PassAccuracy"] as const;
+
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen bg-slate-900 text-white" dir="rtl">
       {/* Header */}
-      <div className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-b from-green-900/10 to-transparent" />
-        <div className="container mx-auto px-4 pt-6 pb-4 relative">
-          {/* Breadcrumb */}
-          <div className="flex items-center gap-2 text-sm text-slate-500 mb-6">
-            <a href="/" className="hover:text-green-400 transition-colors">الرئيسية</a>
-            <span>/</span>
-            <a href="/schedule" className="hover:text-green-400 transition-colors">الجدول</a>
-            <span>/</span>
-            <span>{match.home} vs {match.away}</span>
+      <div className="bg-gradient-to-br from-[#006233] via-[#004225] to-[#002815] py-6 px-4 border-b-4 border-[#FFD700]">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between mb-4">
+            <a href="/" className="text-white hover:text-[#FFD700] transition-colors">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+              </svg>
+            </a>
+            <div className="text-center">
+              <span className="text-[#FFD700] text-sm font-bold">{match.competition || "كأس العالم 2026"}</span>
+            </div>
+            <div className="w-8" />
+          </div>
+          
+          {/* Match Title */}
+          <div className="text-center mb-4">
+            <div className="flex items-center justify-center gap-3 mb-2">
+              {isLive && (
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                  <span className="text-red-400 text-sm font-bold animate-pulse">مباشر</span>
+                </div>
+              )}
+              {isFinished && (
+                <span className="bg-slate-700 text-slate-300 text-xs px-3 py-1 rounded-full">انتهت</span>
+              )}
+            </div>
+            <p className="text-slate-300 text-sm">{match.label || ""}</p>
+          </div>
+
+          {/* Teams & Score */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1 text-center">
+              <div className="mb-3 flex justify-center">
+                <FlagImage src={homeFlag} alt={homeTeam} className="w-20 h-20 object-contain" />
+              </div>
+              <h2 className="text-2xl font-black text-white">{homeTeam}</h2>
+            </div>
+            
+            <div className="text-center px-6">
+              {isLive || isFinished ? (
+                <div className="flex items-center gap-3">
+                  <span className="text-5xl font-black text-white">{match.homeScore ?? 0}</span>
+                  <span className="text-3xl font-black text-[#FFD700]">-</span>
+                  <span className="text-5xl font-black text-white">{match.awayScore ?? 0}</span>
+                </div>
+              ) : (
+                <div className="text-5xl font-black text-[#FFD700]">VS</div>
+              )}
+            </div>
+            
+            <div className="flex-1 text-center">
+              <div className="mb-3 flex justify-center">
+                <FlagImage src={awayFlag} alt={awayTeam} className="w-20 h-20 object-contain" />
+              </div>
+              <h2 className="text-2xl font-black text-white">{awayTeam}</h2>
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4">
-        {/* Score Header */}
-        <div className="glass rounded-3xl p-8 mb-8 text-center glow-green overflow-hidden relative">
-          {/* Live border */}
-          {isLive && (
-            <div className="absolute inset-0 rounded-3xl border-2 border-green-500/50 animate-pulse pointer-events-none" />
-          )}
-
-          <div className="relative flex items-center justify-center gap-8">
-            {/* Home */}
-            <div className="flex-1 text-center">
-              <div className="mb-3 flex justify-center">
-                {isHomeFlagUrl ? (
-                  <img src={homeFlag} alt={match.home} className="w-20 h-20 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                ) : (
-                  <span className="text-6xl">{homeFlag}</span>
-                )}
-              </div>
-              <div className="text-xl font-bold text-white">{match.home}</div>
-            </div>
-
-            {/* Score */}
-            <div className="text-center">
-              <div className={`text-7xl font-black mb-3 ${isLive ? "text-green-400 score-animate" : "text-white"}`}>
-                {match.homeScore ?? "-"} : {match.awayScore ?? "-"}
-              </div>
-              <div className={`inline-flex items-center gap-2 px-4 py-2 rounded-full font-bold text-sm ${
-                isLive ? "badge-live text-white" : "badge-ft text-white"
-              }`}>
-                {isLive && <span className="w-2 h-2 rounded-full bg-white live-dot" />}
-                {isLive ? "● مباشر الآن" : match.label}
-              </div>
-            </div>
-
-            {/* Away */}
-            <div className="flex-1 text-center">
-              <div className="mb-3 flex justify-center">
-                {isAwayFlagUrl ? (
-                  <img src={awayFlag} alt={match.away} className="w-20 h-20 object-contain" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-                ) : (
-                  <span className="text-6xl">{awayFlag}</span>
-                )}
-              </div>
-              <div className="text-xl font-bold text-white">{match.away}</div>
-            </div>
-          </div>
+      {/* Navigation Tabs */}
+      <div className="bg-slate-800 border-b border-slate-700">
+        <div className="max-w-4xl mx-auto flex">
+          <button className="flex-1 py-3 text-center text-[#FFD700] border-b-2 border-[#FFD700] font-bold">تفاصيل</button>
+          <button className="flex-1 py-3 text-center text-slate-400 border-b-2 border-transparent">إحصائيات</button>
+          <button className="flex-1 py-3 text-center text-slate-400 border-b-2 border-transparent">أحداث</button>
         </div>
+      </div>
 
-        {/* Goals */}
-        {goals.length > 0 && (
-          <div className="glass rounded-2xl p-6 mb-6">
-            <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-              <span className="text-2xl">⚽</span>
-              الأهداف
-            </h2>
-            <div className="space-y-2">
-              {goals.map((goal, i) => (
-                <div
-                  key={i}
-                  className={`flex items-center justify-between p-3 rounded-xl ${
-                    goal.team === "home" ? "bg-green-500/10" : "bg-blue-500/10"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="w-12 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 font-bold">
-                      {goal.minute}'
-                    </span>
-                    <span className="text-white font-medium">{goal.scorer}</span>
-                  </div>
-                  <span className="text-2xl">
-                    {goal.team === "home" ? match.homeFlag : match.awayFlag}
-                  </span>
+      {/* Match Events */}
+      <div className="max-w-4xl mx-auto p-4">
+        <div className="bg-slate-800 rounded-2xl p-6 mb-6">
+          <h3 className="text-xl font-bold text-[#FFD700] mb-4">⚽ أحداث المباراة</h3>
+          {goals.length > 0 ? (
+            <div className="space-y-3">
+              {goals.map((goal, idx) => (
+                <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl ${goal.team === "home" ? "bg-[#006233]/20 flex-row-reverse" : "bg-slate-700/50"}`}>
+                  <FlagImage src={goal.team === "home" ? homeFlag : awayFlag} alt="" className="w-6 h-6" />
+                  <span className={`font-bold ${goal.team === "home" ? "text-[#FFD700]" : "text-slate-300"}`}>{goal.scorer}</span>
+                  <span className="text-slate-400 text-sm">({goal.minute}')</span>
                 </div>
               ))}
             </div>
+          ) : (
+            <p className="text-slate-400 text-center py-4">لا توجد أحداث حتى الآن</p>
+          )}
+        </div>
+
+        {/* Statistics */}
+        <div className="bg-slate-800 rounded-2xl p-6 mb-6">
+          <h3 className="text-xl font-bold text-[#FFD700] mb-4">📊 الإحصائيات</h3>
+          <div className="space-y-4">
+            {statKeys.map((key) => {
+              const homeKey = `home${key}` as keyof typeof stats;
+              const awayKey = `away${key}` as keyof typeof stats;
+              const homeVal = stats[homeKey] as number;
+              const awayVal = stats[awayKey] as number;
+              const total = homeVal + awayVal;
+              const homePct = total > 0 ? (homeVal / total) * 100 : 50;
+              const label = statLabels[homeKey]?.label || key;
+              const suffix = statLabels[homeKey]?.suffix || "";
+              
+              return (
+                <div key={key} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                  <span className="text-left font-bold text-[#FFD700]">{homeVal}{suffix}</span>
+                  <span className="text-slate-400 text-sm px-2">{label}</span>
+                  <span className="text-right font-bold text-white">{awayVal}{suffix}</span>
+                  <div className="col-span-3 relative h-2 bg-slate-700 rounded-full overflow-hidden">
+                    <div className="absolute right-0 top-0 h-full bg-[#006233] rounded-full" style={{ width: `${homePct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
           </div>
-        )}
+        </div>
 
         {/* YouTube Highlights */}
-        <div className="glass rounded-2xl p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <span className="text-2xl">🎥</span>
-            ملخص المباراة
-          </h2>
-          <div className="bg-red-600/10 border border-red-500/20 rounded-xl p-4">
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-xl bg-red-600 flex items-center justify-center flex-shrink-0">
-                <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-                </svg>
-              </div>
-              <div className="flex-1">
-                <h3 className="text-white font-bold mb-1">أفضل الأهداف والملخصات</h3>
-                <p className="text-slate-400 text-sm mb-3">شاهد ملخص المباراة وأفضل اللقطات على YouTube</p>
-                <a
-                  href={youtubeSearchUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm"
-                >
-                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                    <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z"/>
-                  </svg>
-                  شاهد على YouTube
-                </a>
-              </div>
-            </div>
-          </div>
+        <div className="bg-slate-800 rounded-2xl p-6 mb-6">
+          <h3 className="text-xl font-bold text-[#FFD700] mb-4">🎬 ملخص المباراة</h3>
+          <a
+            href={youtubeSearchUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center justify-center gap-3 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-colors"
+          >
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
+            </svg>
+            شاهد ملخص المباراة على YouTube
+          </a>
         </div>
 
-        {/* Stats */}
-        <div className="glass rounded-2xl p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-6 flex items-center gap-2">
-            <span className="text-2xl">📊</span>
-            إحصائيات المباراة
-          </h2>
-
-          <div className="space-y-6">
-            {/* Possession */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homePossession}%</span>
-                <span className="text-xs text-slate-500 font-medium">استحواذ</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayPossession}%</span>
-              </div>
-              <div className="relative h-4 bg-slate-700 rounded-full overflow-hidden flex">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${stats.homePossession}%` }} />
-                <div className="absolute right-0 top-0 bottom-0 bg-gradient-to-r from-blue-400 to-blue-500 transition-all" style={{ width: `${stats.awayPossession}%` }} />
-              </div>
-            </div>
-
-            {/* Shots */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homeShots}</span>
-                <span className="text-xs text-slate-500 font-medium">تسديدات</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayShots}</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${(stats.homeShots / (stats.homeShots + stats.awayShots)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Shots on Target */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homeShotsOnTarget}</span>
-                <span className="text-xs text-slate-500 font-medium">تسديدات على المرمى</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayShotsOnTarget}</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${(stats.homeShotsOnTarget / (stats.homeShotsOnTarget + stats.awayShotsOnTarget)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Corners */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homeCorners}</span>
-                <span className="text-xs text-slate-500 font-medium">كورك</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayCorners}</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${(stats.homeCorners / (stats.homeCorners + stats.awayCorners || 1)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Fouls */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homeFouls}</span>
-                <span className="text-xs text-slate-500 font-medium">أخطاء</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayFouls}</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${(stats.homeFouls / (stats.homeFouls + stats.awayFouls)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Yellow Cards */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-yellow-400 font-bold w-16 text-right">{stats.homeYellowCards}</span>
-                <span className="text-xs text-slate-500 font-medium">بطاقات صفراء</span>
-                <span className="text-sm text-yellow-400 font-bold w-16">{stats.awayYellowCards}</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-yellow-500 to-yellow-400 transition-all" style={{ width: `${(stats.homeYellowCards / (stats.homeYellowCards + stats.awayYellowCards || 1)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Offsides */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homeOffsides}</span>
-                <span className="text-xs text-slate-500 font-medium">تسللات</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayOffsides}</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${(stats.homeOffsides / (stats.homeOffsides + stats.awayOffsides || 1)) * 100}%` }} />
-              </div>
-            </div>
-
-            {/* Pass Accuracy */}
-            <div>
-              <div className="flex justify-between items-center mb-2">
-                <span className="text-sm text-green-400 font-bold w-16 text-right">{stats.homePassAccuracy}%</span>
-                <span className="text-xs text-slate-500 font-medium">دقة التمرير</span>
-                <span className="text-sm text-blue-400 font-bold w-16">{stats.awayPassAccuracy}%</span>
-              </div>
-              <div className="relative h-3 bg-slate-700 rounded-full overflow-hidden">
-                <div className="absolute left-0 top-0 bottom-0 bg-gradient-to-r from-green-500 to-green-400 transition-all" style={{ width: `${(stats.homePassAccuracy / (stats.homePassAccuracy + stats.awayPassAccuracy)) * 100}%` }} />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Match Info */}
-        <div className="glass rounded-2xl p-6 mb-6">
-          <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
-            <span className="text-2xl">ℹ️</span>
-            معلومات المباراة
-          </h2>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-slate-500 text-xs mb-1">المرحلة</p>
-              <p className="text-white font-medium">كأس العالم 2026</p>
-            </div>
-            <div className="bg-white/5 rounded-xl p-4">
-              <p className="text-slate-500 text-xs mb-1">الحالة</p>
-              <p className="text-white font-medium">{isLive ? "مباشر" : isFinished ? "انتهت" : "لم تبدأ"}</p>
-            </div>
-          </div>
-        </div>
-
-        {/* Comments Section */}
-        <CommentsSection
-          matchId={id}
-          matchTitle={`${match.home} vs ${match.away}`}
-        />
+        {/* Comments */}
+        <CommentsSectionWrapper matchId={match.slug || String(match._index)} />
       </div>
     </div>
   );

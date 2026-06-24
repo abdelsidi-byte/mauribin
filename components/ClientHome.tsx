@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { NewsSection } from "./NewsSection";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Match = any;
@@ -102,8 +103,8 @@ function NextMatchHero({ match }: { match: Match }) {
   // Use crest URL if available, otherwise emoji flag
   const homeLogo = homeCrest || homeFlag;
   const awayLogo = awayCrest || awayFlag;
-  const isHomeUrl = homeCrest.startsWith("http");
-  const isAwayUrl = awayCrest.startsWith("http");
+  const isHomeUrl = homeCrest && homeCrest.startsWith("http");
+  const isAwayUrl = awayCrest && awayCrest.startsWith("http");
   const isLive = match.state === "live";
   const homeScore = match.homeScore ?? null;
   const awayScore = match.awayScore ?? null;
@@ -151,13 +152,12 @@ function NextMatchHero({ match }: { match: Match }) {
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
               {isHomeUrl ? (
-                <img src={homeLogo} alt={homeTeam} className="max-h-full max-w-full object-contain" />
+                <img src={homeLogo} alt={homeTeam} className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
               ) : (
                 <span className="text-6xl">{homeLogo}</span>
               )}
             </div>
             <h3 className="text-2xl font-black text-white">{teamAr(homeTeam)}</h3>
-            <p className="text-slate-300 text-sm">{homeTeam}</p>
           </div>
           
           {/* VS */}
@@ -178,13 +178,12 @@ function NextMatchHero({ match }: { match: Match }) {
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
               {isAwayUrl ? (
-                <img src={awayLogo} alt={awayTeam} className="max-h-full max-w-full object-contain" />
+                <img src={awayLogo} alt={awayTeam} className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
               ) : (
                 <span className="text-6xl">{awayLogo}</span>
               )}
             </div>
             <h3 className="text-2xl font-black text-white">{teamAr(awayTeam)}</h3>
-            <p className="text-slate-300 text-sm">{awayTeam}</p>
           </div>
         </div>
         
@@ -480,10 +479,8 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             </div>
           )}
 
-          {/* Next Match Hero - World Cup Upcoming */}
-          {wcUpcomingMatches.length > 0 && (
-            <NextMatchHero match={wcUpcomingMatches[0] as Match} />
-          )}
+          {/* News Section */}
+          <NewsSection />
 
           {/* Results - Horizontal Scroll */}
           {(finishedMatches.length > 0 || wcFinishedMatches.length > 0) && (

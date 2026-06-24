@@ -44,6 +44,7 @@ async function getWorldCupMatches() {
       
       return {
         _index: 1000 + idx,
+        id: m.id,
         slug,
         home: home.shortName || home.name,
         away: away.shortName || away.name,

@@ -201,5 +201,12 @@ export async function fetchScores() {
 }
 
 export async function fetchArticles() {
-  return { articles: [] };
+  try {
+    const res = await fetch("/news_data.json", { cache: "no-store" });
+    if (!res.ok) return { articles: [] };
+    const data = await res.json();
+    return { articles: data.news || [] };
+  } catch {
+    return { articles: [] };
+  }
 }
