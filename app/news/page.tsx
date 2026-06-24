@@ -1,53 +1,24 @@
 "use client";
-import { useEffect, useState } from "react";
-
-interface Match {
-  home: string;
-  away: string;
-  homeFlag: string;
-  awayFlag: string;
-  homeScore: number | null;
-  awayScore: number | null;
-  state: string;
-  label: string;
-}
-
-interface Story {
-  title: string;
-  category: string;
-  url: string;
-  source?: string;
-}
+import { NewsSection } from "@/components/NewsSection";
 
 export default function NewsPage() {
-  const [matches, setMatches] = useState<Match[]>([]);
-  const [stories, setStories] = useState<Story[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<"all" | "live" | "ft" | "upcoming">("all");
+  return (
+    <div className="min-h-screen bg-gradient-to-b from-[#001a0d] to-[#000] pb-20">
+      {/* Header */}
+      <div className="bg-gradient-to-r from-[#006233] to-[#004225] px-6 py-8 shadow-2xl">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-3xl font-black text-white mb-2">📰 آخر أخبار كأس العالم 2026</h1>
+          <p className="text-[#FFD700] text-sm">تحديث تلقائي من BBC Sport + Google News</p>
+        </div>
+      </div>
 
-  useEffect(() => {
-    async function fetchData() {
-      try {
-        const res = await fetch("/api/live-scores");
-        const data = await res.json();
-        if (data.matches) setMatches(data.matches);
-        if (data.stories) setStories(data.stories);
-      } catch (err) {
-        console.error("Failed to fetch:", err);
-      } finally {
-        setLoading(false);
-      }
-    }
-    fetchData();
-    const interval = setInterval(fetchData, 120000);
-    return () => clearInterval(interval);
-  }, []);
-
-  // Filter to only football/sports related stories
-  const sportsStories = stories.filter((s) => {
-    const text = `${s.title} ${s.category}`.toLowerCase();
-    const sportsKeywords = [
-      'world cup', 'مباراة', 'مونديال', 'منتخب', 'فوز', 'هزيمة', 'تعادل',
+      {/* News Section */}
+      <div className="max-w-4xl mx-auto px-4 py-6">
+        <NewsSection />
+      </div>
+    </div>
+  );
+}
       'كرة قدم', 'دوري', ' fifa', 'كأس', 'ريال', 'برشلونة', 'ليفربول',
       'الهلال', 'النصر', 'الأهلي', 'الزمالك', 'بطل', 'بطولة', 'لاعب',
       'goal', 'match', 'score', 'tournament', 'team', 'football', 'soccer',

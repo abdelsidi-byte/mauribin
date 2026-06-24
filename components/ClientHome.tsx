@@ -479,13 +479,10 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             </div>
           )}
 
-          {/* Next Match Hero - Custom Upcoming */}
+          {/* Next Match Hero - South Africa vs South Korea */}
           {upcomingMatches.length > 0 && (
             <NextMatchHero match={upcomingMatches[0] as Match} />
           )}
-
-          {/* News Section */}
-          <NewsSection />
 
           {/* Results - Horizontal Scroll */}
           {(finishedMatches.length > 0 || wcFinishedMatches.length > 0) && (
