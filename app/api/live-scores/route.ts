@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@supabase/supabase-js";
 
-const supabase = createClient(
-  "https://jkdceywetodcbmndpsjh.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImprZGNleXdldG9kY21uZHBzamgiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTY0MzMxNzgwMCwiZXhwIjoxOTU4ODkzODAwfQ.K5T7gT3gR8VHx6D4F8J8K2N6M5L1P9Q0V7W3X4Y9Z"
-);
+const API_KEY = "74324d6063934f75b808c611780d7b68";
 
 function slugify(home: string, away: string): string {
   return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
@@ -37,58 +33,72 @@ function getFlag(team: string): string {
   return FLAG_MAP[team] || "🏳️";
 }
 
-function getFallbackMatches(): any[] {
-  const matches = [
-    { home: "Ecuador", away: "Curaçao", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T17:00:00Z", _index: 0 },
-    { home: "Tunisia", away: "Japan", homeScore: 0, awayScore: 4, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 1 },
-    { home: "Spain", away: "Saudi Arabia", homeScore: 4, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T11:00:00Z", _index: 2 },
-    { home: "Belgium", away: "Iran", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T08:00:00Z", _index: 3 },
-    { home: "Uruguay", away: "Cape Verde", homeScore: 2, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-21T20:00:00Z", _index: 4 },
-    { home: "New Zealand", away: "Egypt", homeScore: 1, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-21T14:00:00Z", _index: 5 },
-    { home: "Argentina", away: "Austria", homeScore: 2, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-21T20:00:00Z", _index: 6 },
-    { home: "France", away: "Iraq", homeScore: 3, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 7 },
-    { home: "Norway", away: "Senegal", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 8 },
-    { home: "Jordan", away: "Algeria", homeScore: 1, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-22T20:00:00Z", _index: 9 },
-    { home: "Portugal", away: "Uzbekistan", homeScore: 5, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-24T15:00:00Z", _index: 10 },
-    { home: "Bosnia-Herzegovina", away: "Qatar", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 13 },
-    { home: "Switzerland", away: "Canada", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 14 },
-    { home: "Morocco", away: "Haiti", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z", _index: 15 },
-    { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z", _index: 16 },
-    { home: "South Africa", away: "Korea Republic", homeScore: null, awayScore: null, state: "upcoming", label: "غداً 01:00", utcDate: "2026-06-25T01:00:00Z", _index: 17 },
-    { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "غداً 01:00", utcDate: "2026-06-25T01:00:00Z", _index: 18 },
-  ];
-  return matches.map(m => ({ ...m, slug: slugify(m.home, m.away), homeFlag: getFlag(m.home), awayFlag: getFlag(m.away) }));
-}
-
-async function loadCustomScores(): Promise<any[] | null> {
-  try {
-    const { data, error } = await supabase
-      .from("custom_scores")
-      .select("*")
-      .single();
-    if (error || !data) return null;
-    if (data.matches && Array.isArray(data.matches)) {
-      return data.matches.map((m: any, i: number) => ({
-        ...m,
-        homeFlag: getFlag(m.home),
-        awayFlag: getFlag(m.away),
-        slug: slugify(m.home, m.away),
-        _index: m._index ?? i,
-      }));
-    }
-  } catch (e) { /* ignore */ }
-  return null;
+function getMatchState(status: string): { state: string; label: string } {
+  const s = status.toLowerCase();
+  if (s === "live" || s === "in_play" || s === "paused") return { state: "live", label: "مباشر" };
+  if (s === "finished" || s === "ft") return { state: "ft", label: "انتهت" };
+  if (s === "timed" || s === "scheduled" || s === "postponed") return { state: "upcoming", label: "قادم" };
+  if (s === "halftime" || s === "ht") return { state: "live", label: "الشوط الثاني" };
+  return { state: "upcoming", label: "قادم" };
 }
 
 export async function GET() {
   try {
-    const customMatches = await loadCustomScores();
-    if (customMatches) {
-      return NextResponse.json({ matches: customMatches });
-    }
-    const matches = getFallbackMatches();
-    return NextResponse.json({ matches });
+    const today = new Date().toISOString().split("T")[0];
+    const tomorrow = new Date(Date.now() + 86400000).toISOString().split("T")[0];
+    
+    const res = await fetch(
+      `https://api.football-data.org/v4/competitions/WC/matches?date=${today}&date=${tomorrow}`,
+      {
+        headers: { "X-Auth-Token": API_KEY },
+        next: { revalidate: 0 },
+      }
+    );
+
+    if (!res.ok) throw new Error(`API error: ${res.status}`);
+
+    const data = await res.json();
+    const apiMatches = data.matches || [];
+
+    const matches = apiMatches.map((m: any) => {
+      const home = m.homeTeam?.name || m.homeTeam?.shortName || "Unknown";
+      const away = m.awayTeam?.name || m.awayTeam?.shortName || "Unknown";
+      const score = m.score?.fullTime || {};
+      const { state, label } = getMatchState(m.status);
+      
+      return {
+        id: m.id,
+        home,
+        away,
+        homeScore: score.home ?? null,
+        awayScore: score.away ?? null,
+        state,
+        label,
+        utcDate: m.utcDate,
+        status: m.status,
+        matchday: m.matchday,
+        slug: slugify(home, away),
+        homeFlag: getFlag(home),
+        awayFlag: getFlag(away),
+      };
+    });
+
+    const stateOrder: Record<string, number> = { live: 0, upcoming: 1, ft: 2 };
+    matches.sort((a: any, b: any) => {
+      if (stateOrder[a.state] !== stateOrder[b.state]) return stateOrder[a.state] - stateOrder[b.state];
+      return new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime();
+    });
+
+    return NextResponse.json({ matches, source: "api" });
   } catch (e) {
-    return NextResponse.json({ matches: getFallbackMatches() });
+    console.error("API fetch failed:", e);
+    const fallback = [
+      { home: "Morocco", away: "Haiti", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z" },
+      { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z" },
+      { home: "South Africa", away: "Korea Republic", homeScore: null, awayScore: null, state: "upcoming", label: "01:00", utcDate: "2026-06-25T01:00:00Z" },
+      { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "01:00", utcDate: "2026-06-25T01:00:00Z" },
+    ].map(m => ({ ...m, slug: slugify(m.home, m.away), homeFlag: getFlag(m.home), awayFlag: getFlag(m.away) }));
+    
+    return NextResponse.json({ matches: fallback, source: "fallback" });
   }
 }
