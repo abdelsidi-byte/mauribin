@@ -53,8 +53,7 @@ export async function GET() {
       `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${twoDaysAgo}&dateTo=${tomorrow}`,
       {
         headers: { "X-Auth-Token": API_KEY },
-        next: { revalidate: 0 },
-        cache: "no-store",
+        next: { revalidate: 30 }, // ISR: cache for 30 seconds
       }
     );
 

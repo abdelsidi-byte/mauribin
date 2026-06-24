@@ -9,9 +9,9 @@ import { GoogleAdSense, AdSlot } from "@/components/GoogleAdSense";
 import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
 
-// Disable all caching - always fetch fresh data
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
+// ISR enabled - cache for 30 seconds, regenerate in background
+export const dynamic = "force-static";
+export const revalidate = 30;
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const arabic = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arabic" });

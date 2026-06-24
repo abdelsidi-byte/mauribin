@@ -152,7 +152,7 @@ function NextMatchHero({ match }: { match: Match }) {
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
               {isHomeUrl ? (
-                <img src={homeLogo} alt={homeTeam} className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
+                <img src={homeLogo} alt={homeTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
               ) : (
                 <span className="text-6xl">{homeLogo}</span>
               )}
@@ -178,7 +178,7 @@ function NextMatchHero({ match }: { match: Match }) {
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
               {isAwayUrl ? (
-                <img src={awayLogo} alt={awayTeam} className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
+                <img src={awayLogo} alt={awayTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
               ) : (
                 <span className="text-6xl">{awayLogo}</span>
               )}
@@ -276,7 +276,7 @@ function MatchCard({
           {/* Home */}
           <div className="flex items-center gap-2 min-w-0">
             {isHomeUrl ? (
-              <img src={homeFlag} alt={homeTeam} className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <img src={homeFlag} alt={homeTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             ) : (
               <span className="text-xl shrink-0">{homeFlag}</span>
             )}
@@ -291,7 +291,7 @@ function MatchCard({
           {/* Away */}
           <div className="flex items-center gap-2 min-w-0">
             {isAwayUrl ? (
-              <img src={awayFlag} alt={awayTeam} className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+              <img src={awayFlag} alt={awayTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
             ) : (
               <span className="text-xl shrink-0">{awayFlag}</span>
             )}
