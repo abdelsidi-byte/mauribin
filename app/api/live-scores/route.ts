@@ -94,7 +94,7 @@ export async function GET() {
     console.error("API fetch failed:", e);
     const fallback = [
       { home: "Morocco", away: "Haiti", homeScore: 2, awayScore: 2, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z" },
-      { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 1, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z" },
+      { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 2, state: "live", label: "مباشر", utcDate: "2026-06-24T22:00:00Z" },
       { home: "South Africa", away: "Korea Republic", homeScore: null, awayScore: null, state: "upcoming", label: "01:00", utcDate: "2026-06-25T01:00:00Z" },
       { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "01:00", utcDate: "2026-06-25T01:00:00Z" },
     ].map(m => ({ ...m, slug: slugify(m.home, m.away), homeFlag: getFlag(m.home), awayFlag: getFlag(m.away) }));
