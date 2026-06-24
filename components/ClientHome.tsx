@@ -479,6 +479,11 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             </div>
           )}
 
+          {/* Next Match Hero - Custom Upcoming */}
+          {upcomingMatches.length > 0 && (
+            <NextMatchHero match={upcomingMatches[0] as Match} />
+          )}
+
           {/* News Section */}
           <NewsSection />
 
