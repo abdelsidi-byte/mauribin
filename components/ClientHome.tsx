@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useI18n } from "./I18nProvider";
 import { NewsSection } from "./NewsSection";
 import VideoAdBanner from "./VideoAdBanner";
 
@@ -75,6 +76,7 @@ function GoalCelebration({ team, side }: { team: string; side: "home" | "away" }
 
 // Next Match Hero Section - only shows truly upcoming matches (kickoff > now)
 function NextMatchHero({ match }: { match: Match }) {
+  const { t, localizeTeam } = useI18n();
   if (!match) return null;
   
   // DEFENSIVE: never show a finished match as "next match"
@@ -122,7 +124,7 @@ function NextMatchHero({ match }: { match: Match }) {
   
   return (
     <div className="mb-10 max-w-4xl mx-auto">
-      <h2 className="text-2xl font-bold text-[#FFD700] mb-4 text-center">⚽ {isLive ? "مباراة مباشرة" : "المباراة القادمة"}</h2>
+      <h2 className="text-2xl font-bold text-[#FFD700] mb-4 text-center">⚽ {isLive ? t("hero.liveMatch") : t("hero.nextMatch")}</h2>
       <div className="bg-gradient-to-br from-[#006233] via-[#004225] to-[#002815] rounded-3xl p-8 shadow-2xl border border-[#FFD700]/30">
         {/* Date & Countdown */}
         <div className="text-center mb-6">
@@ -168,7 +170,7 @@ function NextMatchHero({ match }: { match: Match }) {
                 <span className="text-6xl">{homeLogo}</span>
               )}
             </div>
-            <h3 className="text-2xl font-black text-white">{teamAr(homeTeam)}</h3>
+            <h3 className="text-2xl font-black text-white">{localizeTeam(homeTeam)}</h3>
           </div>
           
           {/* VS */}
@@ -194,7 +196,7 @@ function NextMatchHero({ match }: { match: Match }) {
                 <span className="text-6xl">{awayLogo}</span>
               )}
             </div>
-            <h3 className="text-2xl font-black text-white">{teamAr(awayTeam)}</h3>
+            <h3 className="text-2xl font-black text-white">{localizeTeam(awayTeam)}</h3>
           </div>
         </div>
         
@@ -359,6 +361,7 @@ interface ClientHomeProps {
 }
 
 export function ClientHome({ matches: initialMatches, articles, worldCupMatches = [] }: ClientHomeProps) {
+  const { t } = useI18n();
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [countdown, setCountdown] = useState(30);
   const [recentGoals, setRecentGoals] = useState<{ team: string; side: "home" | "away" }[]>([]);
@@ -519,7 +522,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               <div className="flex items-center gap-3 mb-5">
                 <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-red-600 text-white text-sm font-bold shadow-lg shadow-red-600/30 animate-pulse">
                   <span className="w-2 h-2 rounded-full bg-white" />
-                  مباشر الآن ({uniqueLiveMatches.length})
+                  {t("hero.liveNow")} ({uniqueLiveMatches.length})
                 </div>
                 <div className="flex-1 h-px bg-gradient-to-r from-red-500/40 to-transparent" />
               </div>
@@ -543,7 +546,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="text-xl">⚽</span> النتائج ({finishedMatches.length + wcFinishedMatches.length})
+                  <span className="text-xl">⚽</span> {t("hero.results")} ({finishedMatches.length + wcFinishedMatches.length})
                 </h2>
                 <div className="flex-1 h-px bg-gradient-to-r from-[#FFD700]/30 to-transparent" />
               </div>
@@ -563,7 +566,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="text-xl">📅</span> المباريات القادمة ({upcomingMatches.length + wcUpcomingMatches.length})
+                  <span className="text-xl">📅</span> {t("hero.upcoming")} ({upcomingMatches.length + wcUpcomingMatches.length})
                 </h2>
                 <div className="flex-1 h-px bg-gradient-to-r from-green-500/30 to-transparent" />
               </div>
@@ -582,7 +585,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
           {matches.length === 0 && (
             <div className="text-center py-16">
               <div className="text-6xl mb-4">⚽</div>
-              <p className="text-slate-400">لا توجد مباريات حالياً</p>
+              <p className="text-slate-400">{t("hero.noMatches")}</p>
             </div>
           )}
         </div>

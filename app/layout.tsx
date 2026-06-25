@@ -9,6 +9,7 @@ import { GoogleAdSense, AdSlot } from "@/components/GoogleAdSense";
 import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
 import { PWAProvider, ScrollRestoration } from "@/components/PWAProvider";
+import { I18nProvider } from "@/components/I18nProvider";
 
 // Layout fetches fresh data per request to keep the live ticker accurate
 // (ticker still refreshes client-side every 30s via /api/live-scores)
@@ -66,19 +67,21 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   const matches = scoresData.matches || [];
 
   return (
-    <html lang="ar" dir="rtl" className={`${inter.variable} ${arabic.variable}`}>
-      <body className="font-arabic bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col">
-        <Analytics />
-        <PWAProvider />
-        <ScrollRestoration />
-        <Navigation />
-        <LiveScoresTicker initialMatches={matches} />
-        <main className="flex-1">
-          {children}
-        </main>
-        <BankilyAd variant="float" />
-        <Footer />
-      </body>
-    </html>
+    <I18nProvider>
+      <html lang="ar" dir="rtl" className={`${inter.variable} ${arabic.variable}`}>
+        <body className="font-arabic bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col">
+          <Analytics />
+          <PWAProvider />
+          <ScrollRestoration />
+          <Navigation />
+          <LiveScoresTicker initialMatches={matches} />
+          <main className="flex-1">
+            {children}
+          </main>
+          <BankilyAd variant="float" />
+          <Footer />
+        </body>
+      </html>
+    </I18nProvider>
   );
 }

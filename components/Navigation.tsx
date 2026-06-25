@@ -1,22 +1,25 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-
-const NAV_LINKS = [
-  { href: "/", label: "الرئيسية", icon: "⚽" },
-  { href: "/schedule", label: "الجدول", icon: "🗓️" },
-  { href: "/groups", label: "المجموعات", icon: "🏆" },
-  { href: "/teams", label: "المنتخبات", icon: "👥" },
-  { href: "/news", label: "الأخبار", icon: "📰" },
-  { href: "/quiz", label: "اختبار", icon: "🎯" },
-  { href: "/stats", label: "إحصائيات", icon: "📊" },
-  { href: "/predict", label: "توقعات", icon: "⚽" },
-  { href: "/search", label: "البحث", icon: "🔍" },
-];
+import { useI18n } from "./I18nProvider";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 
 export function Navigation() {
+  const { t } = useI18n();
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState("/");
+
+  const NAV_LINKS = [
+    { href: "/", label: t("nav.home"), icon: "⚽" },
+    { href: "/schedule", label: t("nav.schedule"), icon: "🗓️" },
+    { href: "/groups", label: t("nav.groups"), icon: "🏆" },
+    { href: "/teams", label: t("nav.teams"), icon: "👥" },
+    { href: "/news", label: t("nav.news"), icon: "📰" },
+    { href: "/quiz", label: t("nav.quiz"), icon: "🎯" },
+    { href: "/stats", label: t("nav.stats"), icon: "📊" },
+    { href: "/predict", label: t("nav.predict"), icon: "⚽" },
+    { href: "/search", label: t("nav.search"), icon: "🔍" },
+  ];
 
   return (
     <header className="sticky top-0 z-50 stadium-light">
@@ -41,7 +44,7 @@ export function Navigation() {
               <span className="text-xl font-bold gradient-text tracking-wide">Mauribin</span>
               <div className="text-[10px] text-[#ffd700]/70 -mt-0.5 flex items-center gap-1">
                 <span>🏆</span>
-                <span>كأس العالم 2026</span>
+                <span>{t("hero.worldCup")}</span>
               </div>
             </div>
           </Link>
@@ -105,31 +108,37 @@ export function Navigation() {
             </Link>
           </nav>
 
-          {/* Live indicator */}
-          <div className="hidden md:flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#d01c1f]/20 border border-[#d01c1f]/40 glow-red">
-            <span className="w-2.5 h-2.5 rounded-full bg-[#d01c1f] live-dot" />
-            <span className="text-xs text-[#d01c1f] font-bold tracking-wider">LIVE</span>
-            <span className="text-xs text-[#d01c1f]/80">⚽</span>
+          {/* Live indicator + Language switcher */}
+          <div className="hidden md:flex items-center gap-3">
+            <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#d01c1f]/20 border border-[#d01c1f]/40 glow-red">
+              <span className="w-2.5 h-2.5 rounded-full bg-[#d01c1f] live-dot" />
+              <span className="text-xs text-[#d01c1f] font-bold tracking-wider">LIVE</span>
+              <span className="text-xs text-[#d01c1f]/80">⚽</span>
+            </div>
+            <LanguageSwitcher />
           </div>
 
           {/* Mobile Menu Button */}
-          <button
-            className="md:hidden w-11 h-11 flex items-center justify-center rounded-xl bg-[#006233]/40 hover:bg-[#007a40]/50 border border-[#006233]/30 transition-all"
-            onClick={() => setOpen(!open)}
-            aria-label="القائمة"
-          >
-            {open ? (
-              <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            ) : (
-              <div className="relative w-5 h-4">
-                <span className="absolute top-0 left-0 w-5 h-0.5 bg-white rounded-full" />
-                <span className="absolute top-1/2 left-0 w-5 h-0.5 bg-white rounded-full -translate-y-1/2" />
-                <span className="absolute bottom-0 left-0 w-5 h-0.5 bg-white rounded-full" />
-              </div>
-            )}
-          </button>
+          <div className="md:hidden flex items-center gap-2">
+            <LanguageSwitcher />
+            <button
+              className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#006233]/40 hover:bg-[#007a40]/50 border border-[#006233]/30 transition-all"
+              onClick={() => setOpen(!open)}
+              aria-label="القائمة"
+            >
+              {open ? (
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              ) : (
+                <div className="relative w-5 h-4">
+                  <span className="absolute top-0 left-0 w-5 h-0.5 bg-white rounded-full" />
+                  <span className="absolute top-1/2 left-0 w-5 h-0.5 bg-white rounded-full -translate-y-1/2" />
+                  <span className="absolute bottom-0 left-0 w-5 h-0.5 bg-white rounded-full" />
+                </div>
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}

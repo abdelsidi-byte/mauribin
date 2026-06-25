@@ -1,6 +1,7 @@
 "use client";
 
 import { ChangeEvent } from "react";
+import { useI18n } from "./I18nProvider";
 
 interface SearchBarProps {
   value: string;
@@ -12,9 +13,11 @@ interface SearchBarProps {
 export function SearchBar({
   value,
   onChange,
-  placeholder = "ابحث عن منتخب، مباراة، أو مجموعة...",
+  placeholder,
   autoFocus = false,
 }: SearchBarProps) {
+  const { t } = useI18n();
+  const finalPlaceholder = placeholder ?? t("search.placeholder");
   return (
     <div className="relative group w-full">
       {/* Glow on focus */}
@@ -45,7 +48,7 @@ export function SearchBar({
             dir="rtl"
             value={value}
             onChange={onChange}
-            placeholder={placeholder}
+            placeholder={finalPlaceholder}
             autoFocus={autoFocus}
             className="flex-1 bg-transparent outline-none text-white placeholder:text-[#f1f5f9]/40 text-base md:text-lg font-medium"
             aria-label="بحث"

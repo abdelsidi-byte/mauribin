@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useState, useEffect, useRef } from "react";
+import { useI18n } from "./I18nProvider";
 
 interface Match {
   _index: number;
@@ -39,18 +40,18 @@ function teamAr(name: string): string {
 }
 
 function labelAr(state: string, label: string): string {
-  if (state === "live") return "مباشر";
-  if (state === "ft" || state === "finished") return "انتهت";
+  if (state === "live") return "Live";
+  if (state === "ft" || state === "finished") return "Finished";
   return label
-    .replace(/Today/g, "اليوم")
-    .replace(/Tue/g, "الثلاثاء")
-    .replace(/Wed/g, "الأربعاء")
-    .replace(/Thu/g, "الخميس")
-    .replace(/Fri/g, "الجمعة")
-    .replace(/Sat/g, "السبت")
-    .replace(/Sun/g, "الأحد")
-    .replace(/Mon/g, "الإثنين")
-    .replace(/UTC/g, "ت ع");
+    .replace(/Today/g, "Today")
+    .replace(/Tue/g, "Tue")
+    .replace(/Wed/g, "Wed")
+    .replace(/Thu/g, "Thu")
+    .replace(/Fri/g, "Fri")
+    .replace(/Sat/g, "Sat")
+    .replace(/Sun/g, "Sun")
+    .replace(/Mon/g, "Mon")
+    .replace(/UTC/g, "UTC");
 }
 
 // Goal celebration animation for ticker
@@ -69,6 +70,7 @@ interface LiveScoresTickerProps {
 }
 
 export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
+  const { t, localizeTeam } = useI18n();
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [goalFlash, setGoalFlash] = useState<Record<number, "home" | "away" | null>>({});
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -144,7 +146,7 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
       <div className="flex items-center gap-3 mb-4">
         <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#006233] to-[#004225] border border-[#FFD700]/30">
           <span className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
-          <span className="text-[#FFD700] text-xs font-bold">النتائج</span>
+          <span className="text-[#FFD700] text-xs font-bold">{t("hero.results")}</span>
         </div>
         <div className="flex-1 h-px bg-gradient-to-r from-[#FFD700]/20 to-transparent" />
         {/* Progress dots */}
@@ -185,7 +187,7 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
                   {match.state === "live" && (
                     <>
                       <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-red-400 text-xs font-bold">مباشر</span>
+                      <span className="text-red-400 text-xs font-bold">{t("match.live")}</span>
                     </>
                   )}
                   {match.state !== "live" && (
@@ -197,7 +199,7 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{match.homeFlag}</span>
-                    <span className="text-white text-sm flex-1 truncate">{teamAr(match.home)}</span>
+                    <span className="text-white text-sm flex-1 truncate">{localizeTeam(match.home)}</span>
                     <span className={`text-xl font-black ${
                       goalFlash[match._index] === "home" ? "text-[#FFD700] animate-pulse" : "text-white"
                     }`}>
@@ -206,7 +208,7 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
                   </div>
                   <div className="flex items-center gap-2">
                     <span className="text-lg">{match.awayFlag}</span>
-                    <span className="text-white text-sm flex-1 truncate">{teamAr(match.away)}</span>
+                    <span className="text-white text-sm flex-1 truncate">{localizeTeam(match.away)}</span>
                     <span className={`text-xl font-black ${
                       goalFlash[match._index] === "away" ? "text-[#FFD700] animate-pulse" : "text-white"
                     }`}>

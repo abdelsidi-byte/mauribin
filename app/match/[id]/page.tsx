@@ -1,8 +1,21 @@
 import { fetchScores } from "@/lib/data";
 import { CommentsSectionWrapper } from "@/components/CommentsSectionWrapper";
+import { cookies } from "next/headers";
+import { type Locale, translate } from "@/lib/i18n";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+}
+
+async function getLocaleFromCookie(): Promise<Locale> {
+  try {
+    const store = await cookies();
+    const v = store.get("mauribin:locale")?.value;
+    if (v === "fr" || v === "en" || v === "ar") return v;
+  } catch {
+    /* noop */
+  }
+  return "ar";
 }
 
 function slugify(home: string, away: string): string {
@@ -70,7 +83,9 @@ async function getWorldCupMatches() {
 
 export default async function MatchPage({ params }: PageProps) {
   const { id } = await params;
-  console.log("[MatchPage] Loading match ID:", id);
+  const locale = await getLocaleFromCookie();
+  const t = (k: string) => translate(locale, k);
+  console.log("[MatchPage] Loading match ID:", id, "locale:", locale);
 
   // Fetch both custom matches AND World Cup matches
   let customMatches: any[] = [];
@@ -126,9 +141,9 @@ export default async function MatchPage({ params }: PageProps) {
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
           <div className="text-6xl mb-4">⚽</div>
-          <h1 className="text-2xl font-bold text-white mb-2">المباراة غير موجودة</h1>
-          <p className="text-slate-400 mb-4">تعذر العثور على تفاصيل هذه المباراة</p>
-          <a href="/" className="text-[#FFD700] hover:underline">العودة للرئيسية</a>
+          <h1 className="text-2xl font-bold text-white mb-2">{t("details.notFound")}</h1>
+          <p className="text-slate-400 mb-4">{t("details.notFoundHint")}</p>
+          <a href="/" className="text-[#FFD700] hover:underline">{t("details.backHome")}</a>
         </div>
       </div>
     );
@@ -178,16 +193,16 @@ export default async function MatchPage({ params }: PageProps) {
   stats.awayPossession = 100 - stats.homePossession;
 
   const statLabels: Record<string, { label: string; suffix?: string }> = {
-    homePossession: { label: "استحواذ", suffix: "%" },
-    homeShots: { label: "تسديدات" },
-    homeShotsOnTarget: { label: "تسديدات على المرمى" },
-    homeCorners: { label: "كورك" },
-    homeFouls: { label: "أخطاء" },
-    homeYellowCards: { label: "بطاقات صفراء" },
-    homeRedCards: { label: "بطاقات حمراء" },
-    homeOffsides: { label: "تسللات" },
-    homePasses: { label: "تمريرات" },
-    homePassAccuracy: { label: "دقة التمرير", suffix: "%" },
+    homePossession: { label: t("details.possession"), suffix: "%" },
+    homeShots: { label: t("details.shots") },
+    homeShotsOnTarget: { label: t("details.shotsOnTarget") },
+    homeCorners: { label: t("details.corners") },
+    homeFouls: { label: t("details.fouls") },
+    homeYellowCards: { label: t("details.yellowCards") },
+    homeRedCards: { label: t("details.redCards") },
+    homeOffsides: { label: t("details.offsides") },
+    homePasses: { label: t("details.passes") },
+    homePassAccuracy: { label: t("details.passAccuracy"), suffix: "%" },
   };
 
   // Handle flag/logo display - URL vs emoji
@@ -311,16 +326,16 @@ export default async function MatchPage({ params }: PageProps) {
       {/* Navigation Tabs */}
       <div className="bg-slate-800 border-b border-slate-700">
         <div className="max-w-4xl mx-auto flex">
-          <button className="flex-1 py-3 text-center text-[#FFD700] border-b-2 border-[#FFD700] font-bold">تفاصيل</button>
-          <button className="flex-1 py-3 text-center text-slate-400 border-b-2 border-transparent">إحصائيات</button>
-          <button className="flex-1 py-3 text-center text-slate-400 border-b-2 border-transparent">أحداث</button>
+          <button className="flex-1 py-3 text-center text-[#FFD700] border-b-2 border-[#FFD700] font-bold">{t("details.title")}</button>
+          <button className="flex-1 py-3 text-center text-slate-400 border-b-2 border-transparent">{t("details.stats")}</button>
+          <button className="flex-1 py-3 text-center text-slate-400 border-b-2 border-transparent">{t("details.events")}</button>
         </div>
       </div>
 
       {/* Match Events */}
       <div className="max-w-4xl mx-auto p-4">
         <div className="bg-slate-800 rounded-2xl p-6 mb-6">
-          <h3 className="text-xl font-bold text-[#FFD700] mb-4">⚽ أحداث المباراة</h3>
+          <h3 className="text-xl font-bold text-[#FFD700] mb-4">⚽ {t("details.matchEvents")}</h3>
           {goals.length > 0 ? (
             <div className="space-y-3">
               {goals.map((goal, idx) => (
@@ -332,13 +347,13 @@ export default async function MatchPage({ params }: PageProps) {
               ))}
             </div>
           ) : (
-            <p className="text-slate-400 text-center py-4">لا توجد أحداث حتى الآن</p>
+            <p className="text-slate-400 text-center py-4">{t("details.noEvents")}</p>
           )}
         </div>
 
         {/* Statistics */}
         <div className="bg-slate-800 rounded-2xl p-6 mb-6">
-          <h3 className="text-xl font-bold text-[#FFD700] mb-4">📊 الإحصائيات</h3>
+          <h3 className="text-xl font-bold text-[#FFD700] mb-4">📊 {t("details.stats")}</h3>
           <div className="space-y-4">
             {statKeys.map((key) => {
               const homeKey = `home${key}` as keyof typeof stats;
@@ -366,7 +381,7 @@ export default async function MatchPage({ params }: PageProps) {
 
         {/* YouTube Highlights */}
         <div className="bg-slate-800 rounded-2xl p-6 mb-6">
-          <h3 className="text-xl font-bold text-[#FFD700] mb-4">🎬 ملخص المباراة</h3>
+          <h3 className="text-xl font-bold text-[#FFD700] mb-4">🎬 {t("details.highlights")}</h3>
           <a
             href={youtubeSearchUrl}
             target="_blank"
@@ -376,7 +391,7 @@ export default async function MatchPage({ params }: PageProps) {
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19.615 3.184c-3.604-.246-11.631-.245-15.23 0-3.897.266-4.356 2.62-4.385 8.816.029 6.185.484 8.549 4.385 8.816 3.6.245 11.626.246 15.23 0 3.897-.266 4.356-2.62 4.385-8.816-.029-6.185-.484-8.549-4.385-8.816zm-10.615 12.816v-8l8 3.993-8 4.007z"/>
             </svg>
-            شاهد ملخص المباراة على YouTube
+            {t("details.watchHighlights")}
           </a>
         </div>
 
