@@ -1,10 +1,12 @@
 // Mauribin Service Worker - PWA
-const CACHE_NAME = 'mauribin-v1';
+const CACHE_NAME = 'mauribin-v2';
 const STATIC_ASSETS = [
   '/',
   '/news',
   '/standings',
   '/manifest.json',
+  '/icons/icon-192.png',
+  '/icons/icon-512.png',
 ];
 
 // Install: cache static assets
@@ -29,7 +31,7 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: network first, fallback to cache
+// Fetch: Stale While Revalidate (perfect for Next.js ISR)
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
@@ -41,29 +43,53 @@ self.addEventListener('fetch', (event) => {
   // API calls: network only (always fresh scores)
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
-      fetch(request).catch(() => new Response('{"error":"offline"}', { headers: { 'Content-Type': 'application/json' } }))
+      fetch(request).catch(() => {
+        // Return cached API data if available
+        return caches.match(request).then(cached => {
+          if (cached) return cached;
+          return new Response(JSON.stringify({ error: 'offline', matches: [] }), {
+            headers: { 'Content-Type': 'application/json' }
+          });
+        });
+      })
     );
     return;
   }
 
-  // Static assets: cache first, then network
+  // Static assets: cache first
+  if (url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff2?)$/)) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request).then(network => {
+          if (network.ok) {
+            const clone = network.clone();
+            caches.open(CACHE_NAME).then(c => c.put(request, clone));
+          }
+          return network;
+        });
+      })
+    );
+    return;
+  }
+
+  // HTML pages: Stale While Revalidate
   event.respondWith(
-    caches.match(request).then((cached) => {
-      const fetchPromise = fetch(request).then((network) => {
-        // Cache new version
+    caches.match(request).then(cached => {
+      const fetchPromise = fetch(request).then(network => {
+        // Update cache with fresh version
         if (network.ok) {
           const clone = network.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(request, clone));
+          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
         }
         return network;
+      }).catch(() => {
+        // Network failed, return cached or offline page
+        return cached || caches.match('/');
       });
+      
+      // Return cached immediately, update in background
       return cached || fetchPromise;
-    }).catch(() => {
-      // Offline fallback for navigation
-      if (request.mode === 'navigate') {
-        return caches.match('/');
-      }
-      return new Response('Offline', { status: 503 });
     })
   );
 });
@@ -100,13 +126,11 @@ self.addEventListener('notificationclick', (event) => {
   
   event.waitUntil(
     clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      // Focus existing window if open
       for (const client of clientList) {
         if (client.url === url && 'focus' in client) {
           return client.focus();
         }
       }
-      // Open new window
       if (clients.openWindow) {
         return clients.openWindow(url);
       }
@@ -114,7 +138,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// Background sync for offline actions
+// Background sync
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-matches') {
     event.waitUntil(syncMatches());
@@ -125,7 +149,6 @@ async function syncMatches() {
   try {
     const res = await fetch('/api/live-scores');
     const data = await res.json();
-    // Store latest in cache for offline
     const cache = await caches.open(CACHE_NAME);
     await cache.put('/api/live-scores', new Response(JSON.stringify(data), {
       headers: { 'Content-Type': 'application/json' }
