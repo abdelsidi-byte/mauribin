@@ -18,7 +18,12 @@
 
 @layer base {
   * { box-sizing: border-box; }
-  html { direction: rtl; scroll-behavior: smooth; }
+  html { 
+    direction: rtl; 
+    /* Prevent scroll-behavior from causing unexpected jumps */
+    scroll-behavior: auto;
+    overflow-x: hidden;
+  }
   
   body {
     font-family: var(--font-arabic);
@@ -26,7 +31,8 @@
     color: #f1f5f9;
     -webkit-font-smoothing: antialiased;
     min-height: 100vh;
-    position: relative;
+    /* Allow body to scroll naturally - prevent layout shifts */
+    overflow-x: hidden;
   }
 
   /* Subtle accent line at top only */

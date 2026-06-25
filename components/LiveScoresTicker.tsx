@@ -119,12 +119,19 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
     return () => clearInterval(interval);
   }, [matches.length]);
 
-  // Scroll container to current match
+  // Scroll ticker container horizontally only - never affects window scroll
   useEffect(() => {
     if (containerRef.current) {
       const cards = containerRef.current.querySelectorAll("[data-ticker-card]");
       if (cards[currentIndex]) {
-        cards[currentIndex].scrollIntoView({ behavior: "smooth", inline: "center", block: "nearest" });
+        // Use scrollLeft on container directly - prevents window scroll
+        const card = cards[currentIndex] as HTMLElement;
+        const container = containerRef.current;
+        const scrollLeft = card.offsetLeft - container.offsetWidth / 2 + card.offsetWidth / 2;
+        container.scrollTo({
+          left: scrollLeft,
+          behavior: "smooth",
+        });
       }
     }
   }, [currentIndex]);

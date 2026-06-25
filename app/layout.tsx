@@ -8,11 +8,11 @@ import { BankilyAd } from "@/components/BankilyAd";
 import { GoogleAdSense, AdSlot } from "@/components/GoogleAdSense";
 import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
-import { PWAProvider } from "@/components/PWAProvider";
+import { PWAProvider, ScrollRestoration } from "@/components/PWAProvider";
 
-// ISR enabled - cache for 30 seconds, regenerate in background
+// Static layout - prevent scroll reset on re-renders
 export const dynamic = "force-static";
-export const revalidate = 30;
+export const revalidate = false;
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const arabic = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arabic" });
@@ -69,6 +69,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       <body className="font-arabic bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col">
         <Analytics />
         <PWAProvider />
+        <ScrollRestoration />
         <Navigation />
         <LiveScoresTicker initialMatches={matches} />
         <main className="flex-1">

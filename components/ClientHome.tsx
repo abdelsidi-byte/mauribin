@@ -356,6 +356,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
+      // Save scroll position before refresh
+      const scrollY = window.scrollY;
+      
       try {
         const res = await fetch("/api/live-scores");
         const data = await res.json();
@@ -389,6 +392,11 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
           }
           setMatches(data.matches);
           setLastUpdate(new Date());
+          
+          // Restore scroll position after state update
+          requestAnimationFrame(() => {
+            window.scrollTo({ top: scrollY, behavior: "instant" as ScrollBehavior });
+          });
         }
       } catch (e) {
         console.error("Refresh failed:", e);
