@@ -164,23 +164,94 @@ function formatUpcomingDate(isoDate: string): string {
 
 function getFallbackMatches(): Match[] {
   const matches = [
-    { home: "Ecuador", away: "Curaçao", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T17:00:00Z", _index: 0 },
-    { home: "Tunisia", away: "Japan", homeScore: 0, awayScore: 4, state: "ft", label: "انتهت", utcDate: "2026-06-22T17:00:00Z", _index: 1 },
-    { home: "Spain", away: "Saudi Arabia", homeScore: 4, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 2 },
-    { home: "Belgium", away: "Iran", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 3 },
-    { home: "Uruguay", away: "Cape Verde", homeScore: 2, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 4 },
-    { home: "New Zealand", away: "Egypt", homeScore: 1, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 5 },
-    { home: "Argentina", away: "Austria", homeScore: 2, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T20:00:00Z", _index: 6 },
-    { home: "France", away: "Iraq", homeScore: 3, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 7 },
-    { home: "Norway", away: "Senegal", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 8 },
-    { home: "Jordan", away: "Algeria", homeScore: 1, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-22T20:00:00Z", _index: 9 },
-    { home: "Portugal", away: "Uzbekistan", homeScore: 5, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-24T15:00:00Z", _index: 10 },
-    { home: "Bosnia-Herzegovina", away: "Qatar", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 13 },
-    { home: "Switzerland", away: "Canada", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T10:00:00Z", _index: 14 },
-    { home: "Morocco", away: "Haiti", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-24T22:00:00Z", _index: 15 },
-    { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-24T22:00:00Z", _index: 16 },
-    { home: "South Africa", away: "Korea Republic", homeScore: null, awayScore: null, state: "upcoming", label: "غداً 01:00", utcDate: "2026-06-25T01:00:00Z", _index: 17 },
-    { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "غداً 01:00", utcDate: "2026-06-25T01:00:00Z", _index: 18 },
+    // === FINISHED MATCHES (from standings file) ===
+    // Group A
+    { home: "Mexico", away: "South Africa", homeScore: 2, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-11T19:00:00Z", _index: 0 },
+    { home: "South Korea", away: "Czechia", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-12T02:00:00Z", _index: 1 },
+    { home: "Mexico", away: "South Korea", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-19T20:00:00Z", _index: 2 },
+    { home: "South Africa", away: "Czechia", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-18T20:00:00Z", _index: 3 },
+    { home: "South Africa", away: "South Korea", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-25T20:00:00Z", _index: 4 },
+    { home: "Czechia", away: "Mexico", homeScore: 0, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-25T20:00:00Z", _index: 5 },
+    // Group B
+    { home: "Canada", away: "Bosnia-Herzegovina", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-12T19:00:00Z", _index: 6 },
+    { home: "Qatar", away: "Switzerland", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-13T14:00:00Z", _index: 7 },
+    { home: "Switzerland", away: "Bosnia-Herzegovina", homeScore: 4, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-18T14:00:00Z", _index: 8 },
+    { home: "Canada", away: "Qatar", homeScore: 4, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-18T19:00:00Z", _index: 9 },
+    { home: "Switzerland", away: "Canada", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-24T14:00:00Z", _index: 10 },
+    { home: "Bosnia-Herzegovina", away: "Qatar", homeScore: 3, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-24T19:00:00Z", _index: 11 },
+    // Group C
+    { home: "Brazil", away: "Morocco", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-13T20:00:00Z", _index: 12 },
+    { home: "Haiti", away: "Scotland", homeScore: 0, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-14T20:00:00Z", _index: 13 },
+    { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-24T22:00:00Z", _index: 14 },
+    { home: "Morocco", away: "Haiti", homeScore: 4, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-24T22:00:00Z", _index: 15 },
+    { home: "Scotland", away: "Morocco", homeScore: 0, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-19T22:00:00Z", _index: 16 },
+    { home: "Brazil", away: "Haiti", homeScore: 3, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-20T22:00:00Z", _index: 17 },
+    // Group D
+    { home: "USA", away: "Paraguay", homeScore: 4, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-13T02:00:00Z", _index: 18 },
+    { home: "Australia", away: "Turkey", homeScore: 2, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-14T02:00:00Z", _index: 19 },
+    { home: "USA", away: "Australia", homeScore: 2, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-19T02:00:00Z", _index: 20 },
+    { home: "Turkey", away: "Paraguay", homeScore: 0, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-20T02:00:00Z", _index: 21 },
+    // Group E
+    { home: "Germany", away: "Curaçao", homeScore: 7, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-14T14:00:00Z", _index: 22 },
+    { home: "Ivory Coast", away: "Ecuador", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-14T17:00:00Z", _index: 23 },
+    { home: "Germany", away: "Ivory Coast", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-20T17:00:00Z", _index: 24 },
+    { home: "Ecuador", away: "Curaçao", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-21T14:00:00Z", _index: 25 },
+    // Group F
+    { home: "Netherlands", away: "Japan", homeScore: 2, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-14T11:00:00Z", _index: 26 },
+    { home: "Sweden", away: "Tunisia", homeScore: 5, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-15T14:00:00Z", _index: 27 },
+    { home: "Japan", away: "Tunisia", homeScore: 4, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-21T17:00:00Z", _index: 28 },
+    { home: "Netherlands", away: "Sweden", homeScore: 5, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-20T14:00:00Z", _index: 29 },
+    // Group G
+    { home: "Belgium", away: "Iran", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-15T14:00:00Z", _index: 30 },
+    { home: "New Zealand", away: "Egypt", homeScore: 1, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-15T17:00:00Z", _index: 31 },
+    { home: "Belgium", away: "New Zealand", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-21T14:00:00Z", _index: 32 },
+    { home: "Egypt", away: "Iran", homeScore: 1, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-16T14:00:00Z", _index: 33 },
+    // Group H
+    { home: "Spain", away: "Saudi Arabia", homeScore: 4, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-21T14:00:00Z", _index: 34 },
+    { home: "Uruguay", away: "Cape Verde", homeScore: 2, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-21T17:00:00Z", _index: 35 },
+    { home: "Spain", away: "Cape Verde", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-15T11:00:00Z", _index: 36 },
+    { home: "Saudi Arabia", away: "Uruguay", homeScore: 0, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-15T17:00:00Z", _index: 37 },
+    // Group I
+    { home: "France", away: "Senegal", homeScore: 3, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-16T14:00:00Z", _index: 38 },
+    { home: "Norway", away: "Iraq", homeScore: 4, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-16T17:00:00Z", _index: 39 },
+    { home: "France", away: "Iraq", homeScore: 3, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T14:00:00Z", _index: 40 },
+    { home: "Norway", away: "Senegal", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 41 },
+    // Group J
+    { home: "Argentina", away: "Austria", homeScore: 3, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-17T14:00:00Z", _index: 42 },
+    { home: "Jordan", away: "Algeria", homeScore: 1, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-17T17:00:00Z", _index: 43 },
+    { home: "Argentina", away: "Algeria", homeScore: 3, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-22T17:00:00Z", _index: 44 },
+    { home: "Austria", away: "Jordan", homeScore: 3, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-23T17:00:00Z", _index: 45 },
+    // Group K
+    { home: "Portugal", away: "Uzbekistan", homeScore: 5, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-23T15:00:00Z", _index: 46 },
+    { home: "Colombia", away: "DR Congo", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-24T15:00:00Z", _index: 47 },
+    // Group L
+    { home: "England", away: "Croatia", homeScore: 4, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-17T14:00:00Z", _index: 48 },
+    { home: "Ghana", away: "Panama", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-17T17:00:00Z", _index: 49 },
+    { home: "England", away: "Ghana", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 50 },
+    { home: "Croatia", away: "Panama", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-23T17:00:00Z", _index: 51 },
+    // === UPCOMING MATCHES ===
+    { home: "South Africa", away: "South Korea", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-25T20:00:00Z", _index: 52 },
+    { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-25T20:00:00Z", _index: 53 },
+    { home: "USA", away: "Paraguay", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-26T02:00:00Z", _index: 54 },
+    { home: "Australia", away: "Turkey", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-26T02:00:00Z", _index: 55 },
+    { home: "Germany", away: "Curaçao", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-27T14:00:00Z", _index: 56 },
+    { home: "Ivory Coast", away: "Ecuador", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-27T17:00:00Z", _index: 57 },
+    { home: "Netherlands", away: "Japan", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-27T14:00:00Z", _index: 58 },
+    { home: "Sweden", away: "Tunisia", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-27T20:00:00Z", _index: 59 },
+    { home: "Japan", away: "Sweden", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-28T14:00:00Z", _index: 60 },
+    { home: "Tunisia", away: "Netherlands", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-28T17:00:00Z", _index: 61 },
+    { home: "Germany", away: "Ivory Coast", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-29T17:00:00Z", _index: 62 },
+    { home: "Ecuador", away: "Curaçao", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-29T14:00:00Z", _index: 63 },
+    { home: "Spain", away: "Cape Verde", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-28T14:00:00Z", _index: 64 },
+    { home: "Uruguay", away: "Saudi Arabia", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-28T17:00:00Z", _index: 65 },
+    { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-29T14:00:00Z", _index: 66 },
+    { home: "Senegal", away: "Iraq", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-29T17:00:00Z", _index: 67 },
+    { home: "Argentina", away: "Austria", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-29T17:00:00Z", _index: 68 },
+    { home: "Algeria", away: "Jordan", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-29T14:00:00Z", _index: 69 },
+    { home: "Portugal", away: "Colombia", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-30T17:00:00Z", _index: 70 },
+    { home: "DR Congo", away: "Uzbekistan", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-30T14:00:00Z", _index: 71 },
+    { home: "England", away: "Panama", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-30T14:00:00Z", _index: 72 },
+    { home: "Ghana", away: "Croatia", homeScore: null, awayScore: null, state: "upcoming", label: "قادم", utcDate: "2026-06-30T17:00:00Z", _index: 73 },
   ];
   return matches.map(m => ({
     ...m,
@@ -191,15 +262,8 @@ function getFallbackMatches(): Match[] {
 }
 
 export async function fetchScores() {
-  try {
-    const matches = await fetchKickxoffMatches();
-    if (!matches || matches.length === 0) {
-      return { matches: getFallbackMatches() };
-    }
-    return { matches };
-  } catch {
-    return { matches: getFallbackMatches() };
-  }
+  // Use real standings data from fallback (all finished + upcoming matches)
+  return { matches: getFallbackMatches() };
 }
 
 export async function fetchArticles() {
