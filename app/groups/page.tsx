@@ -1,7 +1,9 @@
-import { GROUP_STANDINGS } from "@/lib/standings";
+import { calculateStandings } from "@/lib/standings";
 import type { TeamStanding } from "@/lib/standings";
+import { fetchScores } from "@/lib/data";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const TEAM_AR: Record<string, string> = {
   Mexico: "المكسيك", "South Korea": "كوريا الجنوبية", "South Africa": "جنوب أفريقيا", Czechia: "التشيك",
@@ -84,7 +86,11 @@ function GroupCard({ group, teams }: { group: string; teams: TeamStanding[] }) {
   );
 }
 
-export default function GroupsPage() {
+export default async function GroupsPage() {
+  // Calculate standings from real match results
+  const scoresData = await fetchScores();
+  const groupStandings = calculateStandings(scoresData.matches);
+  
   return (
     <div className="min-h-screen pb-16">
       {/* Header */}
@@ -116,7 +122,7 @@ export default function GroupsPage() {
 
         {/* Groups Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {GROUP_STANDINGS.map((g) => (
+          {groupStandings.map((g: { group: string; teams: TeamStanding[] }) => (
             <GroupCard key={g.group} group={g.group} teams={g.teams} />
           ))}
         </div>

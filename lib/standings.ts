@@ -1,4 +1,4 @@
-// World Cup 2026 Group Standings (static data based on actual results)
+// World Cup 2026 Group Standings - calculated dynamically from real match results
 export interface TeamStanding {
   team: string;
   flag: string;
@@ -19,10 +19,10 @@ export interface GroupStanding {
 
 const FLAG_MAP: Record<string, string> = {
   Mexico: "🇲🇽", "South Korea": "🇰🇷", "South Africa": "🇿🇦", Czechia: "🇨🇿",
-  Canada: "🇨🇦", Switzerland: "🇨🇭", Qatar: "🇶🇦", Bosnia: "🇧🇦",
+  Canada: "🇨🇦", Switzerland: "🇨🇭", Qatar: "🇶🇦", "Bosnia": "🇧🇦", "Bosnia-Herzegovina": "🇧🇦",
   Brazil: "🇧🇷", Morocco: "🇲🇦", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Haiti: "🇭🇹",
-  USA: "🇺🇸", Australia: "🇦🇺", Paraguay: "🇵🇾", Turkey: "🇹🇷",
-  Germany: "🇩🇪", "Ivory Coast": "🇨🇮", Ecuador: "🇪🇨", Curaçao: "🇨🇼",
+  USA: "🇺🇸", "United States": "🇺🇸", Australia: "🇦🇺", Paraguay: "🇵🇾", Turkey: "🇹🇷", Türkiye: "🇹🇷",
+  Germany: "🇩🇪", "Ivory Coast": "🇨🇮", "Côte d'Ivoire": "🇨🇮", Ecuador: "🇪🇨", Curaçao: "🇨🇼",
   Netherlands: "🇳🇱", Sweden: "🇸🇪", Japan: "🇯🇵", Tunisia: "🇹🇳",
   Belgium: "🇧🇪", Iran: "🇮🇷", Egypt: "🇪🇬", "New Zealand": "🇳🇿",
   Spain: "🇪🇸", Uruguay: "🇺🇾", "Saudi Arabia": "🇸🇦", "Cape Verde": "🇨🇻",
@@ -32,7 +32,31 @@ const FLAG_MAP: Record<string, string> = {
   England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Croatia: "🇭🇷", Ghana: "🇬🇭", Panama: "🇵🇦",
 };
 
-function t(team: string): TeamStanding {
+// Group definitions (12 groups of 4 teams each)
+const GROUP_DEFS: { letter: string; arName: string; teams: string[] }[] = [
+  { letter: "A", arName: "أ", teams: ["Mexico", "South Korea", "South Africa", "Czechia"] },
+  { letter: "B", arName: "ب", teams: ["Canada", "Switzerland", "Qatar", "Bosnia-Herzegovina"] },
+  { letter: "C", arName: "ج", teams: ["Brazil", "Morocco", "Scotland", "Haiti"] },
+  { letter: "D", arName: "د", teams: ["United States", "Australia", "Paraguay", "Türkiye"] },
+  { letter: "E", arName: "هـ", teams: ["Germany", "Côte d'Ivoire", "Ecuador", "Curaçao"] },
+  { letter: "F", arName: "و", teams: ["Netherlands", "Sweden", "Japan", "Tunisia"] },
+  { letter: "G", arName: "ز", teams: ["Belgium", "Iran", "Egypt", "New Zealand"] },
+  { letter: "H", arName: "ح", teams: ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde"] },
+  { letter: "I", arName: "ط", teams: ["France", "Norway", "Senegal", "Iraq"] },
+  { letter: "J", arName: "ي", teams: ["Argentina", "Austria", "Algeria", "Jordan"] },
+  { letter: "K", arName: "ك", teams: ["Portugal", "Colombia", "DR Congo", "Uzbekistan"] },
+  { letter: "L", arName: "ل", teams: ["England", "Croatia", "Ghana", "Panama"] },
+];
+
+function normalizeTeam(name: string): string {
+  if (name === "Bosnia") return "Bosnia-Herzegovina";
+  if (name === "USA") return "United States";
+  if (name === "Turkey") return "Türkiye";
+  if (name === "Ivory Coast") return "Côte d'Ivoire";
+  return name;
+}
+
+function emptyStanding(team: string): TeamStanding {
   return {
     team,
     flag: FLAG_MAP[team] || "🏳️",
@@ -40,121 +64,78 @@ function t(team: string): TeamStanding {
   };
 }
 
-function addResult(standing: TeamStanding, gf: number, ga: number, won = false, drawn = false, lost = false) {
-  standing.played++;
-  standing.gf += gf; standing.ga += ga; standing.gd += gf - ga;
-  if (won) { standing.won++; standing.points += 3; }
-  else if (drawn) { standing.drawn++; standing.points += 1; }
-  else standing.lost++;
+export function calculateStandings(matches: { 
+  home: string; 
+  away: string; 
+  homeScore: number | null; 
+  awayScore: number | null; 
+  state: string 
+}[]): GroupStanding[] {
+  // Initialize all teams with 0 stats
+  const teamStats: Record<string, TeamStanding> = {};
+  GROUP_DEFS.forEach(({ teams }) => {
+    teams.forEach((team) => {
+      teamStats[team] = emptyStanding(team);
+    });
+  });
+
+  // Process only finished matches
+  matches.filter((m) => m.state === "ft").forEach((m) => {
+    if (m.homeScore === null || m.awayScore === null) return;
+    if (m.homeScore === undefined || m.awayScore === undefined) return;
+    
+    const home = normalizeTeam(m.home);
+    const away = normalizeTeam(m.away);
+    
+    // Skip if either team not in our groups
+    if (!teamStats[home] || !teamStats[away]) return;
+    
+    teamStats[home].played++;
+    teamStats[away].played++;
+    teamStats[home].gf += m.homeScore;
+    teamStats[away].gf += m.awayScore;
+    teamStats[home].ga += m.awayScore;
+    teamStats[away].ga += m.homeScore;
+    teamStats[home].gd = teamStats[home].gf - teamStats[home].ga;
+    teamStats[away].gd = teamStats[away].gf - teamStats[away].ga;
+    
+    if (m.homeScore > m.awayScore) {
+      teamStats[home].won++;
+      teamStats[home].points += 3;
+      teamStats[away].lost++;
+    } else if (m.homeScore < m.awayScore) {
+      teamStats[away].won++;
+      teamStats[away].points += 3;
+      teamStats[home].lost++;
+    } else {
+      teamStats[home].drawn++;
+      teamStats[away].drawn++;
+      teamStats[home].points += 1;
+      teamStats[away].points += 1;
+    }
+  });
+
+  // Build groups with sorted teams
+  return GROUP_DEFS.map(({ letter, arName, teams }) => {
+    const groupTeams = teams.map((t) => ({ ...teamStats[t] }));
+    
+    // Sort: points desc, gd desc, gf desc, name asc
+    groupTeams.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.team.localeCompare(b.team);
+    });
+    
+    return {
+      group: `المجموعة ${arName}`,
+      teams: groupTeams,
+    };
+  });
 }
 
-export const GROUP_STANDINGS: GroupStanding[] = [
-  {
-    group: "المجموعة أ",
-    teams: [
-      (() => { const s = t("Mexico"); addResult(s, 2, 1, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("South Korea"); addResult(s, 1, 0, true); addResult(s, 2, 2, false, true); return s; })(),
-      (() => { const s = t("South Africa"); addResult(s, 1, 2, false, false, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Czechia"); addResult(s, 1, 1, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ب",
-    teams: [
-      (() => { const s = t("Switzerland"); addResult(s, 3, 0, true); addResult(s, 1, 0, true); return s; })(),
-      (() => { const s = t("Canada"); addResult(s, 2, 0, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Qatar"); addResult(s, 1, 1, false, true); addResult(s, 0, 2, false, false, true); return s; })(),
-      (() => { const s = t("Bosnia"); addResult(s, 0, 2, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ج",
-    teams: [
-      (() => { const s = t("Brazil"); addResult(s, 3, 0, true); addResult(s, 2, 1, true); return s; })(),
-      (() => { const s = t("Morocco"); addResult(s, 2, 0, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Scotland"); addResult(s, 0, 3, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-      (() => { const s = t("Haiti"); addResult(s, 0, 2, false, false, true); addResult(s, 0, 3, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة د",
-    teams: [
-      (() => { const s = t("USA"); addResult(s, 2, 1, true); addResult(s, 1, 0, true); return s; })(),
-      (() => { const s = t("Paraguay"); addResult(s, 2, 1, true); addResult(s, 0, 1, false, false, true); return s; })(),
-      (() => { const s = t("Australia"); addResult(s, 1, 1, false, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Turkey"); addResult(s, 0, 2, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة هـ",
-    teams: [
-      (() => { const s = t("Germany"); addResult(s, 2, 1, true); addResult(s, 2, 0, true); return s; })(),
-      (() => { const s = t("Japan"); addResult(s, 4, 0, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Ecuador"); addResult(s, 0, 0, false, true); addResult(s, 1, 2, false, false, true); return s; })(),
-      (() => { const s = t("Ivory Coast"); addResult(s, 0, 2, false, false, true); addResult(s, 1, 2, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة و",
-    teams: [
-      (() => { const s = t("Netherlands"); addResult(s, 5, 1, true); addResult(s, 2, 0, true); return s; })(),
-      (() => { const s = t("Japan"); addResult(s, 4, 0, true); addResult(s, 1, 1, false, true); return s; })(),
-      (() => { const s = t("Sweden"); addResult(s, 1, 3, false, false, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Tunisia"); addResult(s, 0, 4, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ز",
-    teams: [
-      (() => { const s = t("Egypt"); addResult(s, 3, 1, true); addResult(s, 1, 0, true); return s; })(),
-      (() => { const s = t("Belgium"); addResult(s, 0, 0, false, true); addResult(s, 1, 0, true); return s; })(),
-      (() => { const s = t("Iran"); addResult(s, 0, 0, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-      (() => { const s = t("New Zealand"); addResult(s, 1, 3, false, false, true); addResult(s, 0, 2, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ح",
-    teams: [
-      (() => { const s = t("Spain"); addResult(s, 4, 0, true); addResult(s, 2, 1, true); return s; })(),
-      (() => { const s = t("Uruguay"); addResult(s, 2, 2, false, true); addResult(s, 1, 0, true); return s; })(),
-      (() => { const s = t("Cape Verde"); addResult(s, 2, 2, false, true); addResult(s, 0, 2, false, false, true); return s; })(),
-      (() => { const s = t("Saudi Arabia"); addResult(s, 0, 4, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ط",
-    teams: [
-      (() => { const s = t("France"); addResult(s, 1, 0, true); addResult(s, 2, 1, true); return s; })(),
-      (() => { const s = t("Senegal"); addResult(s, 1, 0, true); addResult(s, 1, 1, false, true); return s; })(),
-      (() => { const s = t("Norway"); addResult(s, 1, 1, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-      (() => { const s = t("Iraq"); addResult(s, 0, 1, false, false, true); addResult(s, 0, 2, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ي",
-    teams: [
-      (() => { const s = t("Argentina"); addResult(s, 2, 0, true); addResult(s, 3, 1, true); return s; })(),
-      (() => { const s = t("Algeria"); addResult(s, 2, 1, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Austria"); addResult(s, 0, 2, false, false, true); addResult(s, 1, 1, false, true); return s; })(),
-      (() => { const s = t("Jordan"); addResult(s, 0, 2, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ك",
-    teams: [
-      (() => { const s = t("Portugal"); addResult(s, 2, 0, true); addResult(s, 3, 1, true); return s; })(),
-      (() => { const s = t("Colombia"); addResult(s, 2, 1, true); addResult(s, 1, 1, false, true); return s; })(),
-      (() => { const s = t("Uzbekistan"); addResult(s, 1, 2, false, false, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("DR Congo"); addResult(s, 0, 2, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-  {
-    group: "المجموعة ل",
-    teams: [
-      (() => { const s = t("England"); addResult(s, 3, 0, true); addResult(s, 2, 1, true); return s; })(),
-      (() => { const s = t("Croatia"); addResult(s, 2, 0, true); addResult(s, 1, 1, false, true); return s; })(),
-      (() => { const s = t("Ghana"); addResult(s, 1, 2, false, false, true); addResult(s, 0, 0, false, true); return s; })(),
-      (() => { const s = t("Panama"); addResult(s, 0, 3, false, false, true); addResult(s, 0, 1, false, false, true); return s; })(),
-    ],
-  },
-];
+// For backward compatibility - will be replaced by dynamic calc
+export const GROUP_STANDINGS: GroupStanding[] = GROUP_DEFS.map(({ arName, teams }) => ({
+  group: `المجموعة ${arName}`,
+  teams: teams.map(emptyStanding),
+}));
