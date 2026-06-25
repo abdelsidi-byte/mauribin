@@ -17,43 +17,6 @@ interface Match {
   utcDate?: string;
 }
 
-const TEAM_AR: Record<string, string> = {
-  Argentina: "الأرجنتين", Austria: "النمسا", France: "فرنسا", Iraq: "العراق",
-  Norway: "النرويج", Senegal: "السنغال", Algeria: "الجزائر", Ghana: "غانا",
-  Brazil: "البرازيل", Uruguay: "أوروغواي", Spain: "إسبانيا", Netherlands: "هولندا",
-  Germany: "ألمانيا", Japan: "اليابان", Mexico: "المكسيك", USA: "أمريكا",
-  "South Korea": "كوريا الجنوبية", "Saudi Arabia": "السعودية", Morocco: "المغرب",
-  Egypt: "مصر", Tunisia: "تونس", Iran: "إيران", Belgium: "بلجيكا",
-  England: "إنجلترا", Portugal: "البرتغال", Croatia: "كرواتيا", Ecuador: "الإكوادور",
-  Australia: "أستراليا", Canada: "كندا", Switzerland: "سويسرا", Poland: "بولندا",
-  "New Zealand": "نيوزيلندا", Paraguay: "باراغواي", Turkey: "تركيا", "Ivory Coast": "ساحل العاج",
-  Curaçao: "كوراساو", Scotland: "أسكتلندا", Haiti: "هايتي", "Cape Verde": "الرأس الأخضر",
-  Uzbekistan: "أوزبكستان", "DR Congo": "الكونغو", Panama: "بنما", Colombia: "كولومبيا",
-  Jordan: "الأردن", Serbia: "صربيا", Denmark: "الدنمارك", Ukraine: "أوكرانيا",
-  Hungary: "المجر", Wales: "ويلز", Cameroon: "الكاميرون", Mali: "مالي",
-  Qatar: "قطر", UAE: "الإمارات", Peru: "بيرو", "South Africa": "جنوب أفريقيا",
-  "Bosnia": "البوسنة", "Czech Republic": "التشيك", Nigeria: "نيجيريا", "Costa Rica": "كوستاريكا",
-};
-
-function teamAr(name: string): string {
-  return TEAM_AR[name] || name;
-}
-
-function labelAr(state: string, label: string): string {
-  if (state === "live") return "Live";
-  if (state === "ft" || state === "finished") return "Finished";
-  return label
-    .replace(/Today/g, "Today")
-    .replace(/Tue/g, "Tue")
-    .replace(/Wed/g, "Wed")
-    .replace(/Thu/g, "Thu")
-    .replace(/Fri/g, "Fri")
-    .replace(/Sat/g, "Sat")
-    .replace(/Sun/g, "Sun")
-    .replace(/Mon/g, "Mon")
-    .replace(/UTC/g, "UTC");
-}
-
 // Goal celebration animation for ticker
 function TickerGoalFlash({ side }: { side: "home" | "away" }) {
   return (
@@ -191,7 +154,7 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
                     </>
                   )}
                   {match.state !== "live" && (
-                    <span className="text-slate-500 text-xs">{labelAr(match.state, match.label)}</span>
+                    <span className="text-slate-500 text-xs">{match.state === "ft" || match.state === "finished" ? t("match.finished") : match.label}</span>
                   )}
                 </div>
 

@@ -9,52 +9,13 @@ import VideoAdBanner from "./VideoAdBanner";
 type Match = any;
 type Article = any;
 
-const TEAM_AR: Record<string, string> = {
-  Argentina: "الأرجنتين", Austria: "النمسا", France: "فرنسا", Iraq: "العراق",
-  Norway: "النرويج", Senegal: "السنغال", Algeria: "الجزائر", Ghana: "غانا",
-  England: "إنجلترا", Italy: "إيطاليا", Germany: "ألمانيا", Portugal: "البرتغال",
-  Sweden: "السويد", Brazil: "البرازيل", Uruguay: "أوروغواي", Colombia: "كولومبيا",
-  Ecuador: "الإكوادور", Mexico: "المكسيك", USA: "أمريكا", Chile: "تشيلي",
-  Canada: "كندا", Spain: "إسبانيا", Netherlands: "هولندا", Belgium: "بلجيكا",
-  Croatia: "كرواتيا", Denmark: "الدنمارك", Serbia: "صربيا", Morocco: "المغرب",
-  Egypt: "مصر", Nigeria: "نيجيريا", Japan: "اليابان", Australia: "أستراليا",
-  "Saudi Arabia": "السعودية", "South Korea": "كوريا الجنوبية", "Costa Rica": "كوستاريكا",
-  Panama: "بنما", Peru: "بيرو", Iran: "إيران", Tunisia: "تونس",
-  "Cape Verde": "الرأس الأخضر", Turkey: "تركيا", Paraguay: "باراغواي",
-  Haiti: "هايتي", Poland: "بولندا", Ukraine: "أوكرانيا", Hungary: "المجر",
-  Switzerland: "سويسرا", Wales: "ويلز", "Czech Republic": "التشيك",
-  Cameroon: "الكاميرون", Mali: "مالي", Qatar: "قطر", UAE: "الإمارات",
-  Jordan: "الأردن", Uzbekistan: "أوزبكستان", "New Zealand": "نيوزيلندا",
-  "Ivory Coast": "ساحل العاج", Curaçao: "كوراساو", "South Africa": "جنوب أفريقيا",
-  "Bosnia": "البوسنة", "Bosnia-Herzegovina": "البوسنة والهرسك", "Bosnia and Herzegovina": "البوسنة والهرسك", Scotland: "أسكتلندا",
-};
-
-function teamAr(name: string): string {
-  return TEAM_AR[name] || name;
-}
-
-function labelAr(state: string, label: string): string {
-  if (state === "live") return "مباشر الآن";
-  if (state === "ft" || state === "finished") return "انتهت";
-  return label
-    .replace(/Today/g, "اليوم")
-    .replace(/Tue/g, "الثلاثاء")
-    .replace(/Wed/g, "الأربعاء")
-    .replace(/Thu/g, "الخميس")
-    .replace(/Fri/g, "الجمعة")
-    .replace(/Sat/g, "السبت")
-    .replace(/Sun/g, "الأحد")
-    .replace(/Mon/g, "الإثنين")
-    .replace(/UTC/g, "ت ع");
-}
-
 // ⚽ Goal Animation Component
-function GoalCelebration({ team, side }: { team: string; side: "home" | "away" }) {
+function GoalCelebration({ team, side, localizeTeamFn }: { team: string; side: "home" | "away"; localizeTeamFn: (n: string) => string }) {
   return (
     <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-50">
       <div className={`absolute ${side === "home" ? "animate-goal-left" : "animate-goal-right"}`}>
         <div className="bg-gradient-to-r from-[#FFD700]/90 to-[#FFA500]/90 text-black font-black text-2xl px-8 py-4 rounded-2xl shadow-2xl">
-          ⚽ هدف! {teamAr(team)}
+          ⚽ {localizeTeamFn(team)}
         </div>
       </div>
       {/* Soccer balls flying */}
@@ -104,7 +65,7 @@ function NextMatchHero({ match }: { match: Match }) {
       timeUntil = `بعد ${mins} دقيقة`;
     }
   } else if (isLive) {
-    timeUntil = "مباشر الآن";
+    timeUntil = t("match.live");
   }
   
   const homeTeam = match.home || match.team1 || "?";
@@ -134,7 +95,7 @@ function NextMatchHero({ match }: { match: Match }) {
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
               </span>
-              <span className="text-red-400 text-2xl font-black animate-pulse">مباشر</span>
+              <span className="text-red-400 text-2xl font-black animate-pulse">{t("match.live")}</span>
               <span className="relative flex h-4 w-4">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-4 w-4 bg-red-500"></span>
@@ -206,7 +167,7 @@ function NextMatchHero({ match }: { match: Match }) {
             href={`/match/${match.slug || match._index}`}
             className="block w-full bg-[#FFD700] hover:bg-[#FFC000] text-[#0a1628] font-black py-4 rounded-xl text-center text-xl transition-colors"
           >
-            شاهد التفاصيل
+            {t("details.backHome")}
           </Link>
         </div>
       </div>
@@ -218,9 +179,13 @@ function NextMatchHero({ match }: { match: Match }) {
 function MatchCard({
   match,
   onGoal,
+  localizeTeamFn,
+  tFn,
 }: {
   match: Match;
   onGoal: (team: string, side: "home" | "away") => void;
+  localizeTeamFn: (name: string) => string;
+  tFn: (key: string) => string;
 }) {
   // Support both data formats
   const homeTeam = match.home || match.team1 || "?";
@@ -229,12 +194,12 @@ function MatchCard({
   const awayFlag = match.awayFlag || match.team2Flag || "🏳️";
   const isHomeUrl = homeFlag.startsWith("http");
   const isAwayUrl = awayFlag.startsWith("http");
-  
+
   const prevScore = useRef<{ home: number | null; away: number | null }>({
     home: match.homeScore,
     away: match.awayScore,
   });
-  
+
   const isLive = match.state === "live";
   const [showGoal, setShowGoal] = useState<"home" | "away" | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
@@ -268,7 +233,7 @@ function MatchCard({
   return (
     <div ref={cardRef} className="relative">
       {showGoal && (
-        <GoalCelebration team={showGoal === "home" ? match.home : match.away} side={showGoal} />
+        <GoalCelebration team={showGoal === "home" ? match.home : match.away} side={showGoal} localizeTeamFn={localizeTeamFn} />
       )}
       <Link
         href={`/match/${match.slug || match._index}`}
@@ -280,7 +245,7 @@ function MatchCard({
         {isLive && (
           <div className="flex items-center justify-center gap-2 mb-3">
             <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-            <span className="text-red-400 text-xs font-bold">مباشر</span>
+            <span className="text-red-400 text-xs font-bold">{tFn("match.live")}</span>
           </div>
         )}
 
@@ -293,7 +258,7 @@ function MatchCard({
             ) : (
               <span className="text-xl shrink-0">{homeFlag}</span>
             )}
-            <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{teamAr(match.home)}</span>
+            <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{localizeTeamFn(homeTeam)}</span>
             <span className={`text-xl font-black text-center min-w-[24px] ${
               showGoal === "home" ? "text-[#FFD700] animate-pulse" : isLive ? "text-white" : "text-slate-300"
             }`}>
@@ -308,7 +273,7 @@ function MatchCard({
             ) : (
               <span className="text-xl shrink-0">{awayFlag}</span>
             )}
-            <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{teamAr(match.away)}</span>
+            <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{localizeTeamFn(awayTeam)}</span>
             <span className={`text-xl font-black text-center min-w-[24px] ${
               showGoal === "away" ? "text-[#FFD700] animate-pulse" : isLive ? "text-white" : "text-slate-300"
             }`}>
@@ -319,7 +284,7 @@ function MatchCard({
 
         {/* Time / Status */}
         <div className="mt-3 pt-3 border-t border-slate-700/50">
-          <span className="text-xs text-slate-400">{labelAr(match.state, match.label)}</span>
+          <span className="text-xs text-slate-400">{match.state === "ft" || match.state === "finished" ? tFn("match.finished") : match.state === "upcoming" ? tFn("match.upcoming") : match.label}</span>
         </div>
       </Link>
     </div>
@@ -338,7 +303,7 @@ function RefreshIndicator({ countdown }: { countdown: number }) {
 }
 
 // Live notification toast
-function GoalToast({ goals }: { goals: { team: string; side: "home" | "away" }[] }) {
+function GoalToast({ goals, localizeTeamFn }: { goals: { team: string; side: "home" | "away" }[]; localizeTeamFn: (n: string) => string }) {
   if (goals.length === 0) return null;
   return (
     <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2">
@@ -347,7 +312,7 @@ function GoalToast({ goals }: { goals: { team: string; side: "home" | "away" }[]
           key={i}
           className="bg-gradient-to-r from-[#FFD700] to-[#FFA500] text-black font-black px-6 py-3 rounded-xl shadow-2xl animate-slide-down"
         >
-          ⚽ هدف! {teamAr(g.team)}
+          ⚽ {localizeTeamFn(g.team)}
         </div>
       ))}
     </div>
@@ -361,7 +326,7 @@ interface ClientHomeProps {
 }
 
 export function ClientHome({ matches: initialMatches, articles, worldCupMatches = [] }: ClientHomeProps) {
-  const { t } = useI18n();
+  const { t, localizeTeam } = useI18n();
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [countdown, setCountdown] = useState(30);
   const [recentGoals, setRecentGoals] = useState<{ team: string; side: "home" | "away" }[]>([]);
@@ -492,7 +457,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#006233]/8 via-slate-950 to-slate-950">
-      <GoalToast goals={recentGoals} />
+      <GoalToast goals={recentGoals} localizeTeamFn={localizeTeam} />
       <RefreshIndicator countdown={countdown} />
 
       <section className="relative overflow-hidden">
@@ -501,7 +466,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
           <div className="text-center mb-8">
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#006233]/15 border border-[#FFD700]/30 mb-4">
               <span className="w-2 h-2 rounded-full bg-[#FFD700] live-dot" />
-              <span className="text-[#FFD700] text-sm font-bold">كأس العالم 2026</span>
+              <span className="text-[#FFD700] text-sm font-bold">{t("hero.worldCup")}</span>
               <span className="text-slate-400 text-xs">
                 {lastUpdate.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" })}
               </span>
@@ -529,7 +494,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {uniqueLiveMatches.map((match) => (
                   <div key={match.slug || match._index} className="w-full">
-                    <MatchCard match={match} onGoal={handleGoal} />
+                    <MatchCard match={match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
                   </div>
                 ))}
               </div>
@@ -552,10 +517,10 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               </div>
               <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
                 {finishedMatches.map((match) => (
-                  <MatchCard key={match._index} match={match} onGoal={handleGoal} />
+                  <MatchCard key={match._index} match={match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
                 {wcFinishedMatches.slice(0, 10).map((match, idx) => (
-                  <MatchCard key={`wc-ft-${idx}`} match={match as Match} onGoal={handleGoal} />
+                  <MatchCard key={`wc-ft-${idx}`} match={match as Match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
               </div>
             </div>
@@ -572,10 +537,10 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               </div>
               <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
                 {upcomingMatches.map((match) => (
-                  <MatchCard key={match._index} match={match} onGoal={handleGoal} />
+                  <MatchCard key={match._index} match={match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
                 {wcUpcomingMatches.slice(0, 10).map((match, idx) => (
-                  <MatchCard key={`wc-up-${idx}`} match={match as Match} onGoal={handleGoal} />
+                  <MatchCard key={`wc-up-${idx}`} match={match as Match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
               </div>
             </div>
