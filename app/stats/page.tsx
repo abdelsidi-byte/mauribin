@@ -1,22 +1,149 @@
-import { GROUPS, GROUP_STANDINGS, GroupStanding } from "@/lib/worldcup-data";
+import { GROUPS, type GroupStanding } from "@/lib/worldcup-data";
+import { fetchScores } from "@/lib/data";
 
 export const metadata = {
   title: "إحصائيات كأس العالم 2026 | Mauribin",
 };
 
-// Flatten all teams with their group letters
-const ALL_TEAMS: (GroupStanding & { group: string })[] = GROUPS.flatMap((g) =>
-  GROUP_STANDINGS[g].map((t) => ({ ...t, group: g }))
-);
+// Force dynamic to recalculate standings from latest match data
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
-// Medal emojis for top 3 positions
+// Calculate standings dynamically from actual match results
+async function calculateStandings(): Promise<Record<string, GroupStanding[]>> {
+  const data = await fetchScores();
+  const matches = data.matches.filter((m) => m.state === "ft");
+  
+  // Initialize all teams with 0 stats
+  const teamStats: Record<string, {
+    team: string;
+    played: number;
+    won: number;
+    drawn: number;
+    lost: number;
+    gf: number;
+    ga: number;
+  }> = {};
+  
+  const TEAM_FLAGS: Record<string, string> = {
+    Mexico: "🇲🇽", "South Korea": "🇰🇷", "South Africa": "🇿🇦", Czechia: "🇨🇿",
+    Canada: "🇨🇦", Switzerland: "🇨🇭", Qatar: "🇶🇦", "Bosnia-Herzegovina": "🇧🇦",
+    Bosnia: "🇧🇦", Brazil: "🇧🇷", Morocco: "🇲🇦", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Haiti: "🇭🇹",
+    "United States": "🇺🇸", USA: "🇺🇸", Australia: "🇦🇺", Paraguay: "🇵🇾", Türkiye: "🇹🇷", Turkey: "🇹🇷",
+    Germany: "🇩🇪", "Côte d'Ivoire": "🇨🇮", "Ivory Coast": "🇨🇮", Ecuador: "🇪🇨", Curaçao: "🇨🇼",
+    Netherlands: "🇳🇱", Sweden: "🇸🇪", Japan: "🇯🇵", Tunisia: "🇹🇳",
+    Belgium: "🇧🇪", Iran: "🇮🇷", Egypt: "🇪🇬", "New Zealand": "🇳🇿",
+    Spain: "🇪🇸", Uruguay: "🇺🇾", "Saudi Arabia": "🇸🇦", "Cape Verde": "🇨🇻",
+    France: "🇫🇷", Norway: "🇳🇴", Senegal: "🇸🇳", Iraq: "🇮🇶",
+    Argentina: "🇦🇷", Austria: "🇦🇹", Algeria: "🇩🇿", Jordan: "🇯🇴",
+    Portugal: "🇵🇹", Colombia: "🇨🇴", "DR Congo": "🇨🇩", Uzbekistan: "🇺🇿",
+    England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Croatia: "🇭🇷", Ghana: "🇬🇭", Panama: "🇵🇦",
+  };
+  
+  // Group definitions for standings assignment
+  const GROUP_TEAMS: Record<string, string[]> = {
+    A: ["Mexico", "South Korea", "South Africa", "Czechia"],
+    B: ["Canada", "Switzerland", "Qatar", "Bosnia-Herzegovina"],
+    C: ["Brazil", "Morocco", "Scotland", "Haiti"],
+    D: ["United States", "Australia", "Paraguay", "Türkiye"],
+    E: ["Germany", "Côte d'Ivoire", "Ecuador", "Curaçao"],
+    F: ["Netherlands", "Sweden", "Japan", "Tunisia"],
+    G: ["Belgium", "Iran", "Egypt", "New Zealand"],
+    H: ["Spain", "Uruguay", "Saudi Arabia", "Cape Verde"],
+    I: ["France", "Norway", "Senegal", "Iraq"],
+    J: ["Argentina", "Austria", "Algeria", "Jordan"],
+    K: ["Portugal", "Colombia", "DR Congo", "Uzbekistan"],
+    L: ["England", "Croatia", "Ghana", "Panama"],
+  };
+  
+  // Initialize all teams
+  Object.entries(GROUP_TEAMS).forEach(([_, teams]) => {
+    teams.forEach((team) => {
+      if (!teamStats[team]) {
+        teamStats[team] = {
+          team, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0,
+        };
+      }
+    });
+  });
+  
+  // Process each finished match
+  matches.forEach((m) => {
+    if (m.homeScore === null || m.awayScore === null || m.homeScore === undefined || m.awayScore === undefined) return;
+    
+    // Normalize team names
+    const normalizeTeam = (name: string): string => {
+      if (name === "Bosnia") return "Bosnia-Herzegovina";
+      if (name === "USA") return "United States";
+      if (name === "Turkey") return "Türkiye";
+      if (name === "Ivory Coast") return "Côte d'Ivoire";
+      return name;
+    };
+    
+    const home = normalizeTeam(m.home);
+    const away = normalizeTeam(m.away);
+    
+    if (!teamStats[home]) teamStats[home] = { team: home, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0 };
+    if (!teamStats[away]) teamStats[away] = { team: away, played: 0, won: 0, drawn: 0, lost: 0, gf: 0, ga: 0 };
+    
+    teamStats[home].played++;
+    teamStats[away].played++;
+    teamStats[home].gf += m.homeScore;
+    teamStats[away].gf += m.awayScore;
+    teamStats[home].ga += m.awayScore;
+    teamStats[away].ga += m.homeScore;
+    
+    if (m.homeScore > m.awayScore) {
+      teamStats[home].won++;
+      teamStats[away].lost++;
+    } else if (m.homeScore < m.awayScore) {
+      teamStats[away].won++;
+      teamStats[home].lost++;
+    } else {
+      teamStats[home].drawn++;
+      teamStats[away].drawn++;
+    }
+  });
+  
+  // Group teams and calculate points + sort
+  const standings: Record<string, GroupStanding[]> = {};
+  Object.entries(GROUP_TEAMS).forEach(([group, teams]) => {
+    const groupStats: GroupStanding[] = teams.map((team) => {
+      const stats = teamStats[team];
+      return {
+        team,
+        flag: TEAM_FLAGS[team] || "🏳️",
+        played: stats.played,
+        won: stats.won,
+        drawn: stats.drawn,
+        lost: stats.lost,
+        gf: stats.gf,
+        ga: stats.ga,
+        gd: stats.gf - stats.ga,
+        points: stats.won * 3 + stats.drawn,
+      };
+    });
+    
+    // Sort: points desc, then goal diff desc, then goals for desc, then name asc
+    groupStats.sort((a, b) => {
+      if (b.points !== a.points) return b.points - a.points;
+      if (b.gd !== a.gd) return b.gd - a.gd;
+      if (b.gf !== a.gf) return b.gf - a.gf;
+      return a.team.localeCompare(b.team);
+    });
+    
+    standings[group] = groupStats;
+  });
+  
+  return standings;
+}
+
 const MEDALS = ["🥇", "🥈", "🥉"];
 
 function getMedal(idx: number) {
   return MEDALS[idx] ?? null;
 }
 
-// Reusable card wrapper for sections
 function StatsCard({
   title,
   emoji,
@@ -34,11 +161,8 @@ function StatsCard({
         span === "wide" ? "md:col-span-2" : ""
       }`}
     >
-      {/* Header */}
       <div className="relative bg-gradient-to-r from-[#006233] via-[#007a40] to-[#006233] px-4 py-4 border-b border-[#ffd700]/30">
         <div className="absolute inset-0 pitch-bg opacity-20 pointer-events-none" />
-        <div className="absolute top-0 left-0 w-8 h-8 border border-[#ffd700]/20 rounded-full -translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute top-0 right-0 w-8 h-8 border border-[#ffd700]/20 rounded-full translate-x-1/2 -translate-y-1/2" />
         <h2 className="text-xl font-bold text-white flex items-center justify-center gap-3 relative">
           <span className="text-2xl">{emoji}</span>
           <span>{title}</span>
@@ -50,7 +174,6 @@ function StatsCard({
   );
 }
 
-// Row for a ranked list - medal for top 3, number afterwards
 function RankRow({
   rank,
   flag,
@@ -81,20 +204,13 @@ function RankRow({
           : "bg-black/20"
       }`}
     >
-      {/* Rank / medal */}
       <div className="w-9 flex items-center justify-center text-xl">
         {medal ?? (
           <span className="text-sm font-bold text-[#f1f5f9]/50">{rank + 1}</span>
         )}
       </div>
-
-      {/* Flag */}
       <span className="text-2xl shrink-0">{flag}</span>
-
-      {/* Team name */}
       <span className="flex-1 text-white font-medium truncate">{team}</span>
-
-      {/* Secondary stat (e.g. losses) */}
       {secondary !== undefined && (
         <div className="hidden sm:flex items-center gap-1 text-xs px-2 py-1 rounded-md bg-black/30 border border-white/5">
           <span className="text-[#f1f5f9]/50">خسائر</span>
@@ -103,8 +219,6 @@ function RankRow({
           </span>
         </div>
       )}
-
-      {/* Primary stat (e.g. goals) */}
       <div
         className={`flex items-center gap-1 px-3 py-1.5 rounded-lg border ${primaryColor} font-black text-lg min-w-[3rem] justify-center`}
       >
@@ -115,235 +229,269 @@ function RankRow({
   );
 }
 
-export default function StatsPage() {
-  // Top 5 scorers - sorted by goals scored (gf)
-  const topScorers = [...ALL_TEAMS]
+export default async function StatsPage() {
+  // Calculate dynamic standings from real match results
+  const GROUP_STANDINGS = await calculateStandings();
+  
+  // Flatten all teams
+  const ALL_TEAMS: (GroupStanding & { group: string })[] = GROUPS.flatMap((g) =>
+    GROUP_STANDINGS[g].map((t) => ({ ...t, group: g }))
+  );
+  
+  // Only show teams that have played
+  const teamsWithMatches = ALL_TEAMS.filter((t) => t.played > 0);
+  
+  // Top 5 scorers
+  const topScorers = [...teamsWithMatches]
     .sort((a, b) => b.gf - a.gf || b.gd - a.gd)
     .slice(0, 5);
-
-  // Top 3 best attack - same metric, top 3
+  
+  // Top 3 best attack
   const bestAttack = topScorers.slice(0, 3);
-
-  // Top 3 best defense - fewest goals conceded (ga)
-  const bestDefense = [...ALL_TEAMS]
-    .filter((t) => t.played > 0)
+  
+  // Top 3 best defense
+  const bestDefense = [...teamsWithMatches]
     .sort((a, b) => a.ga - b.ga || b.gd - a.gd)
     .slice(0, 3);
-
-  // Group leaders - top team of each group
+  
+  // Group leaders
   const groupLeaders = GROUPS.map((g) => ({
     group: g,
     leader: GROUP_STANDINGS[g][0],
-  }));
-
+  })).filter((gl) => gl.leader.played > 0);
+  
   // Top 3 most wins
-  const mostWins = [...ALL_TEAMS]
+  const mostWins = [...teamsWithMatches]
     .sort((a, b) => b.won - a.won || b.gd - a.gd)
     .slice(0, 3);
+  
+  // Top 3 most losses
+  const mostLosses = [...teamsWithMatches]
+    .sort((a, b) => b.lost - a.lost || a.gd - b.gd)
+    .slice(0, 3);
+  
+  // Most goals scored in a single match
+  const allMatches = (await fetchScores()).matches.filter((m) => m.state === "ft" && m.homeScore !== null && m.awayScore !== null);
+  const highestScoring = [...allMatches]
+    .sort((a, b) => (b.homeScore! + b.awayScore!) - (a.homeScore! + a.awayScore!))
+    .slice(0, 3);
+
+  const totalGoals = teamsWithMatches.reduce((sum, t) => sum + t.gf, 0);
+  const totalMatches = allMatches.length;
 
   return (
     <div className="min-h-screen pb-16 relative">
-      {/* Pitch stripe background */}
       <div className="absolute inset-0 pitch-stripes opacity-20 pointer-events-none" />
 
-      {/* Header - Mauritanian Green Style */}
+      {/* Header */}
       <div className="relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-[#006233]/80 via-[#006233]/60 to-[#006233]/80" />
-        <div className="absolute inset-0 opacity-5">
-          <div
-            className="absolute inset-0"
-            style={{
-              backgroundImage:
-                "repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.1) 40px, rgba(255,255,255,0.1) 80px)",
-            }}
-          />
-        </div>
-
-        {/* Stadium light effects - gold */}
-        <div className="absolute top-0 left-1/4 w-96 h-64 bg-[#ffd700]/10 rounded-full blur-3xl" />
-        <div className="absolute top-0 right-1/4 w-96 h-64 bg-[#ffd700]/10 rounded-full blur-3xl" />
-
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-white/30" />
-
         <div className="container mx-auto px-4 py-12 relative">
           <div className="text-center">
             <div className="inline-flex items-center gap-3 mb-4 px-4 py-2 rounded-full bg-[#ffd700]/10 border border-[#ffd700]/30">
               <span className="text-2xl">📊</span>
-              <span className="text-[#ffd700] font-bold">كأس العالم 2026</span>
-              <span className="text-2xl">📊</span>
+              <span className="text-[#ffd700] text-sm font-medium">كأس العالم 2026</span>
             </div>
-            <h1 className="text-4xl md:text-5xl font-bold text-white mb-3 flex items-center justify-center gap-4">
-              <span className="w-12 h-px bg-white/30" />
-              <span className="gradient-text">إحصائيات كأس العالم 2026</span>
-              <span className="w-12 h-px bg-white/30" />
+            <h1 className="text-4xl md:text-5xl font-black mb-3">
+              <span className="gradient-text">إحصائيات البطولة</span>
             </h1>
-            <p className="text-[#f1f5f9]/80 text-center">
-              أرقام وأداء المنتخبات - هدافو، أقوى الهجمات، أقوى الدفاعات، متصدرو المجموعات وأكثر
+            <p className="text-slate-300 mb-2">
+              أرقام حقيقية محسوبة من نتائج المباريات الفعلية
             </p>
+            <div className="inline-flex items-center gap-4 flex-wrap justify-center">
+              <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                <span className="text-[#ffd700] font-bold">{totalMatches}</span>
+                <span className="text-slate-400 text-sm mr-1">مباراة منتهية</span>
+              </div>
+              <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                <span className="text-[#ffd700] font-bold">{totalGoals}</span>
+                <span className="text-slate-400 text-sm mr-1">هدف</span>
+              </div>
+              <div className="px-3 py-1 rounded-full bg-white/5 border border-white/10">
+                <span className="text-[#ffd700] font-bold">{teamsWithMatches.length}</span>
+                <span className="text-slate-400 text-sm mr-1">منتخب لعب</span>
+              </div>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Stats Grid */}
-      <div className="container mx-auto px-4 py-8 relative">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Top Scorers - Top 5 */}
-          <StatsCard title="الهدافون" emoji="⚽">
-            <div className="space-y-2">
-              {topScorers.map((team, idx) => (
-                <RankRow
-                  key={`${team.group}-${team.team}`}
-                  rank={idx}
-                  flag={team.flag}
-                  team={team.team}
-                  primary={team.gf}
-                  primaryColor="bg-[#ffd700]/15 text-[#ffd700] border-[#ffd700]/40"
-                />
-              ))}
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/5 text-xs text-[#f1f5f9]/50 text-center">
-              أعلى 5 منتخبات تسجيلاً للأهداف
-            </div>
-          </StatsCard>
-
-          {/* Best Attack - Top 3 */}
-          <StatsCard title="أقوى الهجمات" emoji="🔥">
-            <div className="space-y-2">
-              {bestAttack.map((team, idx) => (
-                <RankRow
-                  key={`atk-${team.group}-${team.team}`}
-                  rank={idx}
-                  flag={team.flag}
-                  team={team.team}
-                  primary={team.gf}
-                  primaryColor="bg-[#006233]/30 text-[#ffd700] border-[#006233]/50"
-                  secondary={`+${team.gd}`}
-                  secondaryColor="text-[#ffd700]"
-                />
-              ))}
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/5 text-xs text-[#f1f5f9]/50 text-center">
-              المنتخبات الثلاثة الأقوى هجومياً
-            </div>
-          </StatsCard>
-
-          {/* Best Defense - Top 3 */}
-          <StatsCard title="أقوى الدفاعات" emoji="🛡️">
-            <div className="space-y-2">
-              {bestDefense.map((team, idx) => (
-                <RankRow
-                  key={`def-${team.group}-${team.team}`}
-                  rank={idx}
-                  flag={team.flag}
-                  team={team.team}
-                  primary={team.ga}
-                  primaryColor="bg-[#006233]/30 text-[#006233] border-[#006233]/50"
-                  secondary={team.lost}
-                  secondaryColor="text-[#d01c1f]"
-                />
-              ))}
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/5 text-xs text-[#f1f5f9]/50 text-center">
-              أقل المنتخبات استقبالاً للأهداف -{" "}
-              <span className="text-[#d01c1f]">خسائر</span> /{" "}
-              <span className="text-[#006233]">انتصارات</span>
-            </div>
-          </StatsCard>
-
-          {/* Most Wins - Top 3 */}
-          <StatsCard title="الأكثر فوزاً" emoji="🏆">
-            <div className="space-y-2">
-              {mostWins.map((team, idx) => (
-                <RankRow
-                  key={`win-${team.group}-${team.team}`}
-                  rank={idx}
-                  flag={team.flag}
-                  team={team.team}
-                  primary={team.won}
-                  primaryColor="bg-[#006233]/30 text-[#006233] border-[#006233]/50"
-                  secondary={`${team.points} نقطة`}
-                  secondaryColor="text-[#ffd700]"
-                />
-              ))}
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/5 text-xs text-[#f1f5f9]/50 text-center">
-              المنتخبات الثلاثة الأكثر تحقيقاً للانتصارات
-            </div>
-          </StatsCard>
-
-          {/* Group Leaders - Full width */}
-          <StatsCard title="متصدرو المجموعات" emoji="👑" span="wide">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-              {groupLeaders.map(({ group, leader }) => (
-                <div
-                  key={group}
-                  className="glass rounded-xl p-3 border border-[#ffd700]/20 hover:border-[#ffd700]/50 transition-all card-hover"
-                >
-                  {/* Group badge */}
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-xs text-[#f1f5f9]/50">المجموعة</span>
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-gradient-to-br from-[#ffd700] to-[#c9a227] text-[#004225] font-black text-sm shadow-lg">
-                      {group}
-                    </span>
-                  </div>
-
-                  {/* Team */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="text-3xl">{leader.flag}</span>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-white font-bold text-sm truncate">
-                        {leader.team}
-                      </div>
-                      <div className="text-[10px] text-[#f1f5f9]/50">
-                        {leader.played} مباريات
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stats */}
-                  <div className="grid grid-cols-3 gap-1 text-center text-xs">
-                    <div className="rounded-md bg-[#006233]/20 border border-[#006233]/30 py-1">
-                      <div className="text-[#006233] font-bold">{leader.won}</div>
-                      <div className="text-[9px] text-[#f1f5f9]/50">فوز</div>
-                    </div>
-                    <div className="rounded-md bg-black/30 border border-white/5 py-1">
-                      <div className="text-slate-300 font-bold">{leader.drawn}</div>
-                      <div className="text-[9px] text-[#f1f5f9]/50">تعادل</div>
-                    </div>
-                    <div className="rounded-md bg-[#d01c1f]/15 border border-[#d01c1f]/30 py-1">
-                      <div className="text-[#d01c1f] font-bold">{leader.lost}</div>
-                      <div className="text-[9px] text-[#f1f5f9]/50">خسارة</div>
-                    </div>
-                  </div>
-
-                  {/* Points */}
-                  <div className="mt-2 flex items-center justify-between rounded-md bg-[#ffd700]/10 border border-[#ffd700]/30 px-2 py-1.5">
-                    <span className="text-[10px] text-[#ffd700]/80">النقاط</span>
-                    <span className="text-[#ffd700] font-black text-lg leading-none">
-                      {leader.points}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <div className="mt-4 pt-3 border-t border-white/5 text-xs text-[#f1f5f9]/50 text-center">
-              متصدر كل مجموعة بعد الجولة الثانية - 12 متصدراً من A إلى L
-            </div>
-          </StatsCard>
-        </div>
-
-        {/* Trophy footer */}
-        <div className="mt-10 text-center">
-          <div className="inline-flex items-center gap-4 px-6 py-3 rounded-full bg-gradient-to-r from-[#ffd700]/10 via-[#ffd700]/20 to-[#ffd700]/10 border border-[#ffd700]/30">
-            <span className="text-3xl float">🏆</span>
-            <span className="text-[#ffd700] font-bold">
-              كأس العالم 2026 - إحصائيات حية من قلب الملاعب
-            </span>
-            <span className="text-3xl float" style={{ animationDelay: "0.5s" }}>
-              🏆
-            </span>
+      <div className="container mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 relative">
+        {teamsWithMatches.length === 0 ? (
+          <div className="md:col-span-2 lg:col-span-3 glass-card rounded-2xl p-8 text-center">
+            <div className="text-6xl mb-3">⚽</div>
+            <h3 className="text-xl font-bold text-white mb-2">لا توجد إحصائيات بعد</h3>
+            <p className="text-slate-400">
+              ستظهر الإحصائيات هنا بعد انتهاء المباريات الأولى
+            </p>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Top Scorers */}
+            <StatsCard title="أفضل الهدافين" emoji="⚽">
+              {topScorers.length > 0 ? (
+                <div className="space-y-2">
+                  {topScorers.map((t, i) => (
+                    <RankRow
+                      key={t.team}
+                      rank={i}
+                      flag={t.flag}
+                      team={t.team}
+                      primary={t.gf}
+                      primaryColor="border-[#ffd700]/30 bg-[#ffd700]/10 text-[#ffd700]"
+                      secondary={t.lost}
+                      secondaryColor="text-red-400"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+
+            {/* Best Attack */}
+            <StatsCard title="أقوى هجوم" emoji="🔥">
+              {bestAttack.length > 0 ? (
+                <div className="space-y-2">
+                  {bestAttack.map((t, i) => (
+                    <RankRow
+                      key={t.team}
+                      rank={i}
+                      flag={t.flag}
+                      team={t.team}
+                      primary={t.gf}
+                      primaryColor="border-orange-500/30 bg-orange-500/10 text-orange-400"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+
+            {/* Best Defense */}
+            <StatsCard title="أقوى دفاع" emoji="🛡️">
+              {bestDefense.length > 0 ? (
+                <div className="space-y-2">
+                  {bestDefense.map((t, i) => (
+                    <RankRow
+                      key={t.team}
+                      rank={i}
+                      flag={t.flag}
+                      team={t.team}
+                      primary={t.ga}
+                      primaryColor="border-blue-500/30 bg-blue-500/10 text-blue-400"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+
+            {/* Most Wins */}
+            <StatsCard title="أكثر انتصارات" emoji="🏆">
+              {mostWins.length > 0 ? (
+                <div className="space-y-2">
+                  {mostWins.map((t, i) => (
+                    <RankRow
+                      key={t.team}
+                      rank={i}
+                      flag={t.flag}
+                      team={t.team}
+                      primary={t.won}
+                      primaryColor="border-[#006233]/30 bg-[#006233]/20 text-[#a3e3b6]"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+
+            {/* Most Losses */}
+            <StatsCard title="أكثر هزائم" emoji="💔">
+              {mostLosses.length > 0 ? (
+                <div className="space-y-2">
+                  {mostLosses.map((t, i) => (
+                    <RankRow
+                      key={t.team}
+                      rank={i}
+                      flag={t.flag}
+                      team={t.team}
+                      primary={t.lost}
+                      primaryColor="border-red-500/30 bg-red-500/10 text-red-400"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+
+            {/* Group Leaders */}
+            <StatsCard title="متصدرو المجموعات" emoji="👑">
+              {groupLeaders.length > 0 ? (
+                <div className="space-y-2 max-h-[400px] overflow-y-auto">
+                  {groupLeaders.map(({ group, leader }) => (
+                    <div
+                      key={group}
+                      className="flex items-center gap-3 px-3 py-3 rounded-xl border border-[#ffd700]/20 bg-gradient-to-r from-[#ffd700]/10 to-transparent"
+                    >
+                      <div className="px-2 py-1 rounded-md bg-[#ffd700]/20 border border-[#ffd700]/30 text-[#ffd700] font-bold text-sm">
+                        {group}
+                      </div>
+                      <span className="text-2xl">{leader.flag}</span>
+                      <span className="flex-1 text-white font-medium truncate">
+                        {leader.team}
+                      </span>
+                      <div className="text-xs text-slate-400">
+                        <span className="text-[#ffd700] font-bold">{leader.points}</span> نقطة
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+
+            {/* Highest Scoring Matches */}
+            <StatsCard title="أعلى المباريات تهديفاً" emoji="🎯" span="wide">
+              {highestScoring.length > 0 ? (
+                <div className="space-y-2">
+                  {highestScoring.map((m, i) => {
+                    const total = (m.homeScore || 0) + (m.awayScore || 0);
+                    return (
+                      <div
+                        key={i}
+                        className="flex items-center gap-3 px-3 py-3 rounded-xl border border-white/5 bg-black/20"
+                      >
+                        <div className="w-9 flex items-center justify-center text-xl">
+                          {getMedal(i) || (
+                            <span className="text-sm font-bold text-slate-500">{i + 1}</span>
+                          )}
+                        </div>
+                        <span className="flex-1 text-white font-medium">
+                          {m.home}{" "}
+                          <span className="text-[#ffd700] font-bold mx-1">
+                            {m.homeScore} - {m.awayScore}
+                          </span>{" "}
+                          {m.away}
+                        </span>
+                        <div className="px-3 py-1 rounded-lg bg-[#ffd700]/10 border border-[#ffd700]/30 text-[#ffd700] font-bold text-sm">
+                          {total} ⚽
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p className="text-slate-400 text-center py-4">لا توجد بيانات</p>
+              )}
+            </StatsCard>
+          </>
+        )}
       </div>
     </div>
   );
