@@ -53,7 +53,7 @@ export async function GET() {
       `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${tournamentStart}&dateTo=${tomorrow}`,
       {
         headers: { "X-Auth-Token": API_KEY },
-        next: { revalidate: 30 },
+        cache: "no-store",
       }
     );
 
