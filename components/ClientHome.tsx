@@ -328,7 +328,7 @@ interface ClientHomeProps {
 export function ClientHome({ matches: initialMatches, articles, worldCupMatches = [] }: ClientHomeProps) {
   const { t, localizeTeam } = useI18n();
   const [matches, setMatches] = useState<Match[]>(initialMatches);
-  const [countdown, setCountdown] = useState(30);
+  const [countdown, setCountdown] = useState(10);
   const [recentGoals, setRecentGoals] = useState<{ team: string; side: "home" | "away" }[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -398,8 +398,8 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
       } finally {
         setIsRefreshing(false);
       }
-      setCountdown(30);
-    }, 30000);
+      setCountdown(10);
+    }, 10000);
 
     const countdownInterval = setInterval(() => {
       setCountdown((c) => Math.max(0, c - 1));

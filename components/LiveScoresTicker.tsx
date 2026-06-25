@@ -70,7 +70,7 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
       } catch (e) {
         console.error("Ticker refresh failed:", e);
       }
-    }, 30000);
+    }, 10000);
 
     return () => clearInterval(interval);
   }, []);
