@@ -5,148 +5,140 @@ import { SCHEDULE } from "@/lib/worldcup-data";
 
 type Vote = "home" | "draw" | "away";
 
-interface MatchVotes {
-  // Local aggregates: per option count for this match
-  counts: Record<Vote, number>;
-  // Has the current user voted on this match?
-  userVote?: Vote;
-  // Timestamp of user's last vote (for re-vote timing)
-  votedAt?: number;
+interface MatchCounts {
+  home: number;
+  draw: number;
+  away: number;
 }
 
-interface PredictionsStore {
-  // Aggregated fake community votes so the UI has something to show
-  community: Record<number, Record<Vote, number>>;
-  // Real per-user votes
-  user: Record<number, MatchVotes>;
-}
+const USER_ID_KEY = "mauribin_user_id";
 
-const STORAGE_KEY = "mauribin_predictions";
-
-// Deterministic pseudo-random helper so the initial fake tallies stay stable
-// across reloads (per match id). This avoids hydration mismatch.
-function seededRandom(seed: number): number {
-  const x = Math.sin(seed) * 10000;
-  return x - Math.floor(x);
-}
-
-function buildInitialStore(): PredictionsStore {
-  const upcoming = SCHEDULE.filter((m) => m.status === "upcoming").slice(0, 5);
-  const community: Record<number, Record<Vote, number>> = {};
-  upcoming.forEach((m, idx) => {
-    const base = m.id * 7 + idx;
-    const home = 40 + Math.floor(seededRandom(base) * 35);
-    const draw = 10 + Math.floor(seededRandom(base + 1) * 20);
-    const away = 40 + Math.floor(seededRandom(base + 2) * 35);
-    community[m.id] = { home, draw, away };
-  });
-  return { community, user: {} };
-}
-
-function loadStore(): PredictionsStore {
-  if (typeof window === "undefined") return buildInitialStore();
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY);
-    if (!raw) return buildInitialStore();
-    const parsed = JSON.parse(raw) as PredictionsStore;
-    // Make sure community section exists for current upcoming matches
-    const seeded = buildInitialStore();
-    return {
-      community: { ...seeded.community, ...(parsed.community || {}) },
-      user: parsed.user || {},
-    };
-  } catch {
-    return buildInitialStore();
+function getUserId(): string {
+  if (typeof window === "undefined") return "ssr";
+  let id = window.localStorage.getItem(USER_ID_KEY);
+  if (!id) {
+    id = `user_${Math.random().toString(36).slice(2, 11)}_${Date.now()}`;
+    window.localStorage.setItem(USER_ID_KEY, id);
   }
-}
-
-function saveStore(store: PredictionsStore) {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));
-  } catch {
-    /* quota or disabled — ignore */
-  }
+  return id;
 }
 
 export default function PredictPage() {
-  const [store, setStore] = useState<PredictionsStore>(buildInitialStore);
+  const [counts, setCounts] = useState<Record<number, MatchCounts>>({});
+  const [userVotes, setUserVotes] = useState<Record<number, Vote>>({});
   const [hydrated, setHydrated] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
 
+  // Load all predictions from API + user votes from localStorage
   useEffect(() => {
-    setStore(loadStore());
+    const userId = getUserId();
+    
+    // Load all predictions
+    fetch("/api/predictions")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.predictions) {
+          const map: Record<number, MatchCounts> = {};
+          Object.entries(data.predictions).forEach(([id, c]: [string, any]) => {
+            map[parseInt(id)] = {
+              home: c.home,
+              draw: c.draw,
+              away: c.away,
+            };
+          });
+          setCounts(map);
+        }
+      })
+      .catch(() => {});
+    
+    // Load user's votes
+    try {
+      const raw = window.localStorage.getItem("mauribin_user_votes");
+      if (raw) setUserVotes(JSON.parse(raw));
+    } catch {}
+    
     setHydrated(true);
   }, []);
 
-  // Persist whenever user state changes
+  // Save user votes
   useEffect(() => {
     if (!hydrated) return;
-    saveStore(store);
-  }, [store, hydrated]);
+    window.localStorage.setItem("mauribin_user_votes", JSON.stringify(userVotes));
+  }, [userVotes, hydrated]);
 
   const upcomingMatches = useMemo(
-    () => SCHEDULE.filter((m) => m.status === "upcoming").slice(0, 5),
+    () => SCHEDULE.filter((m) => m.status === "upcoming").slice(0, 8),
     []
   );
 
   const totalVoters = useMemo(() => {
-    return upcomingMatches.reduce((sum, m) => {
-      const c = store.community[m.id];
-      if (!c) return sum;
-      return sum + c.home + c.draw + c.away;
-    }, 0);
-  }, [store.community, upcomingMatches]);
+    return Object.values(counts).reduce(
+      (sum, c) => sum + c.home + c.draw + c.away,
+      0
+    );
+  }, [counts]);
 
-  function handleVote(matchId: number, vote: Vote) {
-    setStore((prev) => {
-      const userEntry = prev.user[matchId];
-      const community = { ...prev.community };
-      const communityEntry = { ...(community[matchId] || { home: 0, draw: 0, away: 0 }) };
-
-      // If user already voted, undo the previous community tally before
-      // applying the new vote so totals stay consistent.
-      if (userEntry?.userVote && userEntry.userVote !== vote) {
-        communityEntry[userEntry.userVote] = Math.max(0, communityEntry[userEntry.userVote] - 1);
+  async function handleVote(matchId: number, vote: Vote) {
+    const userId = getUserId();
+    setLoading(`${matchId}_${vote}`);
+    
+    try {
+      const res = await fetch("/api/predictions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ matchId, vote, userId }),
+      });
+      
+      if (res.ok) {
+        const data = await res.json();
+        setCounts((prev) => ({ ...prev, [matchId]: data.counts }));
+        setUserVotes((prev) => ({ ...prev, [matchId]: vote }));
       }
-
-      // If user clicks the same option again, treat as a no-op (idempotent).
-      if (!userEntry?.userVote || userEntry.userVote !== vote) {
-        communityEntry[vote] = communityEntry[vote] + 1;
-      }
-
-      community[matchId] = communityEntry;
-
-      return {
-        community,
-        user: {
-          ...prev.user,
-          [matchId]: {
-            counts: communityEntry,
-            userVote: vote,
-            votedAt: Date.now(),
-          },
-        },
-      };
-    });
+    } catch (e) {
+      // Fallback: save locally only
+      setUserVotes((prev) => ({ ...prev, [matchId]: vote }));
+      setCounts((prev) => {
+        const current = prev[matchId] || { home: 0, draw: 0, away: 0 };
+        const prevVote = userVotes[matchId];
+        const updated = { ...current };
+        if (prevVote) updated[prevVote] = Math.max(0, updated[prevVote] - 1);
+        updated[vote] = updated[vote] + 1;
+        return { ...prev, [matchId]: updated };
+      });
+    } finally {
+      setLoading(null);
+    }
   }
 
   function handleReset(matchId: number) {
-    setStore((prev) => {
-      const userEntry = prev.user[matchId];
-      if (!userEntry?.userVote) return prev;
-      const community = { ...prev.community };
-      const communityEntry = { ...(community[matchId] || { home: 0, draw: 0, away: 0 }) };
-      communityEntry[userEntry.userVote] = Math.max(
-        0,
-        communityEntry[userEntry.userVote] - 1
-      );
-      community[matchId] = communityEntry;
-
-      const user = { ...prev.user };
-      delete user[matchId];
-
-      return { community, user };
+    const userId = getUserId();
+    const userVote = userVotes[matchId];
+    if (!userVote) return;
+    
+    // Remove user vote locally
+    setUserVotes((prev) => {
+      const { [matchId]: _, ...rest } = prev;
+      return rest;
     });
+    
+    // Decrement count locally
+    setCounts((prev) => {
+      const current = prev[matchId] || { home: 0, draw: 0, away: 0 };
+      return {
+        ...prev,
+        [matchId]: {
+          ...current,
+          [userVote]: Math.max(0, current[userVote] - 1),
+        },
+      };
+    });
+    
+    // Send reset to API (re-vote with null isn't supported, so this just removes user's local vote)
+    fetch("/api/predictions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ matchId, vote: userVote, userId, reset: true }),
+    }).catch(() => {});
   }
 
   return (
@@ -185,12 +177,12 @@ export default function PredictPage() {
         )}
 
         {upcomingMatches.map((match) => {
-          const counts =
-            store.community[match.id] || { home: 0, draw: 0, away: 0 };
-          const total = counts.home + counts.draw + counts.away;
+          const matchCounts =
+            counts[match.id] || { home: 0, draw: 0, away: 0 };
+          const total = matchCounts.home + matchCounts.draw + matchCounts.away;
           const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
-          const userEntry = store.user[match.id];
-          const hasVoted = !!userEntry?.userVote;
+          const userVote = userVotes[match.id];
+          const hasVoted = !!userVote;
 
           return (
             <div
@@ -245,30 +237,30 @@ export default function PredictPage() {
                     label={`فوز ${match.home}`}
                     optionKey="home"
                     color="green"
-                    count={counts.home}
-                    percentage={pct(counts.home)}
-                    selected={userEntry?.userVote === "home"}
-                    disabled={hasVoted}
+                    count={matchCounts.home}
+                    percentage={pct(matchCounts.home)}
+                    selected={userVote === "home"}
+                    loading={loading === `${match.id}_home`}
                     onClick={() => handleVote(match.id, "home")}
                   />
                   <VoteButton
                     label="تعادل"
                     optionKey="draw"
                     color="gold"
-                    count={counts.draw}
-                    percentage={pct(counts.draw)}
-                    selected={userEntry?.userVote === "draw"}
-                    disabled={hasVoted}
+                    count={matchCounts.draw}
+                    percentage={pct(matchCounts.draw)}
+                    selected={userVote === "draw"}
+                    loading={loading === `${match.id}_draw`}
                     onClick={() => handleVote(match.id, "draw")}
                   />
                   <VoteButton
                     label={`فوز ${match.away}`}
                     optionKey="away"
                     color="red"
-                    count={counts.away}
-                    percentage={pct(counts.away)}
-                    selected={userEntry?.userVote === "away"}
-                    disabled={hasVoted}
+                    count={matchCounts.away}
+                    percentage={pct(matchCounts.away)}
+                    selected={userVote === "away"}
+                    loading={loading === `${match.id}_away`}
                     onClick={() => handleVote(match.id, "away")}
                   />
                 </div>
@@ -316,7 +308,7 @@ interface VoteButtonProps {
   count: number;
   percentage: number;
   selected: boolean;
-  disabled: boolean;
+  loading: boolean;
   onClick: () => void;
 }
 
@@ -326,7 +318,7 @@ function VoteButton({
   count,
   percentage,
   selected,
-  disabled,
+  loading,
   onClick,
 }: VoteButtonProps) {
   const colorStyles = useMemo(() => {
@@ -362,11 +354,11 @@ function VoteButton({
     <button
       type="button"
       onClick={onClick}
-      disabled={disabled}
+      disabled={selected || loading}
       aria-pressed={selected}
       className={[
         "relative overflow-hidden rounded-xl border backdrop-blur-md transition-all duration-300 text-right",
-        "px-4 py-3 disabled:cursor-not-allowed disabled:opacity-70",
+        "px-4 py-3 disabled:cursor-not-allowed",
         selected ? styles.selected : styles.base,
         selected ? styles.glow : "",
       ].join(" ")}
@@ -381,7 +373,7 @@ function VoteButton({
       <div className="relative flex items-center justify-between gap-2">
         <span className="font-bold text-sm md:text-base text-white">{label}</span>
         <span className="text-xs font-bold text-slate-200">
-          {roundedPct}%
+          {loading ? "..." : `${roundedPct}%`}
         </span>
       </div>
 
