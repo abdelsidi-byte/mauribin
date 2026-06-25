@@ -142,33 +142,40 @@ export default async function MatchPage({ params }: PageProps) {
   const youtubeSearchQuery = `${homeTeam} vs ${awayTeam} World Cup 2026 highlights`;
   const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeSearchQuery)}`;
 
-  const getRealisticStats = () => {
-    const baseHomePossession = 45 + Math.floor(Math.random() * 30);
-    return {
-      homePossession: baseHomePossession,
-      awayPossession: 100 - baseHomePossession,
-      homeShots: 5 + Math.floor(Math.random() * 15),
-      awayShots: 5 + Math.floor(Math.random() * 15),
-      homeShotsOnTarget: 2 + Math.floor(Math.random() * 8),
-      awayShotsOnTarget: 2 + Math.floor(Math.random() * 8),
-      homeCorners: Math.floor(Math.random() * 10),
-      awayCorners: Math.floor(Math.random() * 10),
-      homeFouls: 5 + Math.floor(Math.random() * 15),
-      awayFouls: 5 + Math.floor(Math.random() * 15),
-      homeYellowCards: Math.floor(Math.random() * 4),
-      awayYellowCards: Math.floor(Math.random() * 4),
-      homeRedCards: 0,
-      awayRedCards: 0,
-      homeOffsides: Math.floor(Math.random() * 5),
-      awayOffsides: Math.floor(Math.random() * 5),
-      homePasses: 200 + Math.floor(Math.random() * 300),
-      awayPasses: 200 + Math.floor(Math.random() * 300),
-      homePassAccuracy: 70 + Math.floor(Math.random() * 25),
-      awayPassAccuracy: 70 + Math.floor(Math.random() * 25),
-    };
-  };
+  // Deterministic pseudo-random based on match ID so stats are stable
+  // for a given match across reloads (no Math.random() on the server)
+  const seedFromMatch = (() => {
+    const idStr = `${match.home || ""}-${match.away || ""}`;
+    let h = 0;
+    for (let i = 0; i < idStr.length; i++) h = (h * 31 + idStr.charCodeAt(i)) | 0;
+    return Math.abs(h);
+  })();
+  const pseudo = (n: number, mod: number) => (seedFromMatch + n * 9301 + 49297) % mod;
 
-  const stats = getRealisticStats();
+  const stats = {
+    homePossession: 45 + pseudo(1, 30),
+    awayPossession: 55 - (pseudo(1, 30) - 15), // roughly complementary
+    homeShots: 5 + pseudo(2, 15),
+    awayShots: 5 + pseudo(3, 15),
+    homeShotsOnTarget: 2 + pseudo(4, 8),
+    awayShotsOnTarget: 2 + pseudo(5, 8),
+    homeCorners: pseudo(6, 10),
+    awayCorners: pseudo(7, 10),
+    homeFouls: 5 + pseudo(8, 15),
+    awayFouls: 5 + pseudo(9, 15),
+    homeYellowCards: pseudo(10, 4),
+    awayYellowCards: pseudo(11, 4),
+    homeRedCards: 0,
+    awayRedCards: 0,
+    homeOffsides: pseudo(12, 5),
+    awayOffsides: pseudo(13, 5),
+    homePasses: 200 + pseudo(14, 300),
+    awayPasses: 200 + pseudo(15, 300),
+    homePassAccuracy: 70 + pseudo(16, 25),
+    awayPassAccuracy: 70 + pseudo(17, 25),
+  };
+  // Keep possession strictly complementary
+  stats.awayPossession = 100 - stats.homePossession;
 
   const statLabels: Record<string, { label: string; suffix?: string }> = {
     homePossession: { label: "استحواذ", suffix: "%" },
@@ -189,9 +196,11 @@ export default async function MatchPage({ params }: PageProps) {
   const homeFlagIsUrl = homeFlag && typeof homeFlag === "string" && homeFlag.startsWith("http");
   const awayFlagIsUrl = awayFlag && typeof awayFlag === "string" && awayFlag.startsWith("http");
 
+  // Note: onError handler removed — event handlers are not allowed in Server Components.
+  // Use the emoji fallback by checking if the URL is a known working pattern (football-data.org SVGs load fine).
   const FlagImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
     if (src && typeof src === "string" && src.startsWith("http")) {
-      return <img src={src} alt={alt} className={className} onError={(e) => { e.currentTarget.style.display = 'none'; }} />;
+      return <img src={src} alt={alt} className={className} />;
     }
     return <span className={className}>{src || "🏳️"}</span>;
   };

@@ -10,9 +10,10 @@ import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
 import { PWAProvider, ScrollRestoration } from "@/components/PWAProvider";
 
-// Static layout - prevent scroll reset on re-renders
-export const dynamic = "force-static";
-export const revalidate = false;
+// Layout fetches fresh data per request to keep the live ticker accurate
+// (ticker still refreshes client-side every 30s via /api/live-scores)
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
 const arabic = Noto_Sans_Arabic({ subsets: ["arabic"], variable: "--font-arabic" });

@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { NewsSection } from "./NewsSection";
+import VideoAdBanner from "./VideoAdBanner";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type Match = any;
@@ -72,16 +73,25 @@ function GoalCelebration({ team, side }: { team: string; side: "home" | "away" }
   );
 }
 
-// Next Match Hero Section
+// Next Match Hero Section - only shows truly upcoming matches (kickoff > now)
 function NextMatchHero({ match }: { match: Match }) {
   if (!match) return null;
   
+  // DEFENSIVE: never show a finished match as "next match"
   const matchDate = new Date(match.utcDate || match.date);
   const now = new Date();
   const diffMs = matchDate.getTime() - now.getTime();
   
+  // If kickoff was more than 30 minutes ago, this is NOT a next match
+  if (diffMs < -30 * 60 * 1000) {
+    return null;
+  }
+
+  // isLive: match is live AND hasn't ended yet
+  const isLive = match.state === "live" && diffMs < 0;
+
   let timeUntil = "قادمة";
-  if (diffMs > 0) {
+  if (!isLive && diffMs > 0) {
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
     if (hours > 24) {
@@ -91,6 +101,8 @@ function NextMatchHero({ match }: { match: Match }) {
     } else {
       timeUntil = `بعد ${mins} دقيقة`;
     }
+  } else if (isLive) {
+    timeUntil = "مباشر الآن";
   }
   
   const homeTeam = match.home || match.team1 || "?";
@@ -105,7 +117,6 @@ function NextMatchHero({ match }: { match: Match }) {
   const awayLogo = awayCrest || awayFlag;
   const isHomeUrl = homeCrest && homeCrest.startsWith("http");
   const isAwayUrl = awayCrest && awayCrest.startsWith("http");
-  const isLive = match.state === "live";
   const homeScore = match.homeScore ?? null;
   const awayScore = match.awayScore ?? null;
   
@@ -352,21 +363,37 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   const [countdown, setCountdown] = useState(30);
   const [recentGoals, setRecentGoals] = useState<{ team: string; side: "home" | "away" }[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Use ref to avoid stale closure in intervals
+  const matchesRef = useRef<Match[]>(initialMatches);
+  matchesRef.current = matches;
+
+  // Track last manual refresh to pause auto-refresh briefly
+  const lastManualRefresh = useRef<number>(0);
+
+  const shouldSkipRefresh = () => Date.now() - lastManualRefresh.current < 10000;
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
     const interval = setInterval(async () => {
-      // Save scroll position before refresh
+      if (shouldSkipRefresh()) {
+        console.log("[AUTO-REFRESH] Skipped - recent manual refresh");
+        return;
+      }
+
       const scrollY = window.scrollY;
-      
+      const currentMatches = matchesRef.current;
+
       try {
+        setIsRefreshing(true);
         const res = await fetch("/api/live-scores");
         const data = await res.json();
-        if (data.matches) {
-          // Detect new goals
+        if (data.matches && data.matches.length > 0) {
+          // Detect new goals using current (fresh) matches
           const newGoals: { team: string; side: "home" | "away" }[] = [];
           data.matches.forEach((newMatch: Match) => {
-            const oldMatch = matches.find(
+            const oldMatch = currentMatches.find(
               (m) => m.home === newMatch.home && m.away === newMatch.away
             );
             if (oldMatch && newMatch.state === "live") {
@@ -390,16 +417,18 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             setRecentGoals(newGoals);
             setTimeout(() => setRecentGoals([]), 4000);
           }
+
           setMatches(data.matches);
           setLastUpdate(new Date());
-          
-          // Restore scroll position after state update
+
           requestAnimationFrame(() => {
             window.scrollTo({ top: scrollY, behavior: "instant" as ScrollBehavior });
           });
         }
       } catch (e) {
-        console.error("Refresh failed:", e);
+        console.error("Auto-refresh failed:", e);
+      } finally {
+        setIsRefreshing(false);
       }
       setCountdown(30);
     }, 30000);
@@ -412,7 +441,24 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
       clearInterval(interval);
       clearInterval(countdownInterval);
     };
-  }, [matches]);
+  }, []); // Empty deps - interval uses refs, not closure values
+
+  // Manual refresh handler (call this from a button)
+  const handleManualRefresh = useCallback(() => {
+    lastManualRefresh.current = Date.now();
+    setIsRefreshing(true);
+    fetch("/api/live-scores")
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.matches) {
+          setMatches(data.matches);
+          setLastUpdate(new Date());
+        }
+        setIsRefreshing(false);
+        setCountdown(30);
+      })
+      .catch(() => setIsRefreshing(false));
+  }, []);
 
   const handleGoal = useCallback((team: string, side: "home" | "away") => {
     setRecentGoals((prev) => [...prev, { team, side }]);
@@ -541,6 +587,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
           )}
         </div>
       </section>
+
+      {/* Video Ad Banner */}
+      <VideoAdBanner />
 
       {/* CSS Animations */}
       <style dangerouslySetInnerHTML={{ __html: `

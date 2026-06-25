@@ -66,10 +66,10 @@ async function getWorldCupMatches() {
   }
 }
 
-// Disable auto-refresh on root page to prevent scroll resets
-// Client-side polling handles live data
-export const dynamic = "force-static";
-export const revalidate = false;
+// Disable static generation - always fetch fresh data per request
+// This prevents stale "next match" data from being baked into the static page
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function HomePage() {
   const [scoresData, articlesData, worldCupMatches] = await Promise.all([

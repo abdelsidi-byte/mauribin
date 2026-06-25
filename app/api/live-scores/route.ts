@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 const API_KEY = "74324d6063934f75b808c611780d7b68";
 
 function slugify(home: string, away: string): string {
-  return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
+  return `${home.toLowerCase().replace(/\s+/g, "-")}-vs-${away.toLowerCase().replace(/\s+/g, "-")}`;
 }
 
 function getFlag(team: string): string {
@@ -42,32 +42,86 @@ function getMatchState(status: string): { state: string; label: string } {
   return { state: "upcoming", label: "قادم" };
 }
 
+function formatLabel(utcDate: string): string {
+  try {
+    const d = new Date(utcDate);
+    const now = new Date();
+    // The API returns UTC timestamps, so use UTC getters to match the date
+    if (d.toDateString() === now.toDateString()) {
+      return `اليوم ${d.getUTCHours().toString().padStart(2, "0")}:${d.getUTCMinutes().toString().padStart(2, "0")}`;
+    }
+    const days = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+    return `${days[d.getUTCDay()]} ${d.getUTCHours().toString().padStart(2, "0")}:${d.getUTCMinutes().toString().padStart(2, "0")}`;
+  } catch {
+    return utcDate;
+  }
+}
+
 export async function GET() {
   try {
-    const today = new Date();
-    const tournamentStart = "2026-06-11";
-    const tomorrow = new Date(today.getTime() + 86400000).toISOString().split("T")[0];
-    
-    // Fetch entire tournament so /standings has all played matches
+    const now = new Date();
+    const localYear = now.getFullYear();
+    const localMonth = now.getMonth();
+    const localDay = now.getDate();
+
+    // Today's midnight in LOCAL time
+    const todayLocal = new Date(localYear, localMonth, localDay, 0, 0, 0, 0);
+    const tomorrowLocal = new Date(localYear, localMonth, localDay + 1, 0, 0, 0, 0);
+    const yesterdayLocal = new Date(localYear, localMonth, localDay - 1, 0, 0, 0, 0);
+
+    // Fetch range: yesterday to tomorrow+1day (covers all timezone offsets)
+    const fromUTC = yesterdayLocal.toISOString().split("T")[0];
+    const toUTC = new Date(tomorrowLocal.getTime() + 86400000).toISOString().split("T")[0];
+
+    const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    console.log(`[LIVE-SCORES] Today local: ${todayLocal.toDateString()}`);
+    console.log(`[LIVE-SCORES] Timezone: ${userTimezone}`);
+    console.log(`[LIVE-SCORES] Fetch range: ${fromUTC} → ${toUTC}`);
+
     const res = await fetch(
-      `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${tournamentStart}&dateTo=${tomorrow}`,
-      {
-        headers: { "X-Auth-Token": API_KEY },
-        cache: "no-store",
-      }
+      `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${fromUTC}&dateTo=${toUTC}`,
+      { headers: { "X-Auth-Token": API_KEY }, cache: "no-store" }
     );
 
     if (!res.ok) throw new Error(`API error: ${res.status}`);
 
     const data = await res.json();
-    const apiMatches = data.matches || [];
+    const apiMatches: any[] = data.matches || [];
 
-    const matches = apiMatches.map((m: any) => {
+    console.log(`[LIVE-SCORES] API returned: ${apiMatches.length} matches`);
+
+    // Filter to matches whose UTC date falls within [today midnight, tomorrow midnight) LOCAL time
+    const todayStart = todayLocal.getTime();
+    const todayEnd = tomorrowLocal.getTime();
+
+    const todayMatches = apiMatches.filter((m) => {
+      const matchDate = new Date(m.utcDate).getTime();
+      const inRange = matchDate >= todayStart && matchDate < todayEnd;
+      return inRange;
+    });
+
+    console.log(`[LIVE-SCORES] After date filter: ${todayMatches.length}`);
+    todayMatches.forEach((m) => {
+      console.log(`  -> ${m.homeTeam?.name} vs ${m.awayTeam?.name} at ${m.utcDate}`);
+    });
+
+    // Deduplicate by ID
+    const seen = new Set();
+    const unique = todayMatches.filter((m) => {
+      if (seen.has(m.id)) return false;
+      seen.add(m.id);
+      return true;
+    });
+
+    const matches = unique.map((m) => {
       const home = m.homeTeam?.name || m.homeTeam?.shortName || "Unknown";
       const away = m.awayTeam?.name || m.awayTeam?.shortName || "Unknown";
       const score = m.score?.fullTime || {};
       const { state, label } = getMatchState(m.status);
-      
+      const utcDate = m.utcDate;
+      const matchLabel = state === "upcoming" ? formatLabel(utcDate) : label;
+
       return {
         id: m.id,
         home,
@@ -75,8 +129,8 @@ export async function GET() {
         homeScore: score.home ?? null,
         awayScore: score.away ?? null,
         state,
-        label,
-        utcDate: m.utcDate,
+        label: matchLabel,
+        utcDate,
         status: m.status,
         matchday: m.matchday,
         slug: slugify(home, away),
@@ -85,22 +139,32 @@ export async function GET() {
       };
     });
 
+    // Sort: live → upcoming → finished
     const stateOrder: Record<string, number> = { live: 0, upcoming: 1, ft: 2 };
-    matches.sort((a: any, b: any) => {
+    matches.sort((a, b) => {
       if (stateOrder[a.state] !== stateOrder[b.state]) return stateOrder[a.state] - stateOrder[b.state];
+      if (a.state === "live") return 0;
       return new Date(a.utcDate).getTime() - new Date(b.utcDate).getTime();
     });
 
-    return NextResponse.json({ matches, source: "api" });
+    console.log(`[LIVE-SCORES] Final: ${matches.length} matches`);
+    matches.forEach((m) => {
+      console.log(`  -> ${m.home} vs ${m.away} [${m.state}] at ${m.utcDate}`);
+    });
+
+    return NextResponse.json({
+      matches,
+      source: "api",
+      debug: {
+        todayLocal: todayLocal.toDateString(),
+        timezone: userTimezone,
+        apiCount: apiMatches.length,
+        filteredCount: todayMatches.length,
+        finalCount: matches.length,
+      },
+    });
   } catch (e) {
-    console.error("API fetch failed:", e);
-    const fallback = [
-      { home: "Morocco", away: "Haiti", homeScore: 3, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-24T22:00:00Z" },
-      { home: "Scotland", away: "Brazil", homeScore: 0, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-06-24T22:00:00Z" },
-      { home: "South Africa", away: "Korea Republic", homeScore: null, awayScore: null, state: "upcoming", label: "01:00", utcDate: "2026-06-25T01:00:00Z" },
-      { home: "Czechia", away: "Mexico", homeScore: null, awayScore: null, state: "upcoming", label: "01:00", utcDate: "2026-06-25T01:00:00Z" },
-    ].map(m => ({ ...m, slug: slugify(m.home, m.away), homeFlag: getFlag(m.home), awayFlag: getFlag(m.away) }));
-    
-    return NextResponse.json({ matches: fallback, source: "fallback" });
+    console.error("[LIVE-SCORES] Error:", e);
+    return NextResponse.json({ matches: [], source: "error", error: String(e) }, { status: 500 });
   }
 }
