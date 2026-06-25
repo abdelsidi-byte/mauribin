@@ -229,11 +229,11 @@ function getFallbackMatches(): Match[] {
     { home: "Ghana", away: "Panama", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-17T17:00:00Z", _index: 49 },
     { home: "England", away: "Ghana", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 50 },
     { home: "Croatia", away: "Panama", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-25T17:00:00Z", _index: 51 },
-    // Group D - 26/06
-    { home: "Australia", away: "Paraguay", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 02:00", utcDate: "2026-06-26T07:00:00Z", _index: 55 },
-    { home: "USA", away: "Turkey", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 02:00", utcDate: "2026-06-26T07:00:00Z", _index: 56 },
-    { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 19:00", utcDate: "2026-06-26T19:00:00Z", _index: 57 },
-    { home: "Senegal", away: "Iraq", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 19:00", utcDate: "2026-06-26T19:00:00Z", _index: 70 },
+    // Group D - 26/06 LIVE (19:00 UTC = 22:00 local)
+    { home: "Australia", away: "Paraguay", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T07:00:00Z", _index: 55 },
+    { home: "USA", away: "Turkey", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T07:00:00Z", _index: 56 },
+    { home: "France", away: "Norway", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T19:00:00Z", _index: 57 },
+    { home: "Senegal", away: "Iraq", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T19:00:00Z", _index: 70 },
     // === UPCOMING MATCHES ===
     { home: "Germany", away: "Ecuador", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 14:00", utcDate: "2026-06-26T14:00:00Z", _index: 59 },
     { home: "Ivory Coast", away: "Curaçao", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 14:00", utcDate: "2026-06-26T14:00:00Z", _index: 60 },
