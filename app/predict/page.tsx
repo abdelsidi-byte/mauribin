@@ -252,7 +252,14 @@ export default function PredictPage() {
         )}
 
         {upcomingMatches.map((match, idx) => {
-          const matchId = idx; // Use index since matches may not have stable IDs
+          // Stable ID from home-away-date to prevent index shifting issues
+          const matchId = parseInt(
+            (match.home + match.away + (match.utcDate || ""))
+              .split("")
+              .reduce((acc, c) => ((acc << 5) - acc + c.charCodeAt(0)) | 0, 0)
+              .toString()
+              .replace("-", "0")
+          ) || idx;
           const matchCounts =
             counts[matchId] || { home: 0, draw: 0, away: 0 };
           const total = matchCounts.home + matchCounts.draw + matchCounts.away;
