@@ -81,13 +81,13 @@ export interface Article {
 }
 
 async function fetchKickxoffMatches(): Promise<Match[]> {
-  const API_KEY = "c0e4608bccd8e7dc832fee613e8bc378";
+  const API_KEY = "74324d6063934f75b808c611780d7b68";
 
-  // Fetch entire tournament so /standings has all played matches (Jun 11 - Jul 31)
+  // Fetch entire tournament (Jun 11 - today+1) so /standings has all played matches
   const dates: string[] = [];
   const start = new Date("2026-06-11");
   const end = new Date();
-  end.setDate(end.getDate() + 3);
+  end.setDate(end.getDate() + 1);
   for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     dates.push(d.toISOString().split("T")[0]);
   }
@@ -95,41 +95,40 @@ async function fetchKickxoffMatches(): Promise<Match[]> {
   try {
     const allMatches: any[] = [];
 
-    for (const date of dates) {
-      try {
-        const res = await fetch(
-          `https://v3.football.api-sports.io/fixtures?date=${date}`,
-          { headers: { "x-apisports-key": API_KEY }, cache: "no-store" }
-        );
-        if (!res.ok) continue;
+    // Try football-data.org first (tournament endpoint)
+    try {
+      const endStr = end.toISOString().split("T")[0];
+      const res = await fetch(
+        `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=2026-06-11&dateTo=${endStr}`,
+        { headers: { "X-Auth-Token": API_KEY }, cache: "no-store" }
+      );
+      if (res.ok) {
         const data = await res.json();
-        if (data.errors && Object.keys(data.errors).length > 0) continue;
-
-        const wcMatches = (data.response || []).filter(
-          (f: any) => f.league?.name?.includes("World Cup")
+        const wcMatches = (data.matches || []).filter(
+          (m: any) => m.status === "FINISHED" || m.status === "IN_PLAY" || m.status === "TIMED"
         );
         allMatches.push(...wcMatches);
-      } catch (e) { continue; }
-    }
+      }
+    } catch (e) { /* ignore */ }
 
     if (allMatches.length === 0) return getFallbackMatches();
 
-    return allMatches.map((f: any, i: number) => {
-      const home = f.teams.home.name;
-      const away = f.teams.away.name;
-      const hg = f.goals.home;
-      const ag = f.goals.away;
-      const status = f.fixture.status.short;
-      const date = f.fixture.date;
+    return allMatches.map((m: any, i: number) => {
+      const home = m.homeTeam?.name || m.homeTeam?.shortName || "Unknown";
+      const away = m.awayTeam?.name || m.awayTeam?.shortName || "Unknown";
+      const hg = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? null;
+      const ag = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? null;
+      const status = m.status;
+      const date = m.utcDate;
 
       let state = "upcoming";
       let label = "قادم";
       const s = status?.toUpperCase() || "";
-      if (s === "FT" || s === "AET" || s === "PEN") {
+      if (s === "FINISHED" || s === "FT" || s === "AET" || s === "PEN") {
         state = "ft"; label = "انتهت";
-      } else if (["1H", "2H", "HT", "ET", "BT", "P", "LIVE", "1S", "2S", "INT"].includes(s)) {
+      } else if (["IN_PLAY", "PAUSED", "LIVE", "1H", "2H", "HT", "ET", "BT", "P"].includes(s)) {
         state = "live"; label = "مباشر";
-      } else if (s === "NS" || s === "PST" || s === "CANC") {
+      } else if (["TIMED", "SCHEDULED", "NS", "PST", "CANC"].includes(s)) {
         state = "upcoming"; label = formatUpcomingDate(date);
       } else {
         state = "upcoming"; label = status || "قادم";
