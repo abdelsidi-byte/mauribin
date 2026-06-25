@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { SCHEDULE } from "@/lib/worldcup-data";
+import { fetchScores, type Match } from "@/lib/data";
 
 type Vote = "home" | "draw" | "away";
 
@@ -23,15 +23,47 @@ function getUserId(): string {
   return id;
 }
 
+// Team name to flag emoji mapping (for display)
+const TEAM_FLAGS: Record<string, string> = {
+  Mexico: "🇲🇽", "South Korea": "🇰🇷", "South Africa": "🇿🇦", Czechia: "🇨🇿",
+  Canada: "🇨🇦", Switzerland: "🇨🇭", Qatar: "🇶🇦", "Bosnia-Herzegovina": "🇧🇦",
+  Brazil: "🇧🇷", Morocco: "🇲🇦", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Haiti: "🇭🇹",
+  "United States": "🇺🇸", Australia: "🇦🇺", Paraguay: "🇵🇾", Türkiye: "🇹🇷",
+  Germany: "🇩🇪", "Côte d'Ivoire": "🇨🇮", Ecuador: "🇪🇨", Curaçao: "🇨🇼",
+  Netherlands: "🇳🇱", Sweden: "🇸🇪", Japan: "🇯🇵", Tunisia: "🇹🇳",
+  Belgium: "🇧🇪", Iran: "🇮🇷", Egypt: "🇪🇬", "New Zealand": "🇳🇿",
+  Spain: "🇪🇸", Uruguay: "🇺🇾", "Saudi Arabia": "🇸🇦", "Cape Verde": "🇨🇻",
+  France: "🇫🇷", Norway: "🇳🇴", Senegal: "🇸🇳", Iraq: "🇮🇶",
+  Argentina: "🇦🇷", Austria: "🇦🇹", Algeria: "🇩🇿", Jordan: "🇯🇴",
+  Portugal: "🇵🇹", Colombia: "🇨🇴", "DR Congo": "🇨🇩", Uzbekistan: "🇺🇿",
+  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Croatia: "🇭🇷", Ghana: "🇬🇭", Panama: "🇵🇦",
+};
+
+function getFlag(team: string): string {
+  return TEAM_FLAGS[team] || "🏳️";
+}
+
 export default function PredictPage() {
   const [counts, setCounts] = useState<Record<number, MatchCounts>>({});
   const [userVotes, setUserVotes] = useState<Record<number, Vote>>({});
   const [hydrated, setHydrated] = useState(false);
   const [loading, setLoading] = useState<string | null>(null);
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [matchesLoading, setMatchesLoading] = useState(true);
 
-  // Load all predictions from API + user votes from localStorage
+  // Load matches from API + predictions
   useEffect(() => {
-    const userId = getUserId();
+    async function load() {
+      try {
+        const data = await fetchScores();
+        setMatches(data.matches || []);
+      } catch {
+        setMatches([]);
+      } finally {
+        setMatchesLoading(false);
+      }
+    }
+    load();
     
     // Load all predictions
     fetch("/api/predictions")
@@ -66,10 +98,49 @@ export default function PredictPage() {
     window.localStorage.setItem("mauribin_user_votes", JSON.stringify(userVotes));
   }, [userVotes, hydrated]);
 
-  const upcomingMatches = useMemo(
-    () => SCHEDULE.filter((m) => m.status === "upcoming").slice(0, 8),
-    []
-  );
+  // Priority order: LIVE → matches on/after 2026-06-25 → older upcoming → no duplicates
+  const upcomingMatches = useMemo(() => {
+    const live = matches.filter((m) => m.state === "live");
+    const upcoming = matches.filter((m) => m.state === "upcoming");
+    
+    // Dedupe by home+away (keep first occurrence)
+    const seen = new Set<string>();
+    const dedupe = (arr: Match[]) => arr.filter((m) => {
+      const key = `${m.home}|${m.away}`;
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+    
+    const liveClean = dedupe(live);
+    const upcomingClean = dedupe(upcoming);
+    
+    // Split upcoming: priority date (2026-06-25 onward) vs older
+    const priorityDate = "2026-06-25";
+    const priority = upcomingClean.filter((m) => {
+      const d = m.utcDate || "";
+      return d >= priorityDate;
+    });
+    const others = upcomingClean.filter((m) => {
+      const d = m.utcDate || "";
+      return d < priorityDate;
+    });
+    
+    // Sort by date asc
+    priority.sort((a, b) => {
+      const da = a.utcDate || "";
+      const db = b.utcDate || "";
+      return da.localeCompare(db);
+    });
+    others.sort((a, b) => {
+      const da = a.utcDate || "";
+      const db = b.utcDate || "";
+      return da.localeCompare(db);
+    });
+    
+    // LIVE first → priority date → rest
+    return [...liveClean, ...priority, ...others].slice(0, 12);
+  }, [matches]);
 
   const totalVoters = useMemo(() => {
     return Object.values(counts).reduce(
@@ -95,7 +166,7 @@ export default function PredictPage() {
         setUserVotes((prev) => ({ ...prev, [matchId]: vote }));
       }
     } catch (e) {
-      // Fallback: save locally only
+      // Fallback
       setUserVotes((prev) => ({ ...prev, [matchId]: vote }));
       setCounts((prev) => {
         const current = prev[matchId] || { home: 0, draw: 0, away: 0 };
@@ -115,13 +186,11 @@ export default function PredictPage() {
     const userVote = userVotes[matchId];
     if (!userVote) return;
     
-    // Remove user vote locally
     setUserVotes((prev) => {
       const { [matchId]: _, ...rest } = prev;
       return rest;
     });
     
-    // Decrement count locally
     setCounts((prev) => {
       const current = prev[matchId] || { home: 0, draw: 0, away: 0 };
       return {
@@ -133,7 +202,6 @@ export default function PredictPage() {
       };
     });
     
-    // Send reset to API (re-vote with null isn't supported, so this just removes user's local vote)
     fetch("/api/predictions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -170,37 +238,69 @@ export default function PredictPage() {
       </div>
 
       <div className="container mx-auto px-4 space-y-6">
-        {upcomingMatches.length === 0 && (
+        {matchesLoading && (
+          <div className="glass rounded-2xl p-8 text-center text-slate-300">
+            <div className="inline-block animate-spin text-2xl mb-2">⚽</div>
+            <div>جاري تحميل المباريات...</div>
+          </div>
+        )}
+
+        {!matchesLoading && upcomingMatches.length === 0 && (
           <div className="glass rounded-2xl p-8 text-center text-slate-300">
             لا توجد مباريات قادمة للتوقع عليها حالياً.
           </div>
         )}
 
-        {upcomingMatches.map((match) => {
+        {upcomingMatches.map((match, idx) => {
+          const matchId = idx; // Use index since matches may not have stable IDs
           const matchCounts =
-            counts[match.id] || { home: 0, draw: 0, away: 0 };
+            counts[matchId] || { home: 0, draw: 0, away: 0 };
           const total = matchCounts.home + matchCounts.draw + matchCounts.away;
           const pct = (n: number) => (total > 0 ? (n / total) * 100 : 0);
-          const userVote = userVotes[match.id];
+          const userVote = userVotes[matchId];
           const hasVoted = !!userVote;
+          
+          const homeFlag = getFlag(match.home);
+          const awayFlag = getFlag(match.away);
+          
+          // Format date for display
+          const matchDate = new Date(match.utcDate ?? Date.now());
+          const dateStr = matchDate.toLocaleDateString("ar-EG", {
+            month: "short",
+            day: "numeric",
+          });
+          const timeStr = matchDate.toLocaleTimeString("ar-EG", {
+            hour: "2-digit",
+            minute: "2-digit",
+          });
+          
+          const isLive = match.state === "live";
+          const isUpcoming = match.state === "upcoming";
 
           return (
             <div
-              key={match.id}
+              key={`${match.home}-${match.away}-${match.utcDate}-${idx}`}
               className="glass rounded-2xl overflow-hidden border border-white/10 card-hover"
             >
               {/* Match header */}
               <div className="bg-gradient-to-r from-[#006233]/25 via-transparent to-[#d01c1f]/25 px-6 py-3 border-b border-white/10 flex items-center justify-between">
                 <div className="flex items-center gap-2 text-xs text-slate-300">
-                  <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
-                    {match.label || match.group || match.stage}
-                  </span>
+                  {isLive && (
+                    <span className="px-2 py-1 rounded-md bg-red-600 text-white font-bold animate-pulse">
+                      🔴 مباشر
+                    </span>
+                  )}
+                  {isUpcoming && (
+                    <span className="px-2 py-1 rounded-md bg-white/5 border border-white/10">
+                      {match.label || "قادم"}
+                    </span>
+                  )}
                   <span>
-                    {match.date} • {match.time}
+                    {dateStr} • {timeStr}
                   </span>
                 </div>
                 <div className="text-xs text-slate-400 hidden sm:block">
-                  📍 {match.venue}، {match.city}
+                  🏟️ {match.label}
                 </div>
               </div>
 
@@ -208,7 +308,7 @@ export default function PredictPage() {
               <div className="grid grid-cols-3 items-center gap-4 px-6 py-8 relative">
                 <div className="flex flex-col items-center gap-2 text-center">
                   <span className="text-6xl md:text-7xl drop-shadow-lg leading-none">
-                    {match.homeFlag}
+                    {homeFlag}
                   </span>
                   <span className="text-white font-bold text-sm md:text-base">
                     {match.home}
@@ -218,11 +318,11 @@ export default function PredictPage() {
                   <div className="inline-flex items-center justify-center w-14 h-14 rounded-full glass border border-[#ffd700]/30 mb-2">
                     <span className="text-[#ffd700] font-black text-lg">VS</span>
                   </div>
-                  <div className="text-xs text-slate-400">{match.time}</div>
+                  <div className="text-xs text-slate-400">{timeStr}</div>
                 </div>
                 <div className="flex flex-col items-center gap-2 text-center">
                   <span className="text-6xl md:text-7xl drop-shadow-lg leading-none">
-                    {match.awayFlag}
+                    {awayFlag}
                   </span>
                   <span className="text-white font-bold text-sm md:text-base">
                     {match.away}
@@ -240,8 +340,8 @@ export default function PredictPage() {
                     count={matchCounts.home}
                     percentage={pct(matchCounts.home)}
                     selected={userVote === "home"}
-                    loading={loading === `${match.id}_home`}
-                    onClick={() => handleVote(match.id, "home")}
+                    loading={loading === `${matchId}_home`}
+                    onClick={() => handleVote(matchId, "home")}
                   />
                   <VoteButton
                     label="تعادل"
@@ -250,8 +350,8 @@ export default function PredictPage() {
                     count={matchCounts.draw}
                     percentage={pct(matchCounts.draw)}
                     selected={userVote === "draw"}
-                    loading={loading === `${match.id}_draw`}
-                    onClick={() => handleVote(match.id, "draw")}
+                    loading={loading === `${matchId}_draw`}
+                    onClick={() => handleVote(matchId, "draw")}
                   />
                   <VoteButton
                     label={`فوز ${match.away}`}
@@ -260,8 +360,8 @@ export default function PredictPage() {
                     count={matchCounts.away}
                     percentage={pct(matchCounts.away)}
                     selected={userVote === "away"}
-                    loading={loading === `${match.id}_away`}
-                    onClick={() => handleVote(match.id, "away")}
+                    loading={loading === `${matchId}_away`}
+                    onClick={() => handleVote(matchId, "away")}
                   />
                 </div>
 
@@ -283,7 +383,7 @@ export default function PredictPage() {
                     {hasVoted && (
                       <button
                         type="button"
-                        onClick={() => handleReset(match.id)}
+                        onClick={() => handleReset(matchId)}
                         className="px-3 py-1 rounded-full text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition-colors"
                         aria-label="إعادة التصويت"
                       >
