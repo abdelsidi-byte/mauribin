@@ -83,11 +83,12 @@ export interface Article {
 async function fetchKickxoffMatches(): Promise<Match[]> {
   const API_KEY = "c0e4608bccd8e7dc832fee613e8bc378";
 
-  // Fetch last 3 days, today, and next 3 days
+  // Fetch entire tournament so /standings has all played matches (Jun 11 - Jul 31)
   const dates: string[] = [];
-  for (let i = -3; i <= 3; i++) {
-    const d = new Date();
-    d.setDate(d.getDate() + i);
+  const start = new Date("2026-06-11");
+  const end = new Date();
+  end.setDate(end.getDate() + 3);
+  for (let d = new Date(start); d <= end; d.setDate(d.getDate() + 1)) {
     dates.push(d.toISOString().split("T")[0]);
   }
 
