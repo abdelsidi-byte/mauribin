@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useI18n } from "./I18nProvider";
 import { NewsSection } from "./NewsSection";
+import { YesterdayResults } from "./YesterdayResults";
 import VideoAdBanner from "./VideoAdBanner";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -525,6 +526,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               </div>
             </div>
           )}
+
+          {/* Yesterday's Results */}
+          <YesterdayResults />
 
           {/* Upcoming - Horizontal Scroll */}
           {(upcomingMatches.length > 0 || wcUpcomingMatches.length > 0) && (
