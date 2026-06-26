@@ -1,4 +1,3 @@
-import { fetchScores } from "@/lib/data";
 import { CommentsSectionWrapper } from "@/components/CommentsSectionWrapper";
 import { cookies } from "next/headers";
 import { type Locale, translate } from "@/lib/i18n";
@@ -18,66 +17,17 @@ async function getLocaleFromCookie(): Promise<Locale> {
   return "ar";
 }
 
-function slugify(home: string, away: string): string {
-  return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
-}
-
-// Fetch World Cup matches from football-data.org API
-async function getWorldCupMatches() {
+// Fetch match details from local API (which calls ESPN)
+async function getMatchDetail(id: string) {
   try {
-    const API_KEY = "74324d6063934f75b808c611780d7b68";
-    const res = await fetch(`https://api.football-data.org/v4/competitions/WC/matches`, {
-      headers: { "X-Auth-Token": API_KEY },
-      next: { revalidate: 60 }
+    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://mauribin.vercel.app";
+    const res = await fetch(`${baseUrl}/api/match-detail/${id}`, {
+      next: { revalidate: 30 },
     });
-    if (!res.ok) {
-      console.error(`[getWorldCupMatches] API error: ${res.status}`);
-      return [];
-    }
-    const data = await res.json();
-    const matches: any[] = data?.matches || [];
-
-    return matches.map((m: any, idx: number) => {
-      const home = m.homeTeam || {};
-      const away = m.awayTeam || {};
-      const score = m.score?.fullTime || { home: null, away: null };
-      const rawStatus = m.status || "";
-      let status = "upcoming";
-      if (rawStatus === "FINISHED" || rawStatus === "FT" || rawStatus === "FULL_TIME") status = "ft";
-      else if (rawStatus === "IN_PLAY" || rawStatus === "LIVE" || rawStatus === "FIRST_HALF" || rawStatus === "SECOND_HALF" || rawStatus === "HT") status = "live";
-
-      const matchId = m.id;
-      const slug = `wc-${matchId}`;
-      const homeCrest = home.crest?.replace("http://", "https://") || "";
-      const awayCrest = away.crest?.replace("http://", "https://") || "";
-      const date = new Date(m.utcDate);
-      const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
-      const dayName = dayNames[date.getDay()];
-      const hours = date.getUTCHours().toString().padStart(2, "0");
-      const mins = date.getUTCMinutes().toString().padStart(2, "0");
-      const label = `${dayName} ${hours}:${mins} ت ع`;
-
-      return {
-        _index: 1000 + idx,
-        id: matchId,
-        slug,
-        home: home.shortName || home.name || "فريق",
-        away: away.shortName || away.name || "فريق",
-        homeFlag: homeCrest,
-        awayFlag: awayCrest,
-        homeScore: score.home ?? null,
-        awayScore: score.away ?? null,
-        state: status,
-        label,
-        utcDate: m.utcDate,
-        homeCrest,
-        awayCrest,
-        competition: m.competition?.name || "World Cup",
-      };
-    });
-  } catch (err) {
-    console.error("[getWorldCupMatches] Error:", err);
-    return [];
+    if (!res.ok) return null;
+    return await res.json();
+  } catch {
+    return null;
   }
 }
 
@@ -85,58 +35,12 @@ export default async function MatchPage({ params }: PageProps) {
   const { id } = await params;
   const locale = await getLocaleFromCookie();
   const t = (k: string) => translate(locale, k);
-  console.log("[MatchPage] Loading match ID:", id, "locale:", locale);
 
-  // Fetch both custom matches AND World Cup matches
-  let customMatches: any[] = [];
-  let worldCupMatches: any[] = [];
-  
-  try {
-    const scoresData = await fetchScores();
-    customMatches = scoresData?.matches || [];
-  } catch (err) {
-    console.error("[MatchPage] fetchScores error:", err);
-  }
+  // Try to fetch real match details from ESPN API
+  const matchDetail = await getMatchDetail(id);
 
-  try {
-    worldCupMatches = await getWorldCupMatches();
-  } catch (err) {
-    console.error("[MatchPage] getWorldCupMatches error:", err);
-  }
-
-  // Combine all matches
-  const allMatches = [...customMatches, ...worldCupMatches];
-  console.log("[MatchPage] Total matches:", allMatches.length, "Custom:", customMatches.length, "WC:", worldCupMatches.length);
-
-  // Try to find by slug first, then by numeric index
-  let match: any = null;
-  const slugId = decodeURIComponent(id || "");
-  
-  // Try exact slug match
-  match = allMatches.find((m: any) => {
-    const matchSlug = m.slug || "";
-    return matchSlug === slugId || slugify(m.home || "", m.away || "") === slugId;
-  });
-  
-  // Try wc-{id} pattern
-  if (!match) {
-    match = allMatches.find((m: any) => {
-      const matchSlug = m.slug || "";
-      return matchSlug === `wc-${slugId}` || matchSlug === slugId;
-    });
-  }
-  
-  // Try numeric ID
-  if (!match) {
-    const num = parseInt(slugId);
-    if (!isNaN(num)) {
-      match = allMatches.find((m: any) => m._index === num || m.id === num);
-    }
-  }
-
-  console.log("[MatchPage] Match found:", match ? "yes" : "no", match?.home, "vs", match?.away);
-
-  if (!match) {
+  // Fallback: if not found, show not found
+  if (!matchDetail || !matchDetail.homeTeam) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
         <div className="text-center">
@@ -149,112 +53,38 @@ export default async function MatchPage({ params }: PageProps) {
     );
   }
 
-  const isLive = match.state === "live";
-  const isFinished = match.state === "ft";
+  const { homeTeam, awayTeam, status, goals, stats, events, venue, competition, date } = matchDetail;
 
-  const homeTeam = (match.home || "فريق").replace(/\s*\(.*?\)\s*/g, '').trim();
-  const awayTeam = (match.away || "فريق").replace(/\s*\(.*?\)\s*/g, '').trim();
-  const youtubeSearchQuery = `${homeTeam} vs ${awayTeam} World Cup 2026 highlights`;
-  const youtubeSearchUrl = `https://www.youtube.com/results?search_query=${encodeURIComponent(youtubeSearchQuery)}`;
+  const isLive = status === "1st Half" || status === "2nd Half" || status === "Halftime" || status.includes("Half");
+  const isFinished = status === "FT" || status === "Full Time";
 
-  // Deterministic pseudo-random based on match ID so stats are stable
-  // for a given match across reloads (no Math.random() on the server)
-  const seedFromMatch = (() => {
-    const idStr = `${match.home || ""}-${match.away || ""}`;
-    let h = 0;
-    for (let i = 0; i < idStr.length; i++) h = (h * 31 + idStr.charCodeAt(i)) | 0;
-    return Math.abs(h);
-  })();
-  const pseudo = (n: number, mod: number) => (seedFromMatch + n * 9301 + 49297) % mod;
-
-  const stats = {
-    homePossession: 45 + pseudo(1, 30),
-    awayPossession: 55 - (pseudo(1, 30) - 15), // roughly complementary
-    homeShots: 5 + pseudo(2, 15),
-    awayShots: 5 + pseudo(3, 15),
-    homeShotsOnTarget: 2 + pseudo(4, 8),
-    awayShotsOnTarget: 2 + pseudo(5, 8),
-    homeCorners: pseudo(6, 10),
-    awayCorners: pseudo(7, 10),
-    homeFouls: 5 + pseudo(8, 15),
-    awayFouls: 5 + pseudo(9, 15),
-    homeYellowCards: pseudo(10, 4),
-    awayYellowCards: pseudo(11, 4),
-    homeRedCards: 0,
-    awayRedCards: 0,
-    homeOffsides: pseudo(12, 5),
-    awayOffsides: pseudo(13, 5),
-    homePasses: 200 + pseudo(14, 300),
-    awayPasses: 200 + pseudo(15, 300),
-    homePassAccuracy: 70 + pseudo(16, 25),
-    awayPassAccuracy: 70 + pseudo(17, 25),
-  };
-  // Keep possession strictly complementary
-  stats.awayPossession = 100 - stats.homePossession;
-
-  const statLabels: Record<string, { label: string; suffix?: string }> = {
-    homePossession: { label: t("details.possession"), suffix: "%" },
-    homeShots: { label: t("details.shots") },
-    homeShotsOnTarget: { label: t("details.shotsOnTarget") },
-    homeCorners: { label: t("details.corners") },
-    homeFouls: { label: t("details.fouls") },
-    homeYellowCards: { label: t("details.yellowCards") },
-    homeRedCards: { label: t("details.redCards") },
-    homeOffsides: { label: t("details.offsides") },
-    homePasses: { label: t("details.passes") },
-    homePassAccuracy: { label: t("details.passAccuracy"), suffix: "%" },
-  };
-
-  // Handle flag/logo display - URL vs emoji
-  const homeFlag = match.homeFlag || "🏳️";
-  const awayFlag = match.awayFlag || "🏳️";
-  const homeFlagIsUrl = homeFlag && typeof homeFlag === "string" && homeFlag.startsWith("http");
-  const awayFlagIsUrl = awayFlag && typeof awayFlag === "string" && awayFlag.startsWith("http");
-
-  // Note: onError handler removed — event handlers are not allowed in Server Components.
-  // Use the emoji fallback by checking if the URL is a known working pattern (football-data.org SVGs load fine).
   const FlagImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
     if (src && typeof src === "string" && src.startsWith("http")) {
-      return <img src={src} alt={alt} className={className} />;
+      return <img src={src} alt={alt} className={className} onError={(e) => { e.currentTarget.style.display = "none"; }} />;
     }
     return <span className={className}>{src || "🏳️"}</span>;
   };
 
-  const goals: { scorer: string; team: "home" | "away"; minute: number }[] = [];
+  // Format date
+  const matchDate = date ? new Date(date) : new Date();
+  const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
+  const dayName = dayNames[matchDate.getDay()];
+  const hours = matchDate.getUTCHours().toString().padStart(2, "0");
+  const mins = matchDate.getUTCMinutes().toString().padStart(2, "0");
+  const dateLabel = `${dayName} ${hours}:${mins} ت ع`;
 
-  if (match.homeScore != null && match.homeScore > 0 && match.awayScore != null) {
-    const scorers: Record<string, string[]> = {
-      "Argentina": ["Messi 23'", "Alvarez 45+1'", "Martinez 78'"],
-      "Brazil": ["Neymar 34'", "Richarlison 67'", "Rodri 89'"],
-      "Germany": ["Muller 12'", "Havertz 56'", "Werner 82'"],
-      "France": ["Mbappe 28'", "Dembele 71'", "Giroud 88'"],
-      "Spain": ["Morata 19'", "Pedri 54'", "Olmo 76'"],
-      "Portugal": ["Ronaldo 25'", "Bruno Fernandes 63'", "B.Silva 84'"],
-      "England": ["Kane 37'", "Saka 68'", "Foden 79'"],
-      "Netherlands": ["Depay 22'", "Gakpo 55'", "Simons 81'"],
-      "Morocco": ["Hakimi 32'", "En-Nesyri 69'", "Ounahi 87'"],
-      "Croatia": ["Modric 26'", "Kovacic 67'", "Petkovic 85'"],
-      "Mexico": ["Jimenez 28'", "Lozano 62'", "Vega 84'"],
-      "United States": ["Pulisic 24'", "Weah 67'", "Reyna 82'"],
-      "Japan": ["Minamino 19'", "Kubo 58'", "Maeda 79'"],
-      "Senegal": ["Sarr 23'", "Mane 56'", "Diouf 82'"],
-      "Iraq": ["Mohammed 34'", "Ali 67'", "Hussein 85'"],
-    };
-    
-    const homeScorers = scorers[homeTeam] || ["هدف 1 23'", "هدف 2 56'", "هدف 3 78'"];
-    const awayScorers = scorers[awayTeam] || ["هدف 1 34'", "هدف 2 67'", "هدف 3 89'"];
-    
-    for (let i = 0; i < (match.homeScore || 0); i++) {
-      goals.push({ scorer: homeScorers[i % homeScorers.length], team: "home", minute: 20 + i * 25 });
-    }
-    for (let i = 0; i < (match.awayScore || 0); i++) {
-      goals.push({ scorer: awayScorers[i % awayScorers.length], team: "away", minute: 30 + i * 25 });
-    }
-  }
-
-  goals.sort((a, b) => a.minute - b.minute);
-
-  const statKeys = ["Possession", "Shots", "ShotsOnTarget", "Corners", "Fouls", "YellowCards", "RedCards", "Offsides", "Passes", "PassAccuracy"] as const;
+  const statLabels: Record<string, { label: string; suffix?: string }> = {
+    possession: { label: t("details.possession"), suffix: "%" },
+    shots: { label: t("details.shots") },
+    shotsOnTarget: { label: t("details.shotsOnTarget") },
+    corners: { label: t("details.corners") },
+    fouls: { label: t("details.fouls") },
+    yellowCards: { label: t("details.yellowCards") },
+    redCards: { label: t("details.redCards") },
+    offsides: { label: t("details.offsides") },
+    passes: { label: t("details.passes") },
+    passAccuracy: { label: t("details.passAccuracy"), suffix: "%" },
+  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-white" dir="rtl">
@@ -268,11 +98,11 @@ export default async function MatchPage({ params }: PageProps) {
               </svg>
             </a>
             <div className="text-center">
-              <span className="text-[#FFD700] text-sm font-bold">{match.competition || "كأس العالم 2026"}</span>
+              <span className="text-[#FFD700] text-sm font-bold">{competition || "كأس العالم 2026"}</span>
             </div>
             <div className="w-8" />
           </div>
-          
+
           {/* Match Title */}
           <div className="text-center mb-4">
             <div className="flex items-center justify-center gap-3 mb-2">
@@ -288,36 +118,40 @@ export default async function MatchPage({ params }: PageProps) {
               {isFinished && (
                 <span className="bg-slate-700 text-slate-300 text-xs px-3 py-1 rounded-full">انتهت</span>
               )}
+              {status && !isLive && !isFinished && (
+                <span className="bg-slate-700 text-slate-300 text-xs px-3 py-1 rounded-full">{status}</span>
+              )}
             </div>
-            <p className="text-slate-300 text-sm">{match.label || ""}</p>
+            <p className="text-slate-300 text-sm">{dateLabel}</p>
+            {venue && <p className="text-slate-400 text-xs mt-1">🏟️ {venue}</p>}
           </div>
 
           {/* Teams & Score */}
           <div className="flex items-center justify-between gap-4">
             <div className="flex-1 text-center">
               <div className="mb-3 flex justify-center">
-                <FlagImage src={homeFlag} alt={homeTeam} className="w-20 h-20 object-contain" />
+                <FlagImage src={homeTeam.logo} alt={homeTeam.name} className="w-20 h-20 object-contain" />
               </div>
-              <h2 className="text-2xl font-black text-white">{homeTeam}</h2>
+              <h2 className="text-2xl font-black text-white">{homeTeam.name}</h2>
             </div>
-            
+
             <div className="text-center px-6">
               {isLive || isFinished ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-5xl font-black text-white">{match.homeScore ?? 0}</span>
+                  <span className="text-5xl font-black text-white">{homeTeam.score ?? 0}</span>
                   <span className="text-3xl font-black text-[#FFD700]">-</span>
-                  <span className="text-5xl font-black text-white">{match.awayScore ?? 0}</span>
+                  <span className="text-5xl font-black text-white">{awayTeam.score ?? 0}</span>
                 </div>
               ) : (
                 <div className="text-5xl font-black text-[#FFD700]">VS</div>
               )}
             </div>
-            
+
             <div className="flex-1 text-center">
               <div className="mb-3 flex justify-center">
-                <FlagImage src={awayFlag} alt={awayTeam} className="w-20 h-20 object-contain" />
+                <FlagImage src={awayTeam.logo} alt={awayTeam.name} className="w-20 h-20 object-contain" />
               </div>
-              <h2 className="text-2xl font-black text-white">{awayTeam}</h2>
+              <h2 className="text-2xl font-black text-white">{awayTeam.name}</h2>
             </div>
           </div>
         </div>
@@ -332,15 +166,16 @@ export default async function MatchPage({ params }: PageProps) {
         </div>
       </div>
 
-      {/* Match Events */}
+      {/* Match Details */}
       <div className="max-w-4xl mx-auto p-4">
+        {/* Match Events */}
         <div className="bg-slate-800 rounded-2xl p-6 mb-6">
           <h3 className="text-xl font-bold text-[#FFD700] mb-4">⚽ {t("details.matchEvents")}</h3>
-          {goals.length > 0 ? (
+          {goals && goals.length > 0 ? (
             <div className="space-y-3">
-              {goals.map((goal, idx) => (
+              {goals.map((goal: any, idx: number) => (
                 <div key={idx} className={`flex items-center gap-3 p-3 rounded-xl ${goal.team === "home" ? "bg-[#006233]/20 flex-row-reverse" : "bg-slate-700/50"}`}>
-                  <FlagImage src={goal.team === "home" ? homeFlag : awayFlag} alt="" className="w-6 h-6" />
+                  <FlagImage src={goal.team === "home" ? homeTeam.logo : awayTeam.logo} alt="" className="w-6 h-6" />
                   <span className={`font-bold ${goal.team === "home" ? "text-[#FFD700]" : "text-slate-300"}`}>{goal.scorer}</span>
                   <span className="text-slate-400 text-sm">({goal.minute}')</span>
                 </div>
@@ -352,38 +187,37 @@ export default async function MatchPage({ params }: PageProps) {
         </div>
 
         {/* Statistics */}
-        <div className="bg-slate-800 rounded-2xl p-6 mb-6">
-          <h3 className="text-xl font-bold text-[#FFD700] mb-4">📊 {t("details.stats")}</h3>
-          <div className="space-y-4">
-            {statKeys.map((key) => {
-              const homeKey = `home${key}` as keyof typeof stats;
-              const awayKey = `away${key}` as keyof typeof stats;
-              const homeVal = stats[homeKey] as number;
-              const awayVal = stats[awayKey] as number;
-              const total = homeVal + awayVal;
-              const homePct = total > 0 ? (homeVal / total) * 100 : 50;
-              const label = statLabels[homeKey]?.label || key;
-              const suffix = statLabels[homeKey]?.suffix || "";
-              
-              return (
-                <div key={key} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-                  <span className="text-left font-bold text-[#FFD700]">{homeVal}{suffix}</span>
-                  <span className="text-slate-400 text-sm px-2">{label}</span>
-                  <span className="text-right font-bold text-white">{awayVal}{suffix}</span>
-                  <div className="col-span-3 relative h-2 bg-slate-700 rounded-full overflow-hidden">
-                    <div className="absolute right-0 top-0 h-full bg-[#006233] rounded-full" style={{ width: `${homePct}%` }} />
+        {stats && (
+          <div className="bg-slate-800 rounded-2xl p-6 mb-6">
+            <h3 className="text-xl font-bold text-[#FFD700] mb-4">📊 {t("details.stats")}</h3>
+            <div className="space-y-4">
+              {Object.entries(statLabels).map(([key, meta]) => {
+                const homeVal = parseFloat(stats.home[key as keyof typeof stats.home] as string) || 0;
+                const awayVal = parseFloat(stats.away[key as keyof typeof stats.away] as string) || 0;
+                const total = homeVal + awayVal;
+                const homePct = total > 0 ? (homeVal / total) * 100 : 50;
+                const suffix = meta.suffix || "";
+
+                return (
+                  <div key={key} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
+                    <span className="text-left font-bold text-[#FFD700]">{homeVal}{suffix}</span>
+                    <span className="text-slate-400 text-sm px-2">{meta.label}</span>
+                    <span className="text-right font-bold text-white">{awayVal}{suffix}</span>
+                    <div className="col-span-3 relative h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div className="absolute right-0 top-0 h-full bg-[#006233] rounded-full" style={{ width: `${homePct}%` }} />
+                    </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* YouTube Highlights */}
         <div className="bg-slate-800 rounded-2xl p-6 mb-6">
           <h3 className="text-xl font-bold text-[#FFD700] mb-4">🎬 {t("details.highlights")}</h3>
           <a
-            href={youtubeSearchUrl}
+            href={`https://www.youtube.com/results?search_query=${encodeURIComponent(`${homeTeam.name} vs ${awayTeam.name} World Cup 2026 highlights`)}`}
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center justify-center gap-3 w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl transition-colors"
@@ -396,7 +230,7 @@ export default async function MatchPage({ params }: PageProps) {
         </div>
 
         {/* Comments */}
-        <CommentsSectionWrapper matchId={match.slug || String(match._index)} />
+        <CommentsSectionWrapper matchId={String(id)} />
       </div>
     </div>
   );
