@@ -84,8 +84,8 @@ export async function GET(
 
     // Extract header info
     const header = data.header || {};
-    const competitions = data.competitions || [];
-    const competition = competitions[0] || {};
+    const headerComps = header.competitions || [];
+    const competition = headerComps[0] || {};
     const venue = competition.venue || {};
     const gameInfo = data.gameInfo || {};
 
