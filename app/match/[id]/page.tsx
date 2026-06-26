@@ -6,6 +6,8 @@ interface PageProps {
   params: Promise<{ id: string }>;
 }
 
+const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world";
+
 async function getLocaleFromCookie(): Promise<Locale> {
   try {
     const store = await cookies();
@@ -17,16 +19,102 @@ async function getLocaleFromCookie(): Promise<Locale> {
   return "ar";
 }
 
-// Fetch match details from local API (which calls ESPN)
-async function getMatchDetail(id: string) {
+function getEventType(e: any): string {
+  if (!e.type) return "";
+  if (typeof e.type === "string") return e.type;
+  return e.type?.type || "";
+}
+
+async function fetchMatchFromESPN(id: string) {
   try {
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "https://mauribin.vercel.app";
-    const res = await fetch(`${baseUrl}/api/match-detail/${id}`, {
+    const eventId = id.replace(/^wc-/, "");
+    const url = `${ESPN_BASE}/summary?event=${eventId}`;
+    const res = await fetch(url, {
       next: { revalidate: 30 },
+      headers: { "Accept": "application/json" },
     });
     if (!res.ok) return null;
-    return await res.json();
-  } catch {
+    const data = await res.json();
+
+    const header = data.header || {};
+    const headerComps = header.competitions || [];
+    const competition = headerComps[0] || {};
+    const competitors = competition.competitors || [];
+
+    const homeComp = competitors.find((c: any) => c.homeAway === "home") || competitors[0];
+    const awayComp = competitors.find((c: any) => c.homeAway === "away") || competitors[1];
+    const homeTeamData = homeComp.team || {};
+    const awayTeamData = awayComp.team || {};
+
+    const homeTeam = {
+      name: homeTeamData.displayName || "Home",
+      abbr: homeTeamData.abbreviation || "HOM",
+      logo: (homeTeamData.logos || [])[0]?.href || "",
+      score: homeComp.score || "0",
+      winner: homeComp.winner || false,
+    };
+    const awayTeam = {
+      name: awayTeamData.displayName || "Away",
+      abbr: awayTeamData.abbreviation || "AWY",
+      logo: (awayTeamData.logos || [])[0]?.href || "",
+      score: awayComp.score || "0",
+      winner: awayComp.winner || false,
+    };
+
+    const statusType = competition.status?.type || {};
+    const status = statusType.detail || statusType.description || "FT";
+    const date = competition.date || header.date || "";
+
+    const gameInfo = data.gameInfo || {};
+    const venue = gameInfo.venue?.fullName || "";
+
+    const goals: any[] = [];
+    const keyEvents = data.keyEvents || [];
+    for (const event of keyEvents) {
+      const eventType = getEventType(event);
+      if (eventType === "goal") {
+        const fullText = event.text || "";
+        const clock = event.clock?.displayValue || event.time?.value || "?";
+        const teamName = event.team?.displayName || "";
+        const team: "home" | "away" = teamName === homeTeam.name ? "home" : "away";
+
+        // Extract scorer: "Goal! Curaçao 0, Côte d'Ivoire 1. Nicolas Pépé (Côte d'Ivoire)..."
+        let scorer = "Unknown";
+        const nameMatch = fullText.match(/Goal!\s+[^)]+\)\s+([^.]+)/);
+        if (nameMatch) {
+          scorer = nameMatch[1].trim();
+        }
+
+        goals.push({ scorer, team, minute: String(clock), text: fullText });
+      }
+    }
+
+    const events: any[] = [];
+    for (const event of keyEvents) {
+      const eventType = getEventType(event);
+      if (["goal", "yellow-card", "red-card", "kickoff", "start-2nd-half", "halftime", "end-regular-time"].includes(eventType)) {
+        const clock = event.clock?.displayValue || event.time?.value || "";
+        events.push({
+          type: eventType,
+          minute: String(clock),
+          text: event.text || "",
+        });
+      }
+    }
+
+    return {
+      id: String(eventId),
+      date,
+      competition: competition.name || "FIFA World Cup 2026",
+      venue,
+      status,
+      homeTeam,
+      awayTeam,
+      goals,
+      events,
+    };
+  } catch (err) {
+    console.error("[MatchPage] ESPN fetch error:", err);
     return null;
   }
 }
@@ -36,10 +124,8 @@ export default async function MatchPage({ params }: PageProps) {
   const locale = await getLocaleFromCookie();
   const t = (k: string) => translate(locale, k);
 
-  // Try to fetch real match details from ESPN API
-  const matchDetail = await getMatchDetail(id);
+  const matchDetail = await fetchMatchFromESPN(id);
 
-  // Fallback: if not found, show not found
   if (!matchDetail || !matchDetail.homeTeam) {
     return (
       <div className="min-h-screen bg-slate-900 flex items-center justify-center">
@@ -53,38 +139,23 @@ export default async function MatchPage({ params }: PageProps) {
     );
   }
 
-  const { homeTeam, awayTeam, status, goals, stats, events, venue, competition, date } = matchDetail;
-
-  const isLive = status === "1st Half" || status === "2nd Half" || status === "Halftime" || status.includes("Half");
+  const { homeTeam, awayTeam, status, goals, events, venue, competition, date } = matchDetail;
+  const isLive = status === "1st Half" || status === "2nd Half" || status.includes("Half");
   const isFinished = status === "FT" || status === "Full Time";
 
   const FlagImage = ({ src, alt, className }: { src: string; alt: string; className?: string }) => {
     if (src && typeof src === "string" && src.startsWith("http")) {
-      return <img src={src} alt={alt} className={className} onError={(e) => { e.currentTarget.style.display = "none"; }} />;
+      return <img src={src} alt={alt} className={className} />;
     }
     return <span className={className}>{src || "🏳️"}</span>;
   };
 
-  // Format date
   const matchDate = date ? new Date(date) : new Date();
   const dayNames = ["الأحد", "الإثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة", "السبت"];
   const dayName = dayNames[matchDate.getDay()];
   const hours = matchDate.getUTCHours().toString().padStart(2, "0");
   const mins = matchDate.getUTCMinutes().toString().padStart(2, "0");
   const dateLabel = `${dayName} ${hours}:${mins} ت ع`;
-
-  const statLabels: Record<string, { label: string; suffix?: string }> = {
-    possession: { label: t("details.possession"), suffix: "%" },
-    shots: { label: t("details.shots") },
-    shotsOnTarget: { label: t("details.shotsOnTarget") },
-    corners: { label: t("details.corners") },
-    fouls: { label: t("details.fouls") },
-    yellowCards: { label: t("details.yellowCards") },
-    redCards: { label: t("details.redCards") },
-    offsides: { label: t("details.offsides") },
-    passes: { label: t("details.passes") },
-    passAccuracy: { label: t("details.passAccuracy"), suffix: "%" },
-  };
 
   return (
     <div className="min-h-screen bg-slate-900 text-white" dir="rtl">
@@ -98,12 +169,11 @@ export default async function MatchPage({ params }: PageProps) {
               </svg>
             </a>
             <div className="text-center">
-              <span className="text-[#FFD700] text-sm font-bold">{competition || "كأس العالم 2026"}</span>
+              <span className="text-[#FFD700] text-sm font-bold">{competition}</span>
             </div>
             <div className="w-8" />
           </div>
 
-          {/* Match Title */}
           <div className="text-center mb-4">
             <div className="flex items-center justify-center gap-3 mb-2">
               {isLive && (
@@ -118,7 +188,7 @@ export default async function MatchPage({ params }: PageProps) {
               {isFinished && (
                 <span className="bg-slate-700 text-slate-300 text-xs px-3 py-1 rounded-full">انتهت</span>
               )}
-              {status && !isLive && !isFinished && (
+              {!isLive && !isFinished && (
                 <span className="bg-slate-700 text-slate-300 text-xs px-3 py-1 rounded-full">{status}</span>
               )}
             </div>
@@ -138,9 +208,9 @@ export default async function MatchPage({ params }: PageProps) {
             <div className="text-center px-6">
               {isLive || isFinished ? (
                 <div className="flex items-center gap-3">
-                  <span className="text-5xl font-black text-white">{homeTeam.score ?? 0}</span>
+                  <span className="text-5xl font-black text-white">{homeTeam.score}</span>
                   <span className="text-3xl font-black text-[#FFD700]">-</span>
-                  <span className="text-5xl font-black text-white">{awayTeam.score ?? 0}</span>
+                  <span className="text-5xl font-black text-white">{awayTeam.score}</span>
                 </div>
               ) : (
                 <div className="text-5xl font-black text-[#FFD700]">VS</div>
@@ -186,29 +256,26 @@ export default async function MatchPage({ params }: PageProps) {
           )}
         </div>
 
-        {/* Statistics */}
-        {stats && (
+        {/* All Events Timeline */}
+        {events && events.length > 0 && (
           <div className="bg-slate-800 rounded-2xl p-6 mb-6">
-            <h3 className="text-xl font-bold text-[#FFD700] mb-4">📊 {t("details.stats")}</h3>
-            <div className="space-y-4">
-              {Object.entries(statLabels).map(([key, meta]) => {
-                const homeVal = parseFloat(stats.home[key as keyof typeof stats.home] as string) || 0;
-                const awayVal = parseFloat(stats.away[key as keyof typeof stats.away] as string) || 0;
-                const total = homeVal + awayVal;
-                const homePct = total > 0 ? (homeVal / total) * 100 : 50;
-                const suffix = meta.suffix || "";
-
-                return (
-                  <div key={key} className="grid grid-cols-[1fr_auto_1fr] gap-3 items-center">
-                    <span className="text-left font-bold text-[#FFD700]">{homeVal}{suffix}</span>
-                    <span className="text-slate-400 text-sm px-2">{meta.label}</span>
-                    <span className="text-right font-bold text-white">{awayVal}{suffix}</span>
-                    <div className="col-span-3 relative h-2 bg-slate-700 rounded-full overflow-hidden">
-                      <div className="absolute right-0 top-0 h-full bg-[#006233] rounded-full" style={{ width: `${homePct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
+            <h3 className="text-xl font-bold text-[#FFD700] mb-4">📋 الأحداث</h3>
+            <div className="space-y-2">
+              {events.map((event: any, idx: number) => (
+                <div key={idx} className="flex items-center gap-3 text-sm">
+                  <span className="text-slate-500 w-10">{event.minute}</span>
+                  <span className="text-lg">
+                    {event.type === "goal" ? "⚽" :
+                     event.type === "yellow-card" ? "🟨" :
+                     event.type === "red-card" ? "🟥" :
+                     event.type === "kickoff" ? "▶️" :
+                     event.type === "halftime" ? "⏸️" :
+                     event.type === "start-2nd-half" ? "▶️" :
+                     event.type === "end-regular-time" ? "🏁" : "•"}
+                  </span>
+                  <span className="text-slate-300 capitalize">{event.text || event.type}</span>
+                </div>
+              ))}
             </div>
           </div>
         )}
