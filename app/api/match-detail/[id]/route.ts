@@ -87,7 +87,8 @@ export async function GET(
 
         // Extract scorer from text: "Goal! Curaçao 0, Côte d'Ivoire 1. Nicolas Pépé..."
         let scorer = "Unknown";
-        const goalMatch = eventText.match(/Goal!\s*(?:[^ ]+\s+\d+,\s*[^ ]+\s+\d+\.\s*)?(.+?)(?:\s+\(|left footed|right footed|header|penalty|own goal)/);
+        const fullText = eventText || event.text || "";
+        const goalMatch = fullText.match(/Goal!\s*(?:[^ ]+\s+\d+,\s*[^ ]+\s+\d+\.\s*)?(.+?)(?:\s+\(|left footed|right footed|header|penalty|own goal| Assisted)/);
         if (goalMatch) {
           scorer = goalMatch[1].trim();
         }
