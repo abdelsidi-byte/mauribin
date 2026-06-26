@@ -24,7 +24,103 @@ type Article = {
   url: string;
 };
 
-// ─── Demo match data ──────────────────────────────────────────────────────────
+// ─── Fetch real matches or fallback ──────────────────────────────────────────
+async function fetchRealMatches(): Promise<Match[]> {
+  const API_KEY = "c0e4608bccd8e7dc832fee613e8bc378";
+  const FALLBACK_KEY = "74324d6063934f75b808c611780d7b68";
+
+  const fetchFromAPI = async (key: string) => {
+    const end = new Date();
+    end.setDate(end.getDate() + 1);
+    const endStr = end.toISOString().split("T")[0];
+    const res = await fetch(
+      `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=2026-06-11&dateTo=${endStr}`,
+      { headers: { "X-Auth-Token": key }, next: { revalidate: 30 } }
+    );
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  };
+
+  function mapMatch(m: any, i: number) {
+    const home = m.homeTeam?.name || m.homeTeam?.shortName || "Unknown";
+    const away = m.awayTeam?.name || m.awayTeam?.shortName || "Unknown";
+    const hg = m.score?.fullTime?.home ?? m.score?.halfTime?.home ?? null;
+    const ag = m.score?.fullTime?.away ?? m.score?.halfTime?.away ?? null;
+    const status = m.status || "";
+    const s = status.toUpperCase();
+    let state = "upcoming", label = "قادم";
+    if (["FINISHED", "FT", "AET", "PEN"].includes(s)) { state = "ft"; label = "انتهت"; }
+    else if (["IN_PLAY", "PAUSED", "LIVE", "1H", "2H", "HT", "ET", "BT", "P"].includes(s)) { state = "live"; label = "مباشر"; }
+    else if (["TIMED", "SCHEDULED", "NS", "PST", "CANC"].includes(s)) { state = "upcoming"; label = formatUpcomingDate(m.utcDate); }
+    else { state = "upcoming"; label = status || "قادم"; }
+    return { home, away, homeFlag: getFlag(home), awayFlag: getFlag(away), homeScore: hg, awayScore: ag, state, label, utcDate: m.utcDate, slug: slugify(home, away), _index: i };
+  }
+
+  function formatUpcomingDate(isoDate: string): string {
+    try {
+      const d = new Date(isoDate);
+      const now = new Date();
+      const hours = d.getUTCHours().toString().padStart(2, "0");
+      const mins = d.getUTCMinutes().toString().padStart(2, "0");
+      if (d.toDateString() === now.toDateString()) return `اليوم ${hours}:${mins} ت ع`;
+      const days = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+      return `${days[d.getUTCDay()]} ${hours}:${mins} ت ع`;
+    } catch { return isoDate; }
+  }
+
+  function getFlag(team: string): string {
+    const FLAG_MAP: Record<string, string> = {
+      Belgium:"🇧🇪",Iran:"🇮🇷",Spain:"🇪🇸","Saudi Arabia":"🇸🇦",Tunisia:"🇹🇳",Japan:"🇯🇵",Ecuador:"🇪🇨","Cape Verde":"🇨🇻",Germany:"🇩🇪","Ivory Coast":"🇨🇮","Côte d'Ivoire":"🇨🇮",Netherlands:"🇳🇱",Sweden:"🇸🇪",Turkey:"🇹🇷",Paraguay:"🇵🇾",Brazil:"🇧🇷",Haiti:"🇭🇹",Scotland:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",Morocco:"🇲🇦",USA:"🇺🇸","United States":"🇺🇸",Australia:"🇦🇺",Mexico:"🇲🇽","Korea Republic":"🇰🇷","South Korea":"🇰🇷","New Zealand":"🇳🇿",Egypt:"🇪🇬",Argentina:"🇦🇷",Austria:"🇦🇹",France:"🇫🇷",Iraq:"🇮🇶",Norway:"🇳🇴",Senegal:"🇸🇳",Uruguay:"🇺🇾",England:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",Italy:"🇮🇹",Portugal:"🇵🇹",Poland:"🇵🇱",Switzerland:"🇨🇭",Croatia:"🇭🇷",Denmark:"🇩🇰",Serbia:"🇷🇸",Wales:"🏴󠁧󠁢󠁷󠁬󠁳󠁿",Ukraine:"🇺🇦",Hungary:"🇭🇺","Czech Republic":"🇨🇿","Czechia":"🇨🇿","South Africa":"🇿🇦","Costa Rica":"🇨🇷",Panama:"🇵🇦",Jamaica:"🇯🇲",Canada:"🇨🇦",Peru:"🇵🇪",Chile:"🇨🇱",Colombia:"🇨🇴",Venezuela:"🇻🇪",Bolivia:"🇧🇴",Cameroon:"🇨🇲",Mali:"🇲🇱",Ghana:"🇬🇭",Algeria:"🇩🇿",Nigeria:"🇳🇬",Qatar:"🇶🇦",UAE:"🇦🇪","Bosnia-Herzegovina":"🇧🇦","Bosnia and Herzegovina":"🇧🇦",Jordan:"🇯🇴",Uzbekistan:"🇺🇿","Curaçao":"🇨🇼","DR Congo":"🇨🇩",
+    };
+    return FLAG_MAP[team] || "🏳️";
+  }
+
+  function slugify(home: string, away: string): string {
+    return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
+  }
+
+  // Try primary API key
+  try {
+    const data = await fetchFromAPI(API_KEY);
+    const matches = (data.matches || []).map(mapMatch);
+    if (matches.length > 0) return matches;
+  } catch (e) { console.error("[TV] Primary API failed:", e); }
+
+  // Fallback to secondary key
+  try {
+    const data = await fetchFromAPI(FALLBACK_KEY);
+    const matches = (data.matches || []).map(mapMatch);
+    if (matches.length > 0) return matches;
+  } catch (e) { console.error("[TV] Fallback API failed:", e); }
+
+  // Use demo data as last resort
+  return DEMO_MATCHES;
+}
+
+function getFlag(team: string): string {
+  const FLAG_MAP: Record<string, string> = {
+    Belgium:"🇧🇪",Iran:"🇮🇷",Spain:"🇪🇸","Saudi Arabia":"🇸🇦",Tunisia:"🇹🇳",Japan:"🇯🇵",Ecuador:"🇪🇨","Cape Verde":"🇨🇻",Germany:"🇩🇪","Ivory Coast":"🇨🇮","Côte d'Ivoire":"🇨🇮",Netherlands:"🇳🇱",Sweden:"🇸🇪",Turkey:"🇹🇷",Paraguay:"🇵🇾",Brazil:"🇧🇷",Haiti:"🇭🇹",Scotland:"🏴󠁧󠁢󠁳󠁣󠁴󠁿",Morocco:"🇲🇦",USA:"🇺🇸","United States":"🇺🇸",Australia:"🇦🇺",Mexico:"🇲🇽","Korea Republic":"🇰🇷","South Korea":"🇰🇷","New Zealand":"🇳🇿",Egypt:"🇪🇬",Argentina:"🇦🇷",Austria:"🇦🇹",France:"🇫🇷",Iraq:"🇮🇶",Norway:"🇳🇴",Senegal:"🇸🇳",Uruguay:"🇺🇾",England:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",Italy:"🇮🇹",Portugal:"🇵🇹",Poland:"🇵🇱",Switzerland:"🇨🇭",Croatia:"🇭🇷",Denmark:"🇩🇰",Serbia:"🇷🇸",Wales:"🏴󠁧󠁢󠁷󠁬󠁳󠁿",Ukraine:"🇺🇦",Hungary:"🇭🇺","Czech Republic":"🇨🇿","Czechia":"🇨🇿","South Africa":"🇿🇦","Costa Rica":"🇨🇷",Panama:"🇵🇦",Jamaica:"🇯🇲",Canada:"🇨🇦",Peru:"🇵🇪",Chile:"🇨🇱",Colombia:"🇨🇴",Venezuela:"🇻🇪",Bolivia:"🇧🇴",Cameroon:"🇨🇲",Mali:"🇲🇱",Ghana:"🇬🇭",Algeria:"🇩🇿",Nigeria:"🇳🇬",Qatar:"🇶🇦",UAE:"🇦🇪","Bosnia-Herzegovina":"🇧🇦","Bosnia and Herzegovina":"🇧🇦",Jordan:"🇯🇴",Uzbekistan:"🇺🇿","Curaçao":"🇨🇼","DR Congo":"🇨🇩",
+  };
+  return FLAG_MAP[team] || "🏳️";
+}
+
+function slugify(home: string, away: string): string {
+  return `${home.toLowerCase().replace(/\s+/g, '-')}-vs-${away.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
+function formatUpcomingDate(isoDate: string): string {
+  try {
+    const d = new Date(isoDate);
+    const now = new Date();
+    const hours = d.getUTCHours().toString().padStart(2, "0");
+    const mins = d.getUTCMinutes().toString().padStart(2, "0");
+    if (d.toDateString() === now.toDateString()) return `اليوم ${hours}:${mins} ت ع`;
+    const days = ["الأحد","الإثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+    return `${days[d.getUTCDay()]} ${hours}:${mins} ت ع`;
+  } catch { return isoDate; }
+}
+
+// ─── Demo match data (used when API is unavailable) ──────────────────────────
 const DEMO_MATCHES: Match[] = [
   // Finished
   { home: "Germany", away: "Curaçao", homeScore: 7, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-14T14:00:00Z", _index: 22, homeFlag: "🇩🇪", awayFlag: "🇨🇼" },
@@ -243,7 +339,11 @@ function TVRefreshIndicator({ countdown }: { countdown: number }) {
 
 // ─── Main TV Page ─────────────────────────────────────────────────────────────
 export default function TVPage() {
-  const allMatches = DEMO_MATCHES;
+  const [allMatches, setAllMatches] = useState<Match[]>(DEMO_MATCHES);
+
+  useEffect(() => {
+    fetchRealMatches().then(setAllMatches).catch(() => {});
+  }, []);
 
   const upcomingMatches = allMatches
     .filter((m) => m.state === "upcoming")
