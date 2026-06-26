@@ -229,23 +229,28 @@ function getFallbackMatches(): Match[] {
     { home: "Ghana", away: "Panama", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-17T17:00:00Z", _index: 49 },
     { home: "England", away: "Ghana", homeScore: 0, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-23T14:00:00Z", _index: 50 },
     { home: "Croatia", away: "Panama", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-25T17:00:00Z", _index: 51 },
-    // Group D - 26/06 LIVE (19:00 UTC = 22:00 local)
+    // Group D - 26/06 LIVE (started 07:00 UTC)
     { home: "Australia", away: "Paraguay", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T07:00:00Z", _index: 55 },
     { home: "USA", away: "Turkey", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T07:00:00Z", _index: 56 },
+    // Group F - 26/06 LIVE (started 20:00 UTC = 00:00 local)
+    { home: "Sweden", away: "Tunisia", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T20:00:00Z", _index: 62 },
+    { home: "Netherlands", away: "Japan", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T20:00:00Z", _index: 61 },
+    // Group I - 26/06 LIVE (started 19:00 UTC)
     { home: "France", away: "Norway", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T19:00:00Z", _index: 57 },
     { home: "Senegal", away: "Iraq", homeScore: 0, awayScore: 0, state: "live", label: "مباشر", utcDate: "2026-06-26T19:00:00Z", _index: 70 },
     // === UPCOMING MATCHES ===
     // Group E - 26/06 FINISHED
     { home: "Germany", away: "Ecuador", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-26T14:00:00Z", _index: 59 },
     { home: "Ivory Coast", away: "Curaçao", homeScore: 1, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-26T14:00:00Z", _index: 60 },
-    { home: "Netherlands", away: "Japan", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 14:00", utcDate: "2026-06-27T14:00:00Z", _index: 61 },
-    { home: "Sweden", away: "Tunisia", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 20:00", utcDate: "2026-06-27T20:00:00Z", _index: 62 },
+    // === UPCOMING MATCHES ===
+    { home: "Spain", away: "Cape Verde", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-27T14:00:00Z", _index: 67 },
+    { home: "Uruguay", away: "Saudi Arabia", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 17:00", utcDate: "2026-06-27T17:00:00Z", _index: 68 },
+    { home: "Germany", away: "Ivory Coast", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 65 },
+    { home: "Ecuador", away: "Curaçao", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 66 },
     { home: "Japan", away: "Sweden", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 63 },
     { home: "Tunisia", away: "Netherlands", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 64 },
-    { home: "Germany", away: "Ivory Coast", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 65 },
-    { home: "Ecuador", away: "Curaçao", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 66 },
-    { home: "Spain", away: "Cape Verde", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 67 },
-    { home: "Uruguay", away: "Saudi Arabia", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 68 },
+    { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 57 },
+    { home: "Senegal", away: "Iraq", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 70 },
     { home: "Argentina", away: "Austria", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 71 },
     { home: "Algeria", away: "Jordan", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 72 },
     { home: "Portugal", away: "Colombia", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 17:00", utcDate: "2026-06-30T17:00:00Z", _index: 73 },
