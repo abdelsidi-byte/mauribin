@@ -43,7 +43,6 @@ const DEMO_MATCHES: Match[] = [
   { home: "Germany", away: "Ecuador", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-26T14:00:00Z", _index: 59, homeFlag: "🇩🇪", awayFlag: "🇪🇨" },
   // Upcoming
   { home: "Uruguay", away: "Saudi Arabia", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - غداً 17:00", utcDate: "2026-06-27T17:00:00Z", _index: 68, homeFlag: "🇺🇾", awayFlag: "🇸🇦" },
-  { home: "Germany", away: "Ivory Coast", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الأحد 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 65, homeFlag: "🇩🇪", awayFlag: "🇨🇮" },
   { home: "Japan", away: "Sweden", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الأحد 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 63, homeFlag: "🇯🇵", awayFlag: "🇸🇪" },
   { home: "Tunisia", away: "Netherlands", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الأحد 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 64, homeFlag: "🇹🇳", awayFlag: "🇳🇱" },
   { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الإثنين 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 57, homeFlag: "🇫🇷", awayFlag: "🇳🇴" },
@@ -200,26 +199,26 @@ function NextMatchHero({ match }: { match: Match | null }) {
               <span className="text-8xl">{homeFlag}</span>
             )}
           </div>
-          <h3 className="text-white text-4xl font-black">{localizeTeam(homeTeam)}</h3>
+          <h3 className="text-white text-[4rem] font-black leading-tight">{localizeTeam(homeTeam)}</h3>
         </div>
 
         {/* VS / Score */}
         <div className="text-center px-10">
           {match.homeScore !== null && match.awayScore !== null ? (
-            <div className="flex items-center gap-6">
-              <span className="text-white text-8xl font-black">{match.homeScore}</span>
-              <span className="text-[#FFD700] text-6xl font-black">-</span>
-              <span className="text-white text-8xl font-black">{match.awayScore}</span>
+            <div className="flex items-center gap-8">
+              <span className="text-white text-[9rem] font-black leading-none">{match.homeScore}</span>
+              <span className="text-[#FFD700] text-[7rem] font-black leading-none">-</span>
+              <span className="text-white text-[9rem] font-black leading-none">{match.awayScore}</span>
             </div>
           ) : (
-            <div className="text-[#FFD700] text-7xl font-black">VS</div>
+            <div className="text-[#FFD700] text-[8rem] font-black leading-none">VS</div>
           )}
-          <p className="text-white/60 text-2xl mt-4">كأس العالم 2026</p>
+          <p className="text-white/60 text-[2.5rem] mt-6 font-bold">كأس العالم 2026</p>
         </div>
 
         {/* Away */}
         <div className="flex-1 text-center">
-          <div className="h-40 w-40 mx-auto mb-6 flex items-center justify-center">
+          <div className="h-48 w-48 mx-auto mb-6 flex items-center justify-center">
             {isAwayUrl ? (
               <img
                 src={awayFlag}
@@ -228,10 +227,10 @@ function NextMatchHero({ match }: { match: Match | null }) {
                 onError={(e) => { e.currentTarget.style.display = "none"; }}
               />
             ) : (
-              <span className="text-8xl">{awayFlag}</span>
+              <span className="text-[9rem] leading-none">{awayFlag}</span>
             )}
           </div>
-          <h3 className="text-white text-4xl font-black">{localizeTeam(awayTeam)}</h3>
+          <h3 className="text-white text-[4rem] font-black leading-tight">{localizeTeam(awayTeam)}</h3>
         </div>
       </div>
     </div>
@@ -267,7 +266,7 @@ function TVMatchCard({ match }: { match: Match }) {
 
       {/* Home team */}
       <div className="flex-1 flex items-center gap-5">
-        <div className="h-24 w-24 flex items-center justify-center shrink-0">
+        <div className="h-32 w-32 flex items-center justify-center shrink-0">
           {isHomeUrl ? (
             <img
               src={homeFlag}
@@ -276,34 +275,34 @@ function TVMatchCard({ match }: { match: Match }) {
               onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
           ) : (
-            <span className="text-5xl">{homeFlag}</span>
+            <span className="text-[6rem] leading-none">{homeFlag}</span>
           )}
         </div>
-        <span className="text-white text-4xl font-black">{localizeTeam(homeTeam)}</span>
+        <span className="text-white text-[3.5rem] font-black leading-tight">{localizeTeam(homeTeam)}</span>
       </div>
 
       {/* Score */}
       <div className="text-center px-8">
         {match.homeScore !== null && match.awayScore !== null ? (
-          <div className="flex items-center gap-5">
-            <span className={`text-7xl font-black ${isLive ? "text-white" : "text-slate-300"}`}>
+          <div className="flex items-center gap-6">
+            <span className={`text-[7rem] font-black leading-none ${isLive ? "text-white" : "text-slate-300"}`}>
               {match.homeScore}
             </span>
-            <span className="text-[#FFD700] text-5xl font-black">:</span>
-            <span className={`text-7xl font-black ${isLive ? "text-white" : "text-slate-300"}`}>
+            <span className="text-[#FFD700] text-[5rem] font-black leading-none">:</span>
+            <span className={`text-[7rem] font-black leading-none ${isLive ? "text-white" : "text-slate-300"}`}>
               {match.awayScore}
             </span>
           </div>
         ) : (
-          <span className="text-[#FFD700] text-5xl font-black">VS</span>
+          <span className="text-[#FFD700] text-[5rem] font-black leading-none">VS</span>
         )}
-        <p className="text-slate-400 text-2xl mt-3">{match.label}</p>
+        <p className="text-slate-400 text-[2rem] mt-3 font-bold">{match.label}</p>
       </div>
 
       {/* Away team */}
       <div className="flex-1 flex items-center gap-5 justify-start">
-        <span className="text-white text-4xl font-black">{localizeTeam(awayTeam)}</span>
-        <div className="h-24 w-24 flex items-center justify-center shrink-0">
+        <span className="text-white text-[3.5rem] font-black leading-tight">{localizeTeam(awayTeam)}</span>
+        <div className="h-32 w-32 flex items-center justify-center shrink-0">
           {isAwayUrl ? (
             <img
               src={awayFlag}
@@ -312,7 +311,7 @@ function TVMatchCard({ match }: { match: Match }) {
               onError={(e) => { e.currentTarget.style.display = "none"; }}
             />
           ) : (
-            <span className="text-5xl">{awayFlag}</span>
+            <span className="text-[6rem] leading-none">{awayFlag}</span>
           )}
         </div>
       </div>
@@ -513,32 +512,32 @@ export default function TVPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#001a0d] via-[#002515] to-[#001209] text-white overflow-x-hidden">
-      {/* Fixed header */}
+      {/* Header */}
       <div className="sticky top-0 z-50 bg-[#006233]/95 border-b-2 border-[#FFD700]/40 backdrop-blur-md">
-        <div className="flex items-center justify-between px-8 py-5">
+        <div className="flex items-center justify-between px-8 py-6">
           {/* Logo */}
           <div className="flex items-center gap-5">
-            <div className="w-16 h-16 rounded-2xl bg-[#FFD700] flex items-center justify-center">
-              <span className="text-[#006233] text-4xl font-black">M</span>
+            <div className="w-20 h-20 rounded-2xl bg-[#FFD700] flex items-center justify-center">
+              <span className="text-[#006233] text-5xl font-black">M</span>
             </div>
             <div>
-              <h1 className="text-[#FFD700] text-5xl font-black leading-none">Mauribin</h1>
-              <p className="text-white/70 text-2xl font-bold">موريبين | كأس العالم 2026</p>
+              <h1 className="text-[#FFD700] text-[3.5rem] font-black leading-none">Mauribin</h1>
+              <p className="text-white/70 text-[1.8rem] font-bold">موريبين | كأس العالم 2026</p>
             </div>
           </div>
 
           {/* Title */}
           <div className="text-center">
-            <div className="text-[#FFD700] text-4xl font-black">كأس العالم</div>
-            <div className="text-white/60 text-2xl font-bold">FIFA World Cup 2026</div>
+            <div className="text-[#FFD700] text-[3.5rem] font-black">كأس العالم</div>
+            <div className="text-white/60 text-[1.8rem] font-bold">FIFA World Cup 2026</div>
           </div>
 
           {/* Status */}
           <div className="text-left">
-            <div className="text-white text-2xl font-bold">
+            <div className="text-white text-[2rem] font-bold">
               {lastUpdate.toLocaleTimeString("ar", { hour: "2-digit", minute: "2-digit" })}
             </div>
-            <div className="text-green-400 text-xl font-bold flex items-center gap-2">
+            <div className="text-green-400 text-[1.6rem] font-bold flex items-center gap-2">
               <span className="w-3 h-3 rounded-full bg-green-400 animate-pulse" />
               نظام التشغيل طبيعي
             </div>
