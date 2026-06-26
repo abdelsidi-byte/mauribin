@@ -38,14 +38,10 @@ const DEMO_MATCHES: Match[] = [
   { home: "Argentina", away: "Austria", homeScore: 3, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-17T14:00:00Z", _index: 42, homeFlag: "🇦🇷", awayFlag: "🇦🇹" },
   { home: "Portugal", away: "Uzbekistan", homeScore: 5, awayScore: 0, state: "ft", label: "انتهت", utcDate: "2026-06-23T15:00:00Z", _index: 46, homeFlag: "🇵🇹", awayFlag: "🇺🇿" },
   { home: "England", away: "Croatia", homeScore: 4, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-06-17T14:00:00Z", _index: 48, homeFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", awayFlag: "🇭🇷" },
-  // Live match
-  { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الساعة 19:00", utcDate: "2026-06-29T17:00:00Z", _index: 57, homeFlag: "🇫🇷", awayFlag: "🇳🇴" },
   { home: "Germany", away: "Ecuador", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-06-26T14:00:00Z", _index: 59, homeFlag: "🇩🇪", awayFlag: "🇪🇨" },
   // Upcoming
+  { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - غداً 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 57, homeFlag: "🇫🇷", awayFlag: "🇳🇴" },
   { home: "Uruguay", away: "Saudi Arabia", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - غداً 17:00", utcDate: "2026-06-27T17:00:00Z", _index: 68, homeFlag: "🇺🇾", awayFlag: "🇸🇦" },
-  { home: "Japan", away: "Sweden", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الأحد 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 63, homeFlag: "🇯🇵", awayFlag: "🇸🇪" },
-  { home: "Tunisia", away: "Netherlands", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الأحد 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 64, homeFlag: "🇹🇳", awayFlag: "🇳🇱" },
-  { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الإثنين 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 57, homeFlag: "🇫🇷", awayFlag: "🇳🇴" },
   { home: "Argentina", away: "Austria", homeScore: null, awayScore: null, state: "upcoming", label: "قادم - الإثنين 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 71, homeFlag: "🇦🇷", awayFlag: "🇦🇹" },
 ];
 
