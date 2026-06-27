@@ -404,7 +404,7 @@ export const PHOTOS: Photo[] = [
     tags: ["Senegal", "Iraq", "Group I", "World Cup 2026"],
     competition: "FIFA World Cup 2026",
     competitionAr: "كأس العالم 2026",
-    match: { home: "Senegal", away: "Iraq", homeFlag: "🇸🇳", awayFlag: "🇮🇶", score: "2-1", date: "2026-06-18" },
+    match: { home: "Senegal", away: "Iraq", homeFlag: "🇸🇳", awayFlag: "🇮🇶", score: "5-0", date: "2026-06-18" },
     teams: ["Senegal", "Iraq"],
     date: "2026-06-18",
     views: 5432,
