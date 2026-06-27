@@ -256,6 +256,7 @@ function getFallbackMatches(): Match[] {
     { home: "Senegal", away: "Iraq", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 70 },
     { home: "Argentina", away: "Austria", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 71 },
     { home: "Algeria", away: "Jordan", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 72 },
+    { home: "Algeria", away: "Austria", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 77 },
     { home: "Portugal", away: "Colombia", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 17:00", utcDate: "2026-06-30T17:00:00Z", _index: 73 },
     { home: "DR Congo", away: "Uzbekistan", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 14:00", utcDate: "2026-06-30T14:00:00Z", _index: 74 },
     { home: "England", away: "Panama", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 14:00", utcDate: "2026-06-30T14:00:00Z", _index: 75 },

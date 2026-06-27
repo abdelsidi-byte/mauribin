@@ -622,6 +622,13 @@ export const MATCH_DATA: MatchEntry[] = [
       {minute:"79",team:"home",player:"Marko Arnautovic",type:"goal"},
     ],
   },
+  {
+    slug: "algeria-vs-austria", home: "Algeria", away: "Austria",
+    homeScore: null, awayScore: null, state: "upcoming", label: "قادمة",
+    date: "2026-06-29T17:00:00Z", league: "كأس العالم 2026", group: "المجموعة ي",
+    venue: "ملعب وارسو", elapsed: 0,
+    events: [],
+  },
 
   // ─── GROUP K ───────────────────────────────────────────────────────────────
   {
