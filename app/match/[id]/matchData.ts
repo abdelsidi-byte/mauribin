@@ -515,6 +515,18 @@ export const MATCH_DATA: MatchEntry[] = [
 
   // ─── GROUP I ───────────────────────────────────────────────────────────────
   {
+    slug: "france-vs-norway", home: "France", away: "Norway",
+    homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00",
+    date: "2026-06-29T17:00:00Z", league: "كأس العالم 2026", group: "المجموعة ط",
+    venue: "ملعب باريس", elapsed: 0,
+  },
+  {
+    slug: "senegal-vs-iraq", home: "Senegal", away: "Iraq",
+    homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 19:00",
+    date: "2026-06-29T19:00:00Z", league: "كأس العالم 2026", group: "المجموعة ط",
+    venue: "ملعب داكار", elapsed: 0,
+  },
+  {
     slug: "france-vs-senegal", home: "France", away: "Senegal",
     homeScore: 3, awayScore: 1, state: "ft", label: "انتهت 3-1",
     date: "2026-06-16T14:00:00Z", league: "كأس العالم 2026", group: "المجموعة ط",
