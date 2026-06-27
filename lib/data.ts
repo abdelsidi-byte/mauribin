@@ -60,10 +60,13 @@ function getFlag(team: string): string {
 export interface Match {
   id?: number;
   slug?: string;
+  fixtureId?: number; // API-Football fixture ID
   home: string;
   away: string;
   homeFlag: string;
   awayFlag: string;
+  homeCrest?: string;
+  awayCrest?: string;
   homeScore: number | null;
   awayScore: number | null;
   state: string;
