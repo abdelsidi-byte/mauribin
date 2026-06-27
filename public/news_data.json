@@ -1,133 +1,119 @@
 {
   "news": [
     {
-      "title": "Paraguay 0-0 Australia: World Cup 2026 – as it happened - The Guardian",
-      "link": "https://news.google.com/rss/articles/CBMi6wFBVV95cUxOZW83QUJjc0QyM1BGMjNUZVpUNVBhREhHWHJHTFFrQTRlekVWeHNDdWs2b2pvVm1mYTRZRGRqdlVPUjdLSUpmVGdKNTdrUmhHWHp6UHBfTlZOTkpHZGwydHhSbzhHUkk2R3ptSWRnY0RsTnFqamt0S0lES1pkOFJyMjNTZXdNY09LYkVsa2pOVEdlU0FuTGVKVHp0QnhuYlJMQVg4OFAyektabVBzZkFKQkhKWDJMZW0xdXpFZEJOUjRxc3h4cDh5cVN3RFBNalhKMGFuU0pBWEczOFV4ZVAtbU1xeWE0NFpDYS1Z?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 02:00:00 GMT",
-      "score": "Paraguay 0-0 Australia",
-      "titleAr": "باراغواي 0-0 أستراليا: كأس العالم 2026 – كما حدث - الجارديان"
+      "title": "World Cup 2026: Senegal 5-0 Iraq - Ismaila Sarr, Iliman Ndiaye score as Lions of Teranga move closer to knockout stages - Sky Sports",
+      "link": "https://news.google.com/rss/articles/CBMi_wFBVV95cUxOSThBVWJjbjF1UzdXZ2xJZWRMVTEwTTdRT2hIQVZpQjctMjVlRXN0OE52bHRFTGdRUzM4dkJzakN4RE9sbDZiVXNNVk5mX3JOOW45SmMwRzRsXzhEMmZ6aVR3Q1RvYlV4dW9XaUNudUExbDFaZ2NsZ0xMcm5BS2pDcndDMS1CTkh0ZkJpMG5oWExGYjdteW1uTTdnQzF2aFVYQjlUMHBVVjVwV1hZeUNXRGplemI4ekRzdE1yTGtOUEhQR3NrZzd4WU42TFVqQ2xnME01UHQ4YWZBU013bmRSMUtFVFFCVWc3bW53b3IxaXR5MTlyLVM0N1BEYU9pUFU?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 01:12:49 GMT",
+      "score": "Senegal 5-0 Iraq",
+      "titleAr": "World Cup 2026: Senegal 5-0 Iraq - Ismaila Sarr, Iliman Ndiaye score as Lions of Teranga move closer to knockout stages - Sky Sports"
+    },
+    {
+      "title": "Senegal 5-0 Iraq: World Cup 2026 – as it happened - The Guardian",
+      "link": "https://news.google.com/rss/articles/CBMinAFBVV95cUxOWGxlcmU0Y3NwdnFnRFRsdzUyTjQ4TFZyV0xTYUpISnd0ZWtMUGNQZGJwZzVDV0F5NEhUQ1J0VXNRRXFUaFpfM3B1NU9tbmJHbDNKcXU1ZmJodmJ0aU90WTZpNHl4RW95VVBSR2xsV1lCTEJ4Mkh2UUJGR25UaGdiOHdYNVFHZjRUZEdWMEVBbWh1cTdIdTl1ZFlKSXM?oc=5",
+      "pubDate": "Fri, 26 Jun 2026 17:00:00 GMT",
+      "score": "Senegal 5-0 Iraq",
+      "titleAr": "Senegal 5-0 Iraq: World Cup 2026 – as it happened - The Guardian"
+    },
+    {
+      "title": "Egypt v Iran: World Cup 2026 – live - The Guardian",
+      "link": "https://news.google.com/rss/articles/CBMi0wFBVV95cUxQMi0wWFFNZy1lSjNtMGQ5ZTRoVkNHM3NBNS1PaUZnd195eXdvX2tmUnJ2anl3MzQxZ0JLUF9Ec29uajVZdEJQaGpSSW9QRWpocDdSYmVBY2hEbXg4VVZlZTR0MkR3bmlCX3RrVzFCYko5cjZLdkhnWDYtcExabXVCLWxRa25mcGZ5aGtkVl9oVXVsSUJtdFBUOHR4dXo5cmhIQ2swZGZteWU5RkNtMVg0TTc4b0ZRVWZ1Wm9GTTY4Q1hNZnJ3Q2N6QXNmLUZRWGhpTFBv?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:30:38 GMT",
+      "score": null,
+      "titleAr": "Egypt v Iran: World Cup 2026 – live - The Guardian"
+    },
+    {
+      "title": "Egypt vs Iran LIVE: FIFA World Cup 2026 - Al Jazeera",
+      "link": "https://news.google.com/rss/articles/CBMijgFBVV95cUxNS1NMeVQxZjlzOTN4ODhDQzhadmR4cUJkbUFySTh1VkpldzBBUUJyaGRNZGNmUGtRZ09MN29zVkt2RWVWWHJDc0dpLUdIQTUtQjd3czJkd1FUcDRWNXJxUUpnLTQ0QUU5QWhnM2lvRHZpZ2pNU2ZyNEE0T0M4NmNwWWxwa2swR0JJbFM5NzBB0gGTAUFVX3lxTE52cTRoQi01eUJMdF9XTEloZ3owNGo2SzNnLXRmNWhvM3RfYUFtanFDY3RPaVlJUUhLUHJEc1NsNW15LUFRSjNwZ00wNi15dlBRY3MwLTByUDk4WGkwSFBYdlhPMmZJUlU2SmhYeGpQWFpMajg2Q2tNNFJPcVhOYXpZWFotME5WWlVuMDJpVkc0OG5tRQ?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:06:49 GMT",
+      "score": null,
+      "titleAr": "Egypt vs Iran LIVE: FIFA World Cup 2026 - Al Jazeera"
+    },
+    {
+      "title": "Egypt’s Mahmoud Saber scores goal, taking early lead vs Iran | 2026 FIFA World Cup™ - FOX Sports",
+      "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1MWVJ6Rm1QbWdCbnYxQzlaZExjOXhuTDFja3AyZnB6YmUzNks2YVJDNVBZVzhqVHdYZE1UUU9aai1kYkl2b0hDWjk2LUJIWjB6Y1Z1V1hlYldORF96blBmRl9R?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 03:19:09 GMT",
+      "score": null,
+      "titleAr": "Egypt’s Mahmoud Saber scores goal, taking early lead vs Iran | 2026 FIFA World Cup™ - FOX Sports"
+    },
+    {
+      "title": "Norway vs France Highlights | 2026 FIFA World Cup™ - FOX Sports",
+      "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE1SdEVtQ2QzLWhmU3ZLY0lLTk5xUjNkTEJNUDRYR1lKY0VwbmFSc3RZQnY0VnZxSkM2Vmh1UFpwcjRnZlJ6NERnN25COTJidjZMVEk1YWlNSi10U1VPeWtIdFV3?oc=5",
+      "pubDate": "Fri, 26 Jun 2026 21:11:28 GMT",
+      "score": null,
+      "titleAr": "Norway vs France Highlights | 2026 FIFA World Cup™ - FOX Sports"
+    },
+    {
+      "title": "Uruguay eliminated from World Cup 2026 after Spain defeat in Group H: Live updates and reaction - The New York Times",
+      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOa3gzLTJvaVBVRVpDcVgwd0lFaGJ1WUg0MTVhNUFSLUh1S05wRjhJMmdwS1d4UkpEZGpOZFl4c0phN2preEYzZkh4ZXd2VVB5dmdnRUhuc1RrQUtLUG5BRC1hRmlLR3lwMjFQbTVnOHRpX1djWHNrNWR0eXZjdENwQjF2VHFGdzdZYmhGUGFYLUhHRjBsTFFtMkV1UDhPN3BPTHRlamNTRkxiUkhnS0V1MGlhWHRkQQ?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:53:09 GMT",
+      "score": null,
+      "titleAr": "Uruguay eliminated from World Cup 2026 after Spain defeat in Group H: Live updates and reaction - The New York Times"
+    },
+    {
+      "title": "Uruguay vs Spain Extended Highlights | 2026 FIFA World Cup™ - FOX Sports",
+      "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE0xWWk1SkJIeU1RRXFTeUZnVW5pRWlUdTdyVE5nZW91MUVRUFZLdVBLbE1nT1NTTW1KY0NFTnJpY291NzJPaGo5NjVneWtjZUZTaDBZUTFXRFVYczlBUEduUTd3?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:26:29 GMT",
+      "score": null,
+      "titleAr": "Uruguay vs Spain Extended Highlights | 2026 FIFA World Cup™ - FOX Sports"
+    },
+    {
+      "title": "World Cup 2026 live updates: Spain, Cape Verde advance, Uruguay eliminated - NBC News",
+      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPNUxScTBTQkt0S2hYX0h3UzdCcmdtb2lxb0YyUUVPLU9MdlpOclhLel9xOWNkZUJkZGRnSDQ0VDZ2aHIxUTBKU0lMdkhIZGh1ZVVvOGxQWDlIeE1WeE9JZGJjV3FJLUNlekFGXzBMekc1aTJNOENTS0hDT1R5SVFfZFZQM3hnTVd0QXF2ZUo2bUdHNy1KU3k1TEdYLWliN0VNLUstUU1rMnM?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:33:00 GMT",
+      "score": null,
+      "titleAr": "World Cup 2026 live updates: Spain, Cape Verde advance, Uruguay eliminated - NBC News"
+    },
+    {
+      "title": "Pape Gueye scores Senegal’s third goal vs Iraq | 2026 FIFA World Cup™ - FOX Sports",
+      "link": "https://news.google.com/rss/articles/CBMiYkFVX3lxTE9fY0d0S1dQNkRKM2FmYUZCZHo1bEVVaTdueTF2eVdUdFBranZJck1JNXpwenI5VmRoaDZxUlN3eEQ0eG41RENTVW9BUlZHX0tvWVF4Y29QUEg5Z0tWM08yeHN3?oc=5",
+      "pubDate": "Fri, 26 Jun 2026 20:39:08 GMT",
+      "score": null,
+      "titleAr": "Pape Gueye scores Senegal’s third goal vs Iraq | 2026 FIFA World Cup™ - FOX Sports"
     },
     {
       "title": "World Cup 2026 Round of 32 tracker: Who’s qualified, who’s eliminated and who’s still alive - Yahoo Sports",
       "link": "https://news.google.com/rss/articles/CBMi2AFBVV95cUxOdFFQQjdURmhyUXZFRWxqXy0tMnhtcEY3OTBlb1htQ0pfXzliRk9wY09YaXd5Y1c4UHlCLWpCN0dBZV9mRDZZU2dncE96RlFEOXJYQ052ZUVOQ29fblhGNXNVVjJBYUZNNGNmeGdjNEVxbUFIczBZREZ5XzV4V2xnSTFDVjJ5ckc2OVNOX2FqUzU0X2RLZ2t0SmVhNEZVY3JobVlqSk12YUJ5UWFpZ3RIRnhsSDlHX3M0WGxIWVhNaUpJMk1WRTQ3RHFqclJ2YUFVYW1qcm54YmM?oc=5",
-      "pubDate": "Sat, 27 Jun 2026 00:17:38 GMT",
+      "pubDate": "Sat, 27 Jun 2026 03:17:38 GMT",
       "score": null,
-      "titleAr": "جولة تعقب كأس العالم 2026 المكونة من 32 متتبعًا: من هو المؤهل، ومن تم إقصاؤه، ومن لا يزال على قيد الحياة - Yahoo Sports"
+      "titleAr": "World Cup 2026 Round of 32 tracker: Who’s qualified, who’s eliminated and who’s still alive - Yahoo Sports"
     },
     {
-      "title": "Cape Verde vs Saudi Arabia live updates: World Cup 2026 game scoreless in first half - The New York Times",
-      "link": "https://news.google.com/rss/articles/CBMiwwFBVV95cUxNUXh1WVhmZkRlWWZiZWVxVnlSVDRicWdwOWZnN0xTYnB1TjNnSEVkYzhsWHFZcS1rQ0Q0SVpGa1J5YS1RaVFFNm9SWC1rNFptWllvRlhKQmJ4NDZRTGtNX093U01pNUdhN0dGRjAycjZxUDF4TGRHX1FGekxGWWdoeTJIOENEaDd4Ujk5Sm5SX184X0pVcno5Q0hVUFZaY2VMSF9RNU92M2N2UGpxUG5FTGhKVmIyWEp3UW93cWlZRy0xU3M?oc=5",
-      "pubDate": "Sat, 27 Jun 2026 00:27:21 GMT",
+      "title": "World Cup 2026: England through to last 32 - BBC",
+      "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5TdVN2cFBPdUIzTENSOUNHZUxIVHBUZ1RUQ1BxUDNOMGNIMHNULWxESHp0QTk0d3BNSlZNUG9TUDY0bjhoMi1UYXlrdEZST3pjT09qRUs3ZTh1RF9YR1dSc1Y3THB4dk0?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:47:52 GMT",
       "score": null,
-      "titleAr": "الرأس الأخضر مقابل المملكة العربية السعودية تحديثات حية: مباراة كأس العالم 2026 بدون أهداف في الشوط الأول - نيويورك تايمز"
+      "titleAr": "World Cup 2026: England through to last 32 - BBC"
     },
     {
-      "title": "The World Cup game the White House cares most about today - Politico",
-      "link": "https://news.google.com/rss/articles/CBMixgFBVV95cUxNQng3LVdCQ05wTzR3OEN1RnIzTU9VUi1IeWM3NFlWU1BsS3ljeG1ubDkxeGFLQXFfRHVGbE1vMmFiQkNWb1ByZFNHNEoyQ2RVX2h1U2NuR2FHdGJER3M0Tm9taVE3TVd2Sy1tMlVWZ3JPZkc0U0xNaE1rYlJmUU9CUkYyVW9RRFN0Nk16U19XMFNIaDdGVTNSSlVPbjFrM0ZYakxsNDZwdkQ4dUgyclktODhSWVF5N3IzN1d6N2F4SEdQQTFtQlE?oc=5",
-      "pubDate": "Sat, 27 Jun 2026 00:15:00 GMT",
+      "title": "LIVE: Powerhouse eliminated after ‘huge mistake’; tiny nation’s ‘incredible’ history - Fox Sports",
+      "link": "https://news.google.com/rss/articles/CBMisgNBVV95cUxPTzBMWFFab2E3U1hrVENiMkE1TTFMak1LZC1OVzFQR3ZPc1FJNW1lR1ZEQUxfblBfa2pZV3k1OHpJMnl1M25FNzI0Q1ZKSkJVUWxaeDNtQWZ4d3pabG02VU9KZ1dHUnVCb1pOUXNGdUN4eTg4R1Q5bkRqMGZSMmprdllKYi1YaEFEMlR4SlRIeHhhR3JoQzFYMDFwem9MeHIxYWxvZnpOS3ZKQW1pamt2Z0xPV2t2Q0plTzlINHNacEhESFB1eHRaMks4SXFCUVVEWkNKRTBZeWdDMndxZk9hWXdWeU5GVWJuTG9HaDBjLU1vWEZldEczM0x6Sy0xcjJuczlzVnpvbVdlSlFhNDlKZ0tKSWY0MU8ySEZNaWF1cWtXQ25FZmxFdnEyRVRwTG12X3VNLXhvdkdnZUN4SkZhNzlZOU1PX1RWajREalo1Nk5JYlFqc3hSRVpEZjZhQlBzbnlYZ3lTUWdkY3VyNGR1YWRieGlaeENyU1N2LUlHWFV3NU5IT2s1clFGNUM2cjkyR2JWbWp6dzVYVmhFR1dIejZJdjZ4QVo4Q1FCeHVBNTZad9IBsgNBVV95cUxPTzBMWFFab2E3U1hrVENiMkE1TTFMak1LZC1OVzFQR3ZPc1FJNW1lR1ZEQUxfblBfa2pZV3k1OHpJMnl1M25FNzI0Q1ZKSkJVUWxaeDNtQWZ4d3pabG02VU9KZ1dHUnVCb1pOUXNGdUN4eTg4R1Q5bkRqMGZSMmprdllKYi1YaEFEMlR4SlRIeHhhR3JoQzFYMDFwem9MeHIxYWxvZnpOS3ZKQW1pamt2Z0xPV2t2Q0plTzlINHNacEhESFB1eHRaMks4SXFCUVVEWkNKRTBZeWdDMndxZk9hWXdWeU5GVWJuTG9HaDBjLU1vWEZldEczM0x6Sy0xcjJuczlzVnpvbVdlSlFhNDlKZ0tKSWY0MU8ySEZNaWF1cWtXQ25FZmxFdnEyRVRwTG12X3VNLXhvdkdnZUN4SkZhNzlZOU1PX1RWajREalo1Nk5JYlFqc3hSRVpEZjZhQlBzbnlYZ3lTUWdkY3VyNGR1YWRieGlaeENyU1N2LUlHWFV3NU5IT2s1clFGNUM2cjkyR2JWbWp6dzVYVmhFR1dIejZJdjZ4QVo4Q1FCeHVBNTZadw?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:59:17 GMT",
       "score": null,
-      "titleAr": "لعبة كأس العالم التي يهتم بها البيت الأبيض أكثر اليوم - Politico"
+      "titleAr": "LIVE: Powerhouse eliminated after ‘huge mistake’; tiny nation’s ‘incredible’ history - Fox Sports"
     },
     {
-      "title": "Ousmane Dembele fires France to victory over Norway at 2026 World Cup: Live updates and reaction - The New York Times",
-      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOWlBiV05zdEJNcDh5MzNJenAzci1sSVdaUnpMSkhCdHptSzRibm0xLTE0OWRQazZCRWVyT1dtNVVNb0lEaThpdGh1MGppdGwzbFBrUUVsUUR0dWwtSVhvVkFIS01WZnlrM1I0ZHBpSmZqSERZU3ZWaDNCdjk5cjlIUm8tZlFvbnJxTzN0NlpUVmlLQzE4M2ZsWTV4TndPQ0RiTThyYWtWSzhlLUpDZ0FxUFl4THlzdw?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 22:55:11 GMT",
+      "title": "FIFA World Cup 2026 stats: Dembele first since Ronaldo, Mbappe joins Messi, Klose, Cape Verde make history - ESPN",
+      "link": "https://news.google.com/rss/articles/CBMiiwJBVV95cUxObDR2cGtGS2swS19jU3pHcmdtbHZZaEIzVGwwTWh2MVhxNHExUkhmUThXYVFWdHdlVHlXbEZDR1JoNkVYdFhRY2gyMnd5c3hWa0gxdjdKc09yUVFWOHZrMUxqSVdNMnNOUzY5RDAtRnhzeDVPeVRrQkxBQ1E0cWNWZHBybWtLVnRKallGbk1zdXdEbGlDR1BHLXloOVVzeDdfNDZNVFVIZkJyQUd0Y3lUN2x4ZHBCN196cWlxSjlLWWpMakx6ZTBEcVViMDJ3TXo0YnhyQkV5R0VJbnJJRUdJcnRISDZFbmZsMF9sRlVmbVMwWWdBR0lwUGYyLXRCdjR3TmVUanBRRE9Wa1U?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 03:30:00 GMT",
       "score": null,
-      "titleAr": "عثمان ديمبيلي يطرد فرنسا للفوز على النرويج في كأس العالم 2026: تحديثات حية وردود الفعل - نيويورك تايمز"
+      "titleAr": "FIFA World Cup 2026 stats: Dembele first since Ronaldo, Mbappe joins Messi, Klose, Cape Verde make history - ESPN"
     },
     {
-      "title": "World Cup 2026: guide to all 1,248 players - The Guardian",
-      "link": "https://news.google.com/rss/articles/CBMiogFBVV95cUxNclJpaTBTTU1nZUlXRHJ4Q01RbXM2RmlqQVZBaDRrczhHeWhMVGh5bkVabUhjbDVzUS1UQXZGQUx5V2ZtQU02NXdEb1QyV0xsOVkwYXdWc3NJZkdkdnNtdVZFU0JYM3dBaEcwUEdCZW9xYUpmM1QxNVNKcUQzbTIwODRJaVotcHRGM0E5WFo3NVJMMklvTmNSUXRVc1JkSlhtMmc?oc=5",
-      "pubDate": "Fri, 05 Jun 2026 07:00:00 GMT",
+      "title": "It's not just Cape Verde: African soccer is having a World Cup moment - NPR",
+      "link": "https://news.google.com/rss/articles/CBMipwFBVV95cUxPZnhZQW40ZzlSeDVpSmFYZWpLdWQ0cjdmNWZLVXB6NmthcEZsaVp2bndNWkFwQWNhMjYzbFFqbzlHQ1ZiM2tob1JqSEV4YWotVGc5V3d4d3FSVl8yWGQzYXdnQWVlb0tXbGZmNHpHaFFhQk5wUDJqeHBaSThobzc2Ql85aE8wcnltR01PQV9wenpiSU5jRzFWcXZ0LUxiTTBYVmxnQl93aw?oc=5",
+      "pubDate": "Fri, 26 Jun 2026 20:49:57 GMT",
       "score": null,
-      "titleAr": "كأس العالم 2026: دليل لجميع اللاعبين البالغ عددهم 1248 لاعبًا - الجارديان"
+      "titleAr": "It's not just Cape Verde: African soccer is having a World Cup moment - NPR"
     },
     {
-      "title": "A team-by-team guide to the 2026 World Cup: What to expect and who to watch - The Athletic - The New York Times",
-      "link": "https://news.google.com/rss/articles/CBMihgFBVV95cUxNb1QtZzRMdnZFYmhna1ZVdWF0WFFtY0htalV3ODEzaUJHbWVtS1hpUGNRRllpeW9yQ2N1aFlRaGFQcnRUVTUzV1F3ajVyRWlRV0pZUVlDRmFnX0hwNkVjcEQ0VWpkczVHVUlBZDB2MkNzS0JlMnJ6WVREQWdJek1rNFJpUUlEZw?oc=5",
-      "pubDate": "Mon, 08 Jun 2026 07:00:00 GMT",
+      "title": "Loss to Turkey proved invaluable for Mauricio Pochettino’s USMNT World Cup plans - New York Post",
+      "link": "https://news.google.com/rss/articles/CBMijwFBVV95cUxOdmtWQ1pxdkE1Zk5xLU91cFBoX3pnZy0zeVpmZjNoT3RrU25kblRWUE44Q0l2aDM2Z08xR1AtUXJGeF8tcmhpUVBkRUFxamF3SmRrM0o4ZEZBRXZSQnlycGNoSmtoWmozQW04M1E5YVdLeURCMDBLc2l3TkZKemNZbFpfLWlmbkRBU3hKNGpNSQ?oc=5",
+      "pubDate": "Sat, 27 Jun 2026 02:21:00 GMT",
       "score": null,
-      "titleAr": "دليل كل فريق على حدة لكأس العالم 2026: ما يمكن توقعه ومن يجب مشاهدته - The Athletic - The New York Times"
-    },
-    {
-      "title": "World Cup 2026: a visual guide to the stadiums across the trio of host nations - The Guardian",
-      "link": "https://news.google.com/rss/articles/CBMigwFBVV95cUxPbmNQQmJCQW16MGM3aDE2enlzQ0tiT2QtZ055MjV1bkg5NUF1WFNGLVhrU3RsSGpqZnhMZDdpWGNuYlExVkRYRmVsTWZMS05QTkdEMnBzVGlQd1JPVGpVNzk3Zl9razdfU3VoTTdNcGRJclVMNWtHNEUzSTNNdk5GQlB6VQ?oc=5",
-      "pubDate": "Mon, 01 Jun 2026 07:00:00 GMT",
-      "score": null,
-      "titleAr": "كأس العالم 2026: دليل مرئي للملاعب عبر ثلاثي الدول المضيفة - الجارديان"
-    },
-    {
-      "title": "World Cup 2026: James set to miss Panama match; Schweinsteiger defends Côte d’Ivoire comments – as it happened - The Guardian",
-      "link": "https://news.google.com/rss/articles/CBMi_gFBVV95cUxPdFRvdUF1MVlEU3hJQk9IRk9DRFc1VHJmSUREVkJkNDRqNDc0ZWhGSzByckk3ZDNPbTlxeGRmdHNIVnp5T1ZBeUNlME1HQTdmTFFXcnREbWFkdWxjVHNuVjU1ako2cElRSS1VdmxpN282aHVYc1U1VTdlUE9GY083N0MxWlBqSy0xc1VCTW12MzZ4Q3FaVzlwT0l6V0Z4TVUxakZTWTBrTXFqTnFhaWlWMWVKNERObGNFazZvbG1EWDNZY0JyazM4aW8yc1Y0U3c5UlAxeWQySW5wdExaYWtrSVo1MEw4dzVsOFdqRGttaXc4TEhmamJLcElzV2ZWQQ?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 06:56:00 GMT",
-      "score": null,
-      "titleAr": "كأس العالم 2026: من المقرر أن يفوت جيمس مباراة بنما ؛ يدافع شفاينشتايجر عن تعليقات كوتديفوار – كما حدث - الجارديان"
-    },
-    {
-      "title": "Why Erling Haaland Didn’t Play for Norway vs. France—2026 World Cup - Sports Illustrated",
-      "link": "https://news.google.com/rss/articles/CBMikwFBVV95cUxQeTd3a0pOUFpVWGFhNERTOTNNSXVmOVJDRDNhMVRrWEVHXzEyTUJWd2IyU2RPUm5vdmI0TWFob3NsMzI1TElLM3dLcXVLTjlQVlhsNVlKN0N0VzRWLXJSWHQ0QjlEN1ZqbExJY0p4UUh4aWVJUUtqQlkzSlpwemE4WWM5WEFNSm01eDZpWWJhLWRVU2M?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 18:21:17 GMT",
-      "score": null,
-      "titleAr": "Why Erling Haaland Didn’t Play for Norway vs. France—2026 World Cup - Sports Illustrated"
-    },
-    {
-      "title": "Why has Trump stayed away from the World Cup? - BBC",
-      "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTFA2RXJjT2xCMklPOUpqTE5OZC1fOUphVDNqX1dfTktEQUc3LUpMOWt6RDFBbUdhejFBMWROLXkzRGRSYktsMkRZMldhai1tYUdFMENmXzh2dXhWcEVSTGlvTHpRR2FOQUU?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 14:35:00 GMT",
-      "score": null,
-      "titleAr": "Why has Trump stayed away from the World Cup? - BBC"
-    },
-    {
-      "title": "France's Ousmane Dembélé opens the scoring against Norway | 2026 FIFA World Cup™ - FOX Sports",
-      "link": "https://news.google.com/rss/articles/CBMibkFVX3lxTE1xUkZ1OXZvS3ROM0U2eWVaZlFkcngyVHpxOHQzRTJVZGZfcFNxWHEzeXZUQlFaaHBPUVVYRHNqV3Y5UkhOLWtEOEM3RVM4QnJJMkt2Smo3Rk5rV3JTSHBIY0I4eUhuME5yUWFwVFVR?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 19:19:14 GMT",
-      "score": null,
-      "titleAr": "France's Ousmane Dembélé opens the scoring against Norway | 2026 FIFA World Cup™ - FOX Sports"
-    },
-    {
-      "title": "Spot the pol! - Politico",
-      "link": "https://news.google.com/rss/articles/CBMizwFBVV95cUxON2NQeWtXMjMwd0VNeF9hVkZiSmdmSTRidUFzTDVnTzZaTk53dTJXdlFPU3RES0p2aUxKd3FyU0pBRXAyX2o5LUxHSThtMFZjZlJGUGFzb1NUMW94LXE5MFFGd21UbUZZNmtMSklIQ3JHUm1ORzBDVEFaeEIydmZncjFETkhQT2pXbzFISV8zRzNZSTYzUUZkX1JxeDlrY1prdERiRklWUk5xYklzWXFYZ25QcnE5dkQ4YWpFNVhoNldhQndDeFdKY2xSZEcyTDg?oc=5",
-      "pubDate": "Sat, 27 Jun 2026 00:15:00 GMT",
-      "score": null,
-      "titleAr": "Spot the pol! - Politico"
-    },
-    {
-      "title": "Uruguay vs Spain live updates: World Cup 2026 latest as Lamine Yamal starts in Group H decider - The New York Times",
-      "link": "https://news.google.com/rss/articles/CBMitgFBVV95cUxOa3gzLTJvaVBVRVpDcVgwd0lFaGJ1WUg0MTVhNUFSLUh1S05wRjhJMmdwS1d4UkpEZGpOZFl4c0phN2preEYzZkh4ZXd2VVB5dmdnRUhuc1RrQUtLUG5BRC1hRmlLR3lwMjFQbTVnOHRpX1djWHNrNWR0eXZjdENwQjF2VHFGdzdZYmhGUGFYLUhHRjBsTFFtMkV1UDhPN3BPTHRlamNTRkxiUkhnS0V1MGlhWHRkQQ?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 23:55:15 GMT",
-      "score": null,
-      "titleAr": "Uruguay vs Spain live updates: World Cup 2026 latest as Lamine Yamal starts in Group H decider - The New York Times"
-    },
-    {
-      "title": "2026 World Cup Group H Scenarios, Standings: What Spain, Uruguay, Cape Verde, Saudi Arabia Need To Advance - FOX Sports",
-      "link": "https://news.google.com/rss/articles/CBMi1gFBVV95cUxQaUwwc0pOMXlfV2JiMmQzdER6THBwaWI2LV80ckthVHdzeHducG5OWEx0UmF2bUlGejJaalFsajNqMFZucGxHWW9la2NPTkNzWllyLWcyNzVHTk9qbVhIVzZ3b1lrekRnZzVobGJfcHlpYV9JT19kUFRja1J2QmVMSFNmZllzby1HTXdQbEV0RzBacnBLRTdpQk9FWjNpWWJ6dDZ0eHVsTVM5MHV2TlpSX0kzTVktSjBKcGxpdEtDQW5ZNVJaZGxJQ0xKeF9OWC1rakZyOVF3?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 13:07:09 GMT",
-      "score": null,
-      "titleAr": "2026 World Cup Group H Scenarios, Standings: What Spain, Uruguay, Cape Verde, Saudi Arabia Need To Advance - FOX Sports"
-    },
-    {
-      "title": "World Cup 2026 live updates: Spain plays Uruguay, Cape Verde tries to stay alive vs. Saudi Arabia - NBC News",
-      "link": "https://news.google.com/rss/articles/CBMiqAFBVV95cUxPNUxScTBTQkt0S2hYX0h3UzdCcmdtb2lxb0YyUUVPLU9MdlpOclhLel9xOWNkZUJkZGRnSDQ0VDZ2aHIxUTBKU0lMdkhIZGh1ZVVvOGxQWDlIeE1WeE9JZGJjV3FJLUNlekFGXzBMekc1aTJNOENTS0hDT1R5SVFfZFZQM3hnTVd0QXF2ZUo2bUdHNy1KU3k1TEdYLWliN0VNLUstUU1rMnM?oc=5",
-      "pubDate": "Sat, 27 Jun 2026 00:53:00 GMT",
-      "score": null,
-      "titleAr": "World Cup 2026 live updates: Spain plays Uruguay, Cape Verde tries to stay alive vs. Saudi Arabia - NBC News"
-    },
-    {
-      "title": "Uruguay vs Spain LIVE: FIFA World Cup 2026 - Al Jazeera",
-      "link": "https://news.google.com/rss/articles/CBMikgFBVV95cUxOamlHTmt5WnlqMEk4V2ZmTl9KLW9HRmt1dnQyRlZUU1pkOTZIU2xXWi1IemdwMHNpa1RPZWp4ejVPc3Y4NTR1OVRBaVpjelZ6Qk9GdHJCcHFCWTFBM2ZkbFZFQXMzVVNUekdvM25tY1J2VHVwVW5pSUxNdmJqdk9vOV8wdnlpYk5GRzUzQTVkbGpWUdIBlwFBVV95cUxNaFlCTzZsOU5kb2VGR09nNi1tV0Jja1B2UXd6ZXJDN3ZPeTZtWDlhOXhGNXNUVTZZX2dQR0FfREZwQ18yRkJlT2hna1lYUmRjUmM4ZXdlUUNxU3E2NFNkTlFkNHFhS2pWZDBWYUJEWjVFSF9vZUFiX1BIcnR4VU0xcnlpbENjVUdwY0E2YVFEMVdDeEhKcC0w?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 23:09:49 GMT",
-      "score": null,
-      "titleAr": "Uruguay vs Spain LIVE: FIFA World Cup 2026 - Al Jazeera"
-    },
-    {
-      "title": "World Cup 2026: Iran and Egypt to contest 'Pride match' in Seattle - BBC",
-      "link": "https://news.google.com/rss/articles/CBMiZ0FVX3lxTE5DWjE4VUZydDNfaHlaZ3pTR0VOMFVzY0VWMHZHVjQ0VV84MzA5V00taTcyRC1acnE4R1pkUVE5UHRfM29KMlZJUGZlSl8xTnNJd0tHS25lX1hDcUtZNTIxLW1Xc3RZMWM?oc=5",
-      "pubDate": "Fri, 26 Jun 2026 11:20:11 GMT",
-      "score": null,
-      "titleAr": "World Cup 2026: Iran and Egypt to contest 'Pride match' in Seattle - BBC"
+      "titleAr": "Loss to Turkey proved invaluable for Mauricio Pochettino’s USMNT World Cup plans - New York Post"
     }
   ],
-  "total": 18,
-  "scoresFound": 1,
-  "updated": "2026-06-27T09:00:56.488478"
+  "total": 16,
+  "scoresFound": 2,
+  "updated": "2026-06-27T12:00:54.391120"
 }

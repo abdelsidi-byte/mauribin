@@ -1,0 +1,424 @@
+// ─── Types ─────────────────────────────────────────────────────────────────
+export type PhotoCategory =
+  | "goals" | "celebrations" | "fans" | "players" | "goalkeepers"
+  | "coaches" | "stadium" | "training" | "funny" | "emotional"
+  | "trophy" | "awards" | "behind-scenes" | "var" | "best-saves"
+  | "historic" | "opening" | "closing";
+
+export type Photo = {
+  id: string;
+  slug: string;
+  title: string;
+  titleAr: string;
+  description: string;
+  descriptionAr: string;
+  imageUrl: string;
+  thumbnailUrl: string;
+  blurHash: string;
+  category: PhotoCategory;
+  tags: string[];
+  competition: string;
+  competitionAr: string;
+  match?: {
+    home: string;
+    away: string;
+    homeFlag: string;
+    awayFlag: string;
+    score?: string;
+    date: string;
+  };
+  teams?: string[];
+  date: string;
+  views: number;
+  likes: number;
+  photographer: string;
+  source: string;
+  width: number;
+  height: number;
+  featured: boolean;
+  publishedAt: string;
+};
+
+// ─── Category Labels ──────────────────────────────────────────────────────────
+export const CATEGORY_LABELS: Record<PhotoCategory, string> = {
+  goals: "⚽ أهداف",
+  celebrations: "🎉 احتفالات",
+  fans: "👥 الجمهور",
+  players: "🏃 لاعبون",
+  goalkeepers: "🧤 حراس المرمى",
+  coaches: "👔 مدربون",
+  stadium: "🏟️ الملاعب",
+  training: "🏋️ تدريب",
+  funny: "😄 لحظات مضحكة",
+  emotional: "🥹 لحظات عاطفية",
+  trophy: "🏆 الكأس",
+  awards: "🎖️ جوائز",
+  "behind-scenes": "🎬 كواليس",
+  var: "📺 VAR",
+  "best-saves": "🧤 أفضل تصديات",
+  historic: "📜 لحظات تاريخية",
+  opening: "🎊 الافتتاح",
+  closing: "🎊 الختام",
+};
+
+// ─── Team Flags ────────────────────────────────────────────────────────────────
+const FLAGS: Record<string, string> = {
+  France: "🇫🇷", Norway: "🇳🇴", Senegal: "🇸🇳", Iraq: "🇮🇶",
+  Brazil: "🇧🇷", Morocco: "🇲🇦", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Haiti: "🇭🇹",
+  Germany: "🇩🇪", "Ivory Coast": "🇨🇮", Ecuador: "🇪🇨", Curaçao: "🇨🇼",
+  Netherlands: "🇳🇱", Sweden: "🇸🇪", Japan: "🇯🇵", Tunisia: "🇹🇳",
+  Belgium: "🇧🇪", Iran: "🇮🇷", Egypt: "🇪🇬", "New Zealand": "🇳🇿",
+  Spain: "🇪🇸", Uruguay: "🇺🇾", "Saudi Arabia": "🇸🇦", "Cape Verde": "🇨🇻",
+  Mexico: "🇲🇽", "South Korea": "🇰🇷", "South Africa": "🇿🇦", Czechia: "🇨🇿",
+  Canada: "🇨🇦", Switzerland: "🇨🇭", Qatar: "🇶🇦", "Bosnia-Herzegovina": "🇧🇦",
+  USA: "🇺🇸", Australia: "🇦🇺", Paraguay: "🇵🇾", Turkey: "🇹🇷",
+  Argentina: "🇦🇷", Austria: "🇦🇹", Algeria: "🇩🇿", Jordan: "🇯🇴",
+  Portugal: "🇵🇹", Colombia: "🇨🇴", "DR Congo": "🇨🇩", Uzbekistan: "🇺🇿",
+  England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Croatia: "🇭🇷", Ghana: "🇬🇭", Panama: "🇵🇦",
+};
+
+export function getFlag(team: string): string { return FLAGS[team] || "🏳️"; }
+
+// ─── Demo Photos ───────────────────────────────────────────────────────────────
+export const PHOTOS: Photo[] = [
+  {
+    id: "p001",
+    slug: "mbappe-goal-france-norway",
+    title: "Mbappé Scores Stunning Goal Against Norway",
+    titleAr: "مبابي يسجل هدفاً رائعاً ضد النرويج",
+    description: "Kylian Mbappé celebrates after scoring a brilliant goal during the FIFA World Cup 2026 match between France and Norway.",
+    descriptionAr: "كيليان مبابي يحتفل بعد تسجيله هدفاً رائعاً خلال مباراة كأس العالم 2026 بين فرنسا والنرويج.",
+    imageUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=400&q=70",
+    blurHash: "LEHV6nWB2yk8pyo0adR*.7kCMdnj",
+    category: "goals",
+    tags: ["Mbappé", "France", "Norway", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "France", away: "Norway", homeFlag: "🇫🇷", awayFlag: "🇳🇴", score: "3-1", date: "2026-06-29" },
+    teams: ["France", "Norway"],
+    date: "2026-06-29",
+    views: 12847,
+    likes: 2341,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: true,
+    publishedAt: "2026-06-29T20:00:00Z",
+  },
+  {
+    id: "p002",
+    slug: "haaland-celebration-norway-iraq",
+    title: "Haaland's Wild Celebration After Hat-Trick",
+    titleAr: "هالاند يحتفل بثلاثية ضد العراق",
+    description: "Erling Haaland celebrates passionately after scoring his second goal during Norway's dominant victory over Iraq.",
+    descriptionAr: "يرلينغ هالاند يحتفل بعنف بعد تسجيله هدفه الثاني خلال فوز النرويج الساحق على العراق.",
+    imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400&q=70",
+    blurHash: "LBF~jE9FIUof~qWBt7t7IUofIUof",
+    category: "celebrations",
+    tags: ["Haaland", "Norway", "Iraq", "Hat-trick", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Norway", away: "Iraq", homeFlag: "🇳🇴", awayFlag: "🇮🇶", score: "4-1", date: "2026-06-16" },
+    teams: ["Norway", "Iraq"],
+    date: "2026-06-16",
+    views: 8932,
+    likes: 1876,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: true,
+    publishedAt: "2026-06-16T19:30:00Z",
+  },
+  {
+    id: "p003",
+    slug: "morocco-fans-celebration",
+    title: "Morocco Fans Creates Electric Atmosphere",
+    titleAr: "جماهير المغرب يخلقون أجواءً كهربائية",
+    description: "Morocco fans celebrate wildly in the stands during a thrilling World Cup 2026 match.",
+    descriptionAr: "جماهير المغرب يحتفلون بعنف في المدرجات خلال مباراة مثيرة في كأس العالم 2026.",
+    imageUrl: "https://images.unsplash.com/photo-161蜡6101554-6d3a5c5a6c9c?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-161蜡6101554-6d3a5c5a6c9c?w=400&q=70",
+    blurHash: "L6P0fCRj0K9F~pxu%MWB00%MWBof",
+    category: "fans",
+    tags: ["Morocco", "Fans", "Celebration", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    teams: ["Morocco"],
+    date: "2026-06-24",
+    views: 6543,
+    likes: 1234,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: true,
+    publishedAt: "2026-06-24T22:00:00Z",
+  },
+  {
+    id: "p004",
+    slug: "messi-argentina-goal",
+    title: "Messi Magic: Argentina's Captain Leads the Way",
+    titleAr: "سحر ميسي: قائد الأرجنتين يقود الطريق",
+    description: "Lionel Messi celebrates after scoring a spectacular free-kick during Argentina's World Cup 2026 match.",
+    descriptionAr: "ليونيل ميسي يحتفل بعد تسجيله ركلة حرة رائعة خلال مباراة الأرجنتين في كأس العالم 2026.",
+    imageUrl: "https://images.unsplash.com/photo-1606925762143-2eb5c3a3bb20?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1606925762143-2eb5c3a3bb20?w=400&q=70",
+    blurHash: "LKHejxM{00M{~pIUM{t7D%RjIUof",
+    category: "goals",
+    tags: ["Messi", "Argentina", "Goal", "Free-kick", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Argentina", away: "Austria", homeFlag: "🇦🇷", awayFlag: "🇦🇹", score: "3-0", date: "2026-06-17" },
+    teams: ["Argentina", "Austria"],
+    date: "2026-06-17",
+    views: 15623,
+    likes: 3421,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: true,
+    publishedAt: "2026-06-17T16:00:00Z",
+  },
+  {
+    id: "p005",
+    slug: "england-croatia-goal",
+    title: "Harry Kane Scores Against Croatia",
+    titleAr: "هاري كين يسجل ضد كرواتيا",
+    description: "Harry Kane scores England's third goal in a thrilling 4-2 victory over Croatia in World Cup 2026.",
+    descriptionAr: "هاري كين يسجل الهدف الثالث لإنجلترا في فوز مثير 4-2 على كرواتيا في كأس العالم 2026.",
+    imageUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1508098682722-e99c43a406b2?w=400&q=70",
+    blurHash: "LCF~jEj[00M{~pIUM{t7D%RjIUof",
+    category: "goals",
+    tags: ["Harry Kane", "England", "Croatia", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "England", away: "Croatia", homeFlag: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", awayFlag: "🇭🇷", score: "4-2", date: "2026-06-17" },
+    teams: ["England", "Croatia"],
+    date: "2026-06-17",
+    views: 11234,
+    likes: 2654,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: false,
+    publishedAt: "2026-06-17T16:00:00Z",
+  },
+  {
+    id: "p006",
+    slug: "ronaldo-portugal-celebration",
+    title: "Ronaldo Scores and Celebrates for Portugal",
+    titleAr: "رونالدو يسجل ويحتفل مع البرتغال",
+    description: "Cristiano Ronaldo celebrates after scoring the opening goal in Portugal's dominant 5-0 win over Uzbekistan.",
+    descriptionAr: "كريستيانو رونالدو يحتفل بعد تسجيله الهدف الافتتاحي في فوز البرتغال الساحق 5-0 على أوزبكستان.",
+    imageUrl: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1551958219-acbc608c6377?w=400&q=70",
+    blurHash: "L9F?ujxu00-;~qWBt7of00of%Mof",
+    category: "celebrations",
+    tags: ["Ronaldo", "Portugal", "Uzbekistan", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Portugal", away: "Uzbekistan", homeFlag: "🇵🇹", awayFlag: "🇺🇿", score: "5-0", date: "2026-06-23" },
+    teams: ["Portugal", "Uzbekistan"],
+    date: "2026-06-23",
+    views: 18923,
+    likes: 4567,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: true,
+    publishedAt: "2026-06-23T17:00:00Z",
+  },
+  {
+    id: "p007",
+    slug: "mexico-south-korea-match",
+    title: "Mexico Edge Past South Korea 1-0",
+    titleAr: "المكسيك تفوز على كوريا الجنوبية 1-0",
+    description: "Mexico's player celebrates the winning goal against South Korea in a tense World Cup 2026 group stage match.",
+    descriptionAr: "لاعب المكسيك يحتفل بالهدف الفوز ضد كوريا الجنوبية في مباراة مثيرة بمرحلة المجموعات بكأس العالم 2026.",
+    imageUrl: "https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1489944440615-453fc2b6a9a9?w=400&q=70",
+    blurHash: "L8F$jEj[00M{~pIUM{t7D%RjIUof",
+    category: "players",
+    tags: ["Mexico", "South Korea", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Mexico", away: "South Korea", homeFlag: "🇲🇽", awayFlag: "🇰🇷", score: "1-0", date: "2026-06-19" },
+    teams: ["Mexico", "South Korea"],
+    date: "2026-06-19",
+    views: 5432,
+    likes: 987,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: false,
+    publishedAt: "2026-06-19T22:00:00Z",
+  },
+  {
+    id: "p008",
+    slug: "germany-7-curaçao-1",
+    title: "Germany's 7-1 Destruction of Curaçao",
+    titleAr: "ألمانيا تدمر كوراساو 7-1",
+    description: "Germany's Kai Havertz celebrates after scoring during their historic 7-1 victory over Curaçao in World Cup 2026.",
+    descriptionAr: "لاعب ألمانيا كاي هافرتز يحتفل بعد تسجيله خلال انتصارهم التاريخي 7-1 على كوراساو في كأس العالم 2026.",
+    imageUrl: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1579952363873-27f3bade9f55?w=400&q=70",
+    blurHash: "L8F$jEj[00M{~pIUM{t7D%RjIUof",
+    category: "goals",
+    tags: ["Germany", "Curaçao", "Havertz", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Germany", away: "Curaçao", homeFlag: "🇩🇪", awayFlag: "🇨🇼", score: "7-1", date: "2026-06-14" },
+    teams: ["Germany", "Curaçao"],
+    date: "2026-06-14",
+    views: 9876,
+    likes: 2109,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: false,
+    publishedAt: "2026-06-14T16:00:00Z",
+  },
+  {
+    id: "p009",
+    slug: "brazil-fans-dance",
+    title: "Brazilian Fans Dance in the Stands",
+    titleAr: "جماهير البرازيل يرقصون في المدرجات",
+    description: "Brazilian fans bring the carnival atmosphere to the World Cup 2026 with vibrant singing and dancing.",
+    descriptionAr: "جماهير البرازيل يجلبون أجواء الكرنفال إلى كأس العالم 2026 مع الغناء والرقص المثير.",
+    imageUrl: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1543326727-cf6c39e8f84c?w=400&q=70",
+    blurHash: "L6P0fCRj0K9F~pxu%MWB00%MWBof",
+    category: "fans",
+    tags: ["Brazil", "Fans", "Dance", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    teams: ["Brazil"],
+    date: "2026-06-20",
+    views: 7654,
+    likes: 1654,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: false,
+    publishedAt: "2026-06-20T22:00:00Z",
+  },
+  {
+    id: "p010",
+    slug: "world-cup-trophy",
+    title: "The Magnificent FIFA World Cup Trophy",
+    titleAr: "كأس العالم الفخم",
+    description: "The official FIFA World Cup trophy on display, gleaming under the stadium lights, representing the pinnacle of football glory.",
+    descriptionAr: "كأس العالم الرسمي للفيفا معروض، يتلألأ تحت أضواء الملعب، يمثل قمة المجد في كرة القدم.",
+    imageUrl: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1522778119026-d647f0596c20?w=400&q=70",
+    blurHash: "L5P0fCRj0K9F~pxu%MWB00%MWBof",
+    category: "trophy",
+    tags: ["World Cup", "Trophy", "FIFA", "Glory", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    teams: [],
+    date: "2026-06-11",
+    views: 23456,
+    likes: 5678,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: true,
+    publishedAt: "2026-06-11T18:00:00Z",
+  },
+  {
+    id: "p011",
+    slug: "netherlands-sweden-goal",
+    title: "Cody Gakpo Scores for Netherlands",
+    titleAr: "كودي غاكبو يسجل لهولندا",
+    description: "Cody Gakpo celebrates after scoring for the Netherlands in their emphatic 5-1 win over Sweden.",
+    descriptionAr: "كودي غاكبو يحتفل بعد تسجيله لهولندا في فوزهم الساحق 5-1 على السويد.",
+    imageUrl: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1553778263-73a83bab9b0c?w=400&q=70",
+    blurHash: "L8F$jEj[00M{~pIUM{t7D%RjIUof",
+    category: "goals",
+    tags: ["Gakpo", "Netherlands", "Sweden", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Netherlands", away: "Sweden", homeFlag: "🇳🇱", awayFlag: "🇸🇪", score: "5-1", date: "2026-06-20" },
+    teams: ["Netherlands", "Sweden"],
+    date: "2026-06-20",
+    views: 6789,
+    likes: 1432,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: false,
+    publishedAt: "2026-06-20T16:00:00Z",
+  },
+  {
+    id: "p012",
+    slug: "spain-saudi-arabia-4-0",
+    title: "Spain's Dominant 4-0 Victory Over Saudi Arabia",
+    titleAr: "انتصار إسبانيا الساحق 4-0 على السعودية",
+    description: "Spain's Lamine Yamal celebrates after scoring during a commanding 4-0 victory over Saudi Arabia.",
+    descriptionAr: "لامين يامال يحتفل بعد تسجيله خلال انتصار إسبانيا المميز 4-0 على السعودية.",
+    imageUrl: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=1200&q=80",
+    thumbnailUrl: "https://images.unsplash.com/photo-1560272564-c83b66b1ad12?w=400&q=70",
+    blurHash: "L9F?ujxu00-;~qWBt7of00of%Mof",
+    category: "goals",
+    tags: ["Spain", "Saudi Arabia", "Lamine Yamal", "Goal", "World Cup 2026"],
+    competition: "FIFA World Cup 2026",
+    competitionAr: "كأس العالم 2026",
+    match: { home: "Spain", away: "Saudi Arabia", homeFlag: "🇪🇸", awayFlag: "🇸🇦", score: "4-0", date: "2026-06-15" },
+    teams: ["Spain", "Saudi Arabia"],
+    date: "2026-06-15",
+    views: 8234,
+    likes: 1876,
+    photographer: "FIFA Staff",
+    source: "FIFA",
+    width: 1200,
+    height: 800,
+    featured: false,
+    publishedAt: "2026-06-15T13:00:00Z",
+  },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+export function getPhotoById(id: string): Photo | undefined {
+  return PHOTOS.find(p => p.id === id || p.slug === id);
+}
+
+export function getPhotosByCategory(category: PhotoCategory): Photo[] {
+  return PHOTOS.filter(p => p.category === category);
+}
+
+export function getFeaturedPhotos(): Photo[] {
+  return PHOTOS.filter(p => p.featured);
+}
+
+export function getLatestPhotos(limit = 12): Photo[] {
+  return [...PHOTOS].sort((a, b) =>
+    new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+  ).slice(0, limit);
+}
+
+export function getPopularPhotos(limit = 12): Photo[] {
+  return [...PHOTOS].sort((a, b) => b.views - a.views).slice(0, limit);
+}
+
+export function getRelatedPhotos(photo: Photo, limit = 4): Photo[] {
+  return PHOTOS.filter(p =>
+    p.id !== photo.id &&
+    (p.category === photo.category ||
+      p.teams?.some(t => photo.teams?.includes(t)))
+  ).slice(0, limit);
+}

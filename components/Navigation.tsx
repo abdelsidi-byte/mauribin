@@ -15,6 +15,7 @@ export function Navigation() {
     { href: "/groups", label: t("nav.groups"), icon: "🏆" },
     { href: "/teams", label: t("nav.teams"), icon: "👥" },
     { href: "/news", label: t("nav.news"), icon: "📰" },
+    { href: "/photos", label: "📸 Photos", icon: "📸" },
     { href: "/quiz", label: t("nav.quiz"), icon: "🎯" },
     { href: "/stats", label: t("nav.stats"), icon: "📊" },
     { href: "/predict", label: t("nav.predict"), icon: "⚽" },

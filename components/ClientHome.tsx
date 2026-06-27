@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useI18n } from "./I18nProvider";
 import { NewsSection } from "./NewsSection";
 import { YesterdayResults } from "./YesterdayResults";
+import { PhotosSection } from "./PhotosSection";
 import VideoAdBanner from "./VideoAdBanner";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -529,6 +530,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
 
           {/* Yesterday's Results */}
           <YesterdayResults />
+
+          {/* Photos of the Day */}
+          <PhotosSection />
 
           {/* Upcoming - Horizontal Scroll */}
           {(upcomingMatches.length > 0 || wcUpcomingMatches.length > 0) && (
