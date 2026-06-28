@@ -496,7 +496,16 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
 
           {/* Live Scores Ticker - Marquee */}
           <div className="mb-8">
-            <LiveScoresTicker initialMatches={[...liveMatches, ...finishedMatches, ...upcomingMatches] as any} />
+            <LiveScoresTicker initialMatches={
+              [
+                ...liveMatches,
+                ...wcLiveMatches,
+                ...finishedMatches.slice(0, 15),
+                ...wcFinishedMatches.slice(0, 15),
+                ...upcomingMatches.slice(0, 15),
+                ...wcUpcomingMatches.slice(0, 15),
+              ] as any
+            } />
           </div>
 
           {/* Featured LIVE Matches - Sofascore Style */}

@@ -1,10 +1,10 @@
 "use client";
 import Link from "next/link";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useI18n } from "./I18nProvider";
 
 interface Match {
-  _index: number;
+  _index: number | string;
   slug?: string;
   home: string;
   away: string;
@@ -16,10 +16,11 @@ interface Match {
   label: string;
   utcDate?: string;
   elapsed?: number;
+  id?: number;
 }
 
 function formatElapsed(elapsed?: number): string {
-  if (!elapsed || elapsed < 0) return "";
+  if (elapsed === undefined || elapsed < 0) return "";
   return `${elapsed}'`;
 }
 
@@ -31,7 +32,7 @@ function getStatusLabel(match: Match, t: (k: string) => string): { text: string;
     return { text: t("match.finished"), color: "text-slate-500" };
   }
   if (match.state === "upcoming") {
-    return { text: match.label || "قادمة", color: "text-slate-400" };
+    return { text: match.label || "قادمة", color: "text-[#FFD700]" };
   }
   return { text: match.label || "", color: "text-slate-500" };
 }
@@ -40,8 +41,18 @@ export function LiveScoresTicker({ initialMatches }: { initialMatches: Match[] }
   const { t, localizeTeam } = useI18n();
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [paused, setPaused] = useState(false);
-  const prevScores = useRef<Record<number, { home: number | null; away: number | null }>>({});
   const trackRef = useRef<HTMLDivElement>(null);
+
+  // Deduplicate matches by home+away pair, keep order
+  const uniqueMatches = useMemo(() => {
+    const seen = new Set<string>();
+    return matches.filter((m) => {
+      const key = `${m.home}-${m.away}`.toLowerCase().replace(/\s+/g, "");
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
+  }, [matches]);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -59,16 +70,7 @@ export function LiveScoresTicker({ initialMatches }: { initialMatches: Match[] }
     return () => clearInterval(interval);
   }, []);
 
-  // Initialize prev scores on first load
-  useEffect(() => {
-    matches.forEach((m) => {
-      if (!prevScores.current[m._index]) {
-        prevScores.current[m._index] = { home: m.homeScore, away: m.awayScore };
-      }
-    });
-  }, [matches]);
-
-  if (matches.length === 0) {
+  if (uniqueMatches.length === 0) {
     return (
       <div className="relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/50 px-4 py-3">
         <div className="text-center text-slate-500 text-sm">⏳ جاري التحميل...</div>
@@ -76,35 +78,42 @@ export function LiveScoresTicker({ initialMatches }: { initialMatches: Match[] }
     );
   }
 
-  // Build a string of all matches for marquee (duplicate twice for seamless loop)
+  // Animation duration: faster with fewer matches, slower with many
+  const duration = Math.max(40, uniqueMatches.length * 8);
+
+  // Build a card for one match
   const renderMatchCard = (match: Match, key: string) => {
     const status = getStatusLabel(match, t);
     return (
       <Link
         key={key}
         href={`/match/${match.slug || match._index}`}
-        className="shrink-0 inline-flex items-center gap-2 px-4 py-2 mx-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 hover:border-[#FFD700]/30 transition-all"
+        className="shrink-0 inline-flex items-center gap-2 px-3 py-2 mx-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 hover:border-[#FFD700]/40 transition-all"
       >
         {/* Status */}
-        <span className={`text-xs font-bold ${status.color} min-w-[70px]`}>
+        <span className={`text-[10px] font-bold ${status.color} min-w-[80px] whitespace-nowrap`}>
           {status.text}
         </span>
         {/* Home */}
-        <span className="text-base">{match.homeFlag}</span>
-        <span className="text-white text-sm font-bold max-w-[100px] truncate">
+        <span className="text-base leading-none">{match.homeFlag}</span>
+        <span className="text-white text-xs font-bold max-w-[80px] truncate">
           {localizeTeam(match.home)}
         </span>
-        <span className="text-white text-lg font-black min-w-[24px] text-center">
+        <span className={`text-base font-black min-w-[20px] text-center ${
+          match.state === "live" ? "text-[#FFD700]" : "text-white"
+        }`}>
           {match.homeScore !== null ? match.homeScore : (match.state === "live" ? "0" : "-")}
         </span>
-        <span className="text-slate-500 text-xs">-</span>
-        <span className="text-white text-lg font-black min-w-[24px] text-center">
+        <span className="text-slate-500 text-[10px]">-</span>
+        <span className={`text-base font-black min-w-[20px] text-center ${
+          match.state === "live" ? "text-[#FFD700]" : "text-white"
+        }`}>
           {match.awayScore !== null ? match.awayScore : (match.state === "live" ? "0" : "-")}
         </span>
-        <span className="text-white text-sm font-bold max-w-[100px] truncate">
+        <span className="text-white text-xs font-bold max-w-[80px] truncate">
           {localizeTeam(match.away)}
         </span>
-        <span className="text-base">{match.awayFlag}</span>
+        <span className="text-base leading-none">{match.awayFlag}</span>
       </Link>
     );
   };
@@ -116,28 +125,31 @@ export function LiveScoresTicker({ initialMatches }: { initialMatches: Match[] }
       onMouseLeave={() => setPaused(false)}
     >
       {/* Label badge */}
-      <div className="absolute top-1/2 -translate-y-1/2 left-0 z-20 bg-gradient-to-r from-[#006233] to-[#004225] text-white text-xs font-black px-3 py-1.5 rounded-r-full border-r-2 border-[#FFD700]/50 flex items-center gap-1.5 pointer-events-none">
+      <div className="absolute top-1/2 -translate-y-1/2 left-0 z-20 bg-gradient-to-r from-[#006233] to-[#004225] text-white text-xs font-black px-3 py-2 rounded-r-full border-r-2 border-[#FFD700]/50 flex items-center gap-1.5 pointer-events-none shadow-lg">
         <span className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
         <span>نتائج</span>
       </div>
 
       {/* Gradient overlays for smooth fade-in/out at edges */}
-      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none" />
+      <div className="absolute left-0 top-0 bottom-0 w-24 bg-gradient-to-r from-slate-900 via-slate-900/80 to-transparent z-10 pointer-events-none" />
       <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none" />
 
-      {/* Marquee track */}
+      {/* Marquee track - duplicate content for seamless loop */}
       <div
         ref={trackRef}
-        className="flex whitespace-nowrap py-2 pl-24 pr-4"
+        className="flex whitespace-nowrap py-2.5"
         style={{
-          animation: `scroll-ticker ${Math.max(30, matches.length * 6)}s linear infinite`,
+          animation: `scroll-ticker ${duration}s linear infinite`,
           animationPlayState: paused ? "paused" : "running",
+          paddingLeft: "80px",
         }}
       >
         {/* First copy */}
-        {matches.map((m) => renderMatchCard(m, `a-${m._index}`))}
-        {/* Second copy (for seamless loop) */}
-        {matches.map((m) => renderMatchCard(m, `b-${m._index}`))}
+        {uniqueMatches.map((m, i) => renderMatchCard(m, `a-${i}-${m._index}`))}
+        {/* Spacer */}
+        <div className="shrink-0 w-8" />
+        {/* Second copy for seamless loop */}
+        {uniqueMatches.map((m, i) => renderMatchCard(m, `b-${i}-${m._index}`))}
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
