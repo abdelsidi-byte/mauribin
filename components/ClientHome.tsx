@@ -440,7 +440,17 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   // Combine and deduplicate live matches by slug
   const liveMatches = matches.filter((m) => m.state === "live");
   const finishedMatches = matches.filter((m) => m.state === "ft" || m.state === "finished");
-  const upcomingMatches = matches.filter((m) => m.state === "upcoming");
+  // Sort upcoming by date - closest first, dedup by team pair
+  const upcomingSorted = matches
+    .filter((m) => m.state === "upcoming")
+    .sort((a, b) => new Date(a.utcDate || a.date || 0).getTime() - new Date(b.utcDate || b.date || 0).getTime());
+  const seenUpcoming = new Set<string>();
+  const upcomingMatches = upcomingSorted.filter((m) => {
+    const key = `${m.home}|${m.away}`.toLowerCase();
+    if (seenUpcoming.has(key)) return false;
+    seenUpcoming.add(key);
+    return true;
+  });
 
   // World Cup matches
   const wcLiveMatches = worldCupMatches.filter((m) => m.state === "live");

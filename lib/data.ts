@@ -252,6 +252,8 @@ function getFallbackMatches(): Match[] {
     { home: "Ecuador", away: "Curaçao", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 66 },
     { home: "Japan", away: "Sweden", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 14:00", utcDate: "2026-06-28T14:00:00Z", _index: 63 },
     { home: "Tunisia", away: "Netherlands", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 17:00", utcDate: "2026-06-28T17:00:00Z", _index: 64 },
+    // Next Match Hero - 28/06 02:00 (UTC)
+    { home: "Egypt", away: "Iran", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 02:00", utcDate: "2026-06-28T02:00:00Z", _index: 78 },
     { home: "France", away: "Norway", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 14:00", utcDate: "2026-06-29T14:00:00Z", _index: 57 },
     { home: "Senegal", away: "Iraq", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 70 },
     { home: "Argentina", away: "Austria", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 17:00", utcDate: "2026-06-29T17:00:00Z", _index: 71 },
