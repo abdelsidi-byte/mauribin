@@ -463,8 +463,14 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   const liveMatches = matches.filter((m) => m.state === "live");
   const finishedMatches = matches.filter((m) => m.state === "ft" || m.state === "finished");
   // Sort upcoming by date - closest first, dedup by team pair
+  const now = Date.now();
   const upcomingSorted = matches
     .filter((m) => m.state === "upcoming")
+    .filter((m) => {
+      // Filter out matches that are already past (more than 30 min ago)
+      const matchTime = new Date(m.utcDate || m.date || 0).getTime();
+      return matchTime - now > -30 * 60 * 1000;
+    })
     .sort((a, b) => new Date(a.utcDate || a.date || 0).getTime() - new Date(b.utcDate || b.date || 0).getTime());
   const seenUpcoming = new Set<string>();
   const upcomingMatches = upcomingSorted.filter((m) => {
