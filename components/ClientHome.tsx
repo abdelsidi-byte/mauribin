@@ -6,6 +6,7 @@ import { NewsSection } from "./NewsSection";
 import { YesterdayResults } from "./YesterdayResults";
 import { PhotosSection } from "./PhotosSection";
 import { LiveScoresTicker } from "./LiveScoresTicker";
+import { getFlagClass } from "@/lib/flagIcons";
 import VideoAdBanner from "./VideoAdBanner";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -128,15 +129,20 @@ function NextMatchHero({ match }: { match: Match }) {
           {/* Home Team */}
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
-              {isHomeUrl ? (
-                <img src={homeLogo} alt={homeTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
-              ) : (
-                <span className="text-6xl">{homeLogo}</span>
-              )}
+              {(() => {
+                const flagCls = getFlagClass(homeTeam, "white");
+                if (flagCls) {
+                  return <span className={`${flagCls}`} style={{ width: "80px", height: "80px", borderRadius: "8px" }} />;
+                }
+                if (isHomeUrl) {
+                  return <img src={homeLogo} alt={homeTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />;
+                }
+                return <span className="text-6xl">{homeLogo}</span>;
+              })()}
             </div>
             <h3 className="text-2xl font-black text-white">{localizeTeam(homeTeam)}</h3>
           </div>
-          
+
           {/* VS */}
           <div className="text-center px-6">
             {isLive && homeScore !== null ? (
@@ -150,15 +156,20 @@ function NextMatchHero({ match }: { match: Match }) {
             )}
             <p className="text-slate-300 mt-2 text-sm">{isLive ? "الدقيقة 45'" : "كأس العالم"}</p>
           </div>
-          
+
           {/* Away Team */}
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
-              {isAwayUrl ? (
-                <img src={awayLogo} alt={awayTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />
-              ) : (
-                <span className="text-6xl">{awayLogo}</span>
-              )}
+              {(() => {
+                const flagCls = getFlagClass(awayTeam, "white");
+                if (flagCls) {
+                  return <span className={`${flagCls}`} style={{ width: "80px", height: "80px", borderRadius: "8px" }} />;
+                }
+                if (isAwayUrl) {
+                  return <img src={awayLogo} alt={awayTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />;
+                }
+                return <span className="text-6xl">{awayLogo}</span>;
+              })()}
             </div>
             <h3 className="text-2xl font-black text-white">{localizeTeam(awayTeam)}</h3>
           </div>
@@ -256,11 +267,16 @@ function MatchCard({
         <div className="space-y-2">
           {/* Home */}
           <div className="flex items-center gap-2 min-w-0">
-            {isHomeUrl ? (
-              <img src={homeFlag} alt={homeTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            ) : (
-              <span className="text-xl shrink-0">{homeFlag}</span>
-            )}
+            {(() => {
+              const flagCls = getFlagClass(homeTeam, "white");
+              if (flagCls) {
+                return <span className={`${flagCls} shrink-0 rounded`} style={{ width: "20px", height: "20px" }} />;
+              }
+              if (isHomeUrl) {
+                return <img src={homeFlag} alt={homeTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />;
+              }
+              return <span className="text-xl shrink-0">{homeFlag}</span>;
+            })()}
             <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{localizeTeamFn(homeTeam)}</span>
             <span className={`text-xl font-black text-center min-w-[24px] ${
               showGoal === "home" ? "text-[#FFD700] animate-pulse" : isLive ? "text-white" : "text-slate-300"
@@ -271,11 +287,16 @@ function MatchCard({
 
           {/* Away */}
           <div className="flex items-center gap-2 min-w-0">
-            {isAwayUrl ? (
-              <img src={awayFlag} alt={awayTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
-            ) : (
-              <span className="text-xl shrink-0">{awayFlag}</span>
-            )}
+            {(() => {
+              const flagCls = getFlagClass(awayTeam, "white");
+              if (flagCls) {
+                return <span className={`${flagCls} shrink-0 rounded`} style={{ width: "20px", height: "20px" }} />;
+              }
+              if (isAwayUrl) {
+                return <img src={awayFlag} alt={awayTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />;
+              }
+              return <span className="text-xl shrink-0">{awayFlag}</span>;
+            })()}
             <span className="text-white font-medium text-xs flex-1 min-w-0 truncate">{localizeTeamFn(awayTeam)}</span>
             <span className={`text-xl font-black text-center min-w-[24px] ${
               showGoal === "away" ? "text-[#FFD700] animate-pulse" : isLive ? "text-white" : "text-slate-300"
