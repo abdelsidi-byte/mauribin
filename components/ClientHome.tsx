@@ -5,6 +5,7 @@ import { useI18n } from "./I18nProvider";
 import { NewsSection } from "./NewsSection";
 import { YesterdayResults } from "./YesterdayResults";
 import { PhotosSection } from "./PhotosSection";
+import { LiveScoresTicker } from "./LiveScoresTicker";
 import VideoAdBanner from "./VideoAdBanner";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -489,8 +490,13 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               </span>
             </h1>
             <p className="text-slate-300 text-base md:text-lg max-w-2xl mx-auto leading-relaxed">
-              موقعك لأخبار كرة القدم بالعربية — نتائج مباشرة، جداول المباريات، أخبار الانتقالات
+              موقعك لأخبار كرة القدم بالعربية — نتائج مباشرة، جدول المباريات، أخبار الانتقالات
             </p>
+          </div>
+
+          {/* Live Scores Ticker - Marquee */}
+          <div className="mb-8">
+            <LiveScoresTicker initialMatches={[...liveMatches, ...finishedMatches, ...upcomingMatches] as any} />
           </div>
 
           {/* Featured LIVE Matches - Sofascore Style */}

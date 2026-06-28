@@ -114,16 +114,23 @@ export async function GET() {
       return true;
     });
 
-    const matches = unique.map((m) => {
+    const matches = unique.map((m, idx) => {
       const home = m.homeTeam?.name || m.homeTeam?.shortName || "Unknown";
       const away = m.awayTeam?.name || m.awayTeam?.shortName || "Unknown";
       const score = m.score?.fullTime || {};
       const { state, label } = getMatchState(m.status);
       const utcDate = m.utcDate;
       const matchLabel = state === "upcoming" ? formatLabel(utcDate) : label;
+      // Calculate elapsed minutes for live matches
+      let elapsed = 0;
+      if (state === "live" && utcDate) {
+        const mins = Math.floor((Date.now() - new Date(utcDate).getTime()) / 60000);
+        elapsed = Math.max(0, Math.min(120, mins));
+      }
 
       return {
         id: m.id,
+        _index: idx,
         home,
         away,
         homeScore: score.home ?? null,
@@ -133,6 +140,7 @@ export async function GET() {
         utcDate,
         status: m.status,
         matchday: m.matchday,
+        elapsed,
         slug: slugify(home, away),
         homeFlag: getFlag(home),
         awayFlag: getFlag(away),

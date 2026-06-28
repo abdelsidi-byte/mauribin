@@ -15,30 +15,33 @@ interface Match {
   state: string;
   label: string;
   utcDate?: string;
+  elapsed?: number;
 }
 
-// Goal celebration animation for ticker
-function TickerGoalFlash({ side }: { side: "home" | "away" }) {
-  return (
-    <div
-      className={`absolute inset-0 bg-gradient-to-r ${
-        side === "home" ? "from-[#FFD700]/40" : "from-[#FFD700]/40"
-      } to-transparent animate-flash-goal pointer-events-none rounded-2xl`}
-    />
-  );
+function formatElapsed(elapsed?: number): string {
+  if (!elapsed || elapsed < 0) return "";
+  return `${elapsed}'`;
 }
 
-interface LiveScoresTickerProps {
-  initialMatches: Match[];
+function getStatusLabel(match: Match, t: (k: string) => string): { text: string; color: string } {
+  if (match.state === "live") {
+    return { text: `🔴 ${t("match.live")} ${formatElapsed(match.elapsed)}`, color: "text-red-400" };
+  }
+  if (match.state === "ft" || match.state === "finished") {
+    return { text: t("match.finished"), color: "text-slate-500" };
+  }
+  if (match.state === "upcoming") {
+    return { text: match.label || "قادمة", color: "text-slate-400" };
+  }
+  return { text: match.label || "", color: "text-slate-500" };
 }
 
-export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
+export function LiveScoresTicker({ initialMatches }: { initialMatches: Match[] }) {
   const { t, localizeTeam } = useI18n();
   const [matches, setMatches] = useState<Match[]>(initialMatches);
-  const [goalFlash, setGoalFlash] = useState<Record<number, "home" | "away" | null>>({});
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [paused, setPaused] = useState(false);
   const prevScores = useRef<Record<number, { home: number | null; away: number | null }>>({});
-  const containerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
 
   // Auto-refresh every 30 seconds
   useEffect(() => {
@@ -46,152 +49,102 @@ export function LiveScoresTicker({ initialMatches }: LiveScoresTickerProps) {
       try {
         const res = await fetch("/api/live-scores");
         const data = await res.json();
-        if (data.matches) {
-          // Detect goals
-          const newFlashes: Record<number, "home" | "away" | null> = {};
-          data.matches.forEach((m: Match) => {
-            const old = prevScores.current[m._index];
-            if (old && m.state === "live") {
-              if (m.homeScore !== null && (old.home ?? 0) < m.homeScore) {
-                newFlashes[m._index] = "home";
-                setTimeout(() => setGoalFlash((f) => ({ ...f, [m._index]: null })), 2000);
-              } else if (m.awayScore !== null && (old.away ?? 0) < m.awayScore) {
-                newFlashes[m._index] = "away";
-                setTimeout(() => setGoalFlash((f) => ({ ...f, [m._index]: null })), 2000);
-              }
-            }
-            prevScores.current[m._index] = { home: m.homeScore, away: m.awayScore };
-          });
-          if (Object.keys(newFlashes).length > 0) {
-            setGoalFlash((f) => ({ ...f, ...newFlashes }));
-          }
+        if (data.matches && Array.isArray(data.matches)) {
           setMatches(data.matches);
         }
       } catch (e) {
-        console.error("Ticker refresh failed:", e);
+        // Silent fail - keep existing data
       }
-    }, 10000);
-
+    }, 30000);
     return () => clearInterval(interval);
   }, []);
 
-  // Auto-scroll to next match every 8 seconds
+  // Initialize prev scores on first load
   useEffect(() => {
-    if (matches.length === 0) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((i) => (i + 1) % Math.max(1, matches.length));
-    }, 8000);
-    return () => clearInterval(interval);
-  }, [matches.length]);
-
-  // Scroll ticker container horizontally only - never affects window scroll
-  useEffect(() => {
-    if (containerRef.current) {
-      const cards = containerRef.current.querySelectorAll("[data-ticker-card]");
-      if (cards[currentIndex]) {
-        // Use scrollLeft on container directly - prevents window scroll
-        const card = cards[currentIndex] as HTMLElement;
-        const container = containerRef.current;
-        const scrollLeft = card.offsetLeft - container.offsetWidth / 2 + card.offsetWidth / 2;
-        container.scrollTo({
-          left: scrollLeft,
-          behavior: "smooth",
-        });
+    matches.forEach((m) => {
+      if (!prevScores.current[m._index]) {
+        prevScores.current[m._index] = { home: m.homeScore, away: m.awayScore };
       }
-    }
-  }, [currentIndex]);
+    });
+  }, [matches]);
 
-  if (matches.length === 0) return null;
+  if (matches.length === 0) {
+    return (
+      <div className="relative overflow-hidden rounded-2xl border border-slate-700/50 bg-slate-900/50 px-4 py-3">
+        <div className="text-center text-slate-500 text-sm">⏳ جاري التحميل...</div>
+      </div>
+    );
+  }
+
+  // Build a string of all matches for marquee (duplicate twice for seamless loop)
+  const renderMatchCard = (match: Match, key: string) => {
+    const status = getStatusLabel(match, t);
+    return (
+      <Link
+        key={key}
+        href={`/match/${match.slug || match._index}`}
+        className="shrink-0 inline-flex items-center gap-2 px-4 py-2 mx-1 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700/50 hover:border-[#FFD700]/30 transition-all"
+      >
+        {/* Status */}
+        <span className={`text-xs font-bold ${status.color} min-w-[70px]`}>
+          {status.text}
+        </span>
+        {/* Home */}
+        <span className="text-base">{match.homeFlag}</span>
+        <span className="text-white text-sm font-bold max-w-[100px] truncate">
+          {localizeTeam(match.home)}
+        </span>
+        <span className="text-white text-lg font-black min-w-[24px] text-center">
+          {match.homeScore !== null ? match.homeScore : (match.state === "live" ? "0" : "-")}
+        </span>
+        <span className="text-slate-500 text-xs">-</span>
+        <span className="text-white text-lg font-black min-w-[24px] text-center">
+          {match.awayScore !== null ? match.awayScore : (match.state === "live" ? "0" : "-")}
+        </span>
+        <span className="text-white text-sm font-bold max-w-[100px] truncate">
+          {localizeTeam(match.away)}
+        </span>
+        <span className="text-base">{match.awayFlag}</span>
+      </Link>
+    );
+  };
 
   return (
-    <div className="relative">
-      {/* Header */}
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-[#006233] to-[#004225] border border-[#FFD700]/30">
-          <span className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
-          <span className="text-[#FFD700] text-xs font-bold">{t("hero.results")}</span>
-        </div>
-        <div className="flex-1 h-px bg-gradient-to-r from-[#FFD700]/20 to-transparent" />
-        {/* Progress dots */}
-        <div className="flex gap-1">
-          {matches.slice(0, Math.min(8, matches.length)).map((_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentIndex(i)}
-              className={`w-1.5 h-1.5 rounded-full transition-all ${
-                i === currentIndex % 8 ? "bg-[#FFD700]" : "bg-slate-600"
-              }`}
-            />
-          ))}
-        </div>
+    <div
+      className="relative overflow-hidden rounded-2xl border border-[#FFD700]/20 bg-gradient-to-r from-slate-900 via-slate-900/95 to-slate-900 shadow-lg"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      {/* Label badge */}
+      <div className="absolute top-1/2 -translate-y-1/2 left-0 z-20 bg-gradient-to-r from-[#006233] to-[#004225] text-white text-xs font-black px-3 py-1.5 rounded-r-full border-r-2 border-[#FFD700]/50 flex items-center gap-1.5 pointer-events-none">
+        <span className="w-2 h-2 rounded-full bg-[#FFD700] animate-pulse" />
+        <span>نتائج</span>
       </div>
 
-      {/* Ticker */}
-      <div ref={containerRef} className="relative overflow-hidden">
-        <div
-          className="flex gap-4 transition-transform duration-500 ease-out"
-          style={{ transform: `translateX(-${currentIndex * 240}px)` }}
-        >
-          {matches.map((match) => (
-            <div key={match._index} data-ticker-card className="shrink-0 w-[230px] relative">
-              {goalFlash[match._index] && (
-                <TickerGoalFlash side={goalFlash[match._index]!} />
-              )}
-              <Link
-                href={`/match/${match.slug || match._index}`}
-                className={`block rounded-2xl p-4 border transition-all duration-300 hover:scale-105 ${
-                  match.state === "live"
-                    ? "bg-gradient-to-br from-slate-900 to-slate-800 border-red-500/60 shadow-lg shadow-red-900/20"
-                    : "bg-slate-900/80 border-slate-700/50"
-                }`}
-              >
-                {/* Status */}
-                <div className="flex items-center gap-2 mb-3">
-                  {match.state === "live" && (
-                    <>
-                      <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-red-400 text-xs font-bold">{t("match.live")}</span>
-                    </>
-                  )}
-                  {match.state !== "live" && (
-                    <span className="text-slate-500 text-xs">{match.state === "ft" || match.state === "finished" ? t("match.finished") : match.label}</span>
-                  )}
-                </div>
+      {/* Gradient overlays for smooth fade-in/out at edges */}
+      <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-slate-900 to-transparent z-10 pointer-events-none" />
+      <div className="absolute right-0 top-0 bottom-0 w-12 bg-gradient-to-l from-slate-900 to-transparent z-10 pointer-events-none" />
 
-                {/* Match */}
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{match.homeFlag}</span>
-                    <span className="text-white text-sm flex-1 truncate">{localizeTeam(match.home)}</span>
-                    <span className={`text-xl font-black ${
-                      goalFlash[match._index] === "home" ? "text-[#FFD700] animate-pulse" : "text-white"
-                    }`}>
-                      {match.homeScore !== null ? match.homeScore : (match.state === "live" ? "0" : "-")}
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{match.awayFlag}</span>
-                    <span className="text-white text-sm flex-1 truncate">{localizeTeam(match.away)}</span>
-                    <span className={`text-xl font-black ${
-                      goalFlash[match._index] === "away" ? "text-[#FFD700] animate-pulse" : "text-white"
-                    }`}>
-                      {match.awayScore !== null ? match.awayScore : (match.state === "live" ? "0" : "-")}
-                    </span>
-                  </div>
-                </div>
-              </Link>
-            </div>
-          ))}
-        </div>
+      {/* Marquee track */}
+      <div
+        ref={trackRef}
+        className="flex whitespace-nowrap py-2 pl-24 pr-4"
+        style={{
+          animation: `scroll-ticker ${Math.max(30, matches.length * 6)}s linear infinite`,
+          animationPlayState: paused ? "paused" : "running",
+        }}
+      >
+        {/* First copy */}
+        {matches.map((m) => renderMatchCard(m, `a-${m._index}`))}
+        {/* Second copy (for seamless loop) */}
+        {matches.map((m) => renderMatchCard(m, `b-${m._index}`))}
       </div>
 
       <style dangerouslySetInnerHTML={{ __html: `
-        @keyframes flash-goal {
-          0%, 100% { opacity: 0; }
-          10%, 30%, 50% { opacity: 1; }
-          20%, 40% { opacity: 0; }
+        @keyframes scroll-ticker {
+          0% { transform: translateX(0); }
+          100% { transform: translateX(-50%); }
         }
-        .animate-flash-goal { animation: flash-goal 2s ease-out forwards; }
       `}} />
     </div>
   );
