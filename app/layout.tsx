@@ -69,6 +69,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
   return (
     <I18nProvider>
       <html lang="ar" dir="rtl" className={`${inter.variable} ${arabic.variable}`}>
+        <head>
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css" />
+        </head>
         <body className="font-arabic bg-slate-900 text-slate-100 antialiased min-h-screen flex flex-col">
           <Analytics />
           <PWAProvider />

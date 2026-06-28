@@ -1,7 +1,6 @@
-@import "tailwindcss";
-
-/* Flag Icons CDN - free, white-styled flags */
+/* Flag Icons CDN - free, white-styled flags (must be first @import) */
 @import url("https://cdn.jsdelivr.net/gh/lipis/flag-icons@7.2.3/css/flag-icons.min.css");
+@import "tailwindcss";
 
 @theme {
   --font-arabic: "Noto Sans Arabic", sans-serif;
@@ -364,7 +363,7 @@ header {
 }
 
 /* ─── WHITE FLAGS ────────────────────────────────────────────────────── */
-/* Make flag icons white for premium dark theme */
+/* Make flag icons visible on dark theme - bright but tinted */
 .fi {
   background-size: contain !important;
   background-position: 50% !important;
@@ -373,21 +372,26 @@ header {
   vertical-align: middle;
 }
 
-/* White tint for upcoming matches - desaturate + brighten */
+/* White tint for upcoming matches - desaturate + brighten + white overlay */
 .fi-white {
   filter: brightness(0) invert(1) !important;
+  opacity: 0.95;
+  /* Make it stand out on dark backgrounds with subtle glow */
+  box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
 }
 
 /* Subtle gold tint for featured */
 .fi-gold {
   filter: brightness(0) invert(1) sepia(1) saturate(10) hue-rotate(20deg) !important;
+  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
 }
 
-/* Hover effect */
+/* Hover effect - revert to original colors */
 .fi-white:hover, .fi-gold:hover {
   filter: none !important;
   transform: scale(1.1);
   transition: all 0.2s ease;
+  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
 }
 
 .comment-enter {
