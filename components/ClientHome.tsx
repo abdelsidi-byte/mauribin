@@ -534,25 +534,6 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
           )}
 
           {/* Results - Horizontal Scroll */}
-          {(finishedMatches.length > 0 || wcFinishedMatches.length > 0) && (
-            <div className="mb-10">
-              <div className="flex items-center gap-3 mb-5">
-                <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="text-xl">⚽</span> {t("hero.results")} ({finishedMatches.length + wcFinishedMatches.length})
-                </h2>
-                <div className="flex-1 h-px bg-gradient-to-r from-[#FFD700]/30 to-transparent" />
-              </div>
-              <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                {finishedMatches.map((match) => (
-                  <MatchCard key={match._index} match={match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
-                ))}
-                {wcFinishedMatches.slice(0, 10).map((match, idx) => (
-                  <MatchCard key={`wc-ft-${idx}`} match={match as Match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
-                ))}
-              </div>
-            </div>
-          )}
-
           {/* Yesterday's Results */}
           <YesterdayResults />
 
