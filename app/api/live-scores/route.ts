@@ -111,6 +111,8 @@ export async function GET() {
     const unique = todayMatches.filter((m) => {
       if (seen.has(m.id)) return false;
       seen.add(m.id);
+      // Skip matches with missing team names
+      if (!m.homeTeam?.name || !m.awayTeam?.name) return false;
       return true;
     });
 
