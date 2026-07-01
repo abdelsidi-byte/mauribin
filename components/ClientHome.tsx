@@ -599,16 +599,25 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   // Combine and deduplicate live matches by slug
   const liveMatches = matches.filter((m) => m.state === "live");
   const finishedMatches = matches.filter((m) => m.state === "ft" || m.state === "finished");
+
+  // World Cup matches
+  const wcLiveMatches = worldCupMatches.filter((m) => m.state === "live");
+  const wcFinishedMatches = worldCupMatches.filter((m) => m.state === "ft");
+  const wcUpcomingMatches = worldCupMatches.filter((m) => m.state === "upcoming");
+
+  // Combine upcoming from both sources (World Cup first, since it's more reliable for WC 2026)
+  const allUpcoming = [...wcUpcomingMatches, ...matches.filter((m) => m.state === "upcoming")];
+
   // Sort upcoming by date - closest first, dedup by team pair
   const now = Date.now();
-  const upcomingSorted = matches
-    .filter((m) => m.state === "upcoming")
+  const upcomingSorted = allUpcoming
     .filter((m) => {
       // Filter out matches that are already past (more than 30 min ago)
       const matchTime = new Date(m.utcDate || m.date || 0).getTime();
       return matchTime - now > -30 * 60 * 1000;
     })
     .sort((a, b) => new Date(a.utcDate || a.date || 0).getTime() - new Date(b.utcDate || b.date || 0).getTime());
+
   const seenUpcoming = new Set<string>();
   const upcomingMatches = upcomingSorted.filter((m) => {
     const key = `${m.home}|${m.away}`.toLowerCase();
@@ -616,11 +625,6 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
     seenUpcoming.add(key);
     return true;
   });
-
-  // World Cup matches
-  const wcLiveMatches = worldCupMatches.filter((m) => m.state === "live");
-  const wcFinishedMatches = worldCupMatches.filter((m) => m.state === "ft");
-  const wcUpcomingMatches = worldCupMatches.filter((m) => m.state === "upcoming");
 
   // Deduplicated live matches - by team pair, not slug
   const allLiveMatches = [...liveMatches, ...wcLiveMatches];
@@ -698,16 +702,13 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             <div className="mb-10">
               <div className="flex items-center gap-3 mb-5">
                 <h2 className="text-lg font-bold text-white flex items-center gap-2">
-                  <span className="text-xl">📅</span> {t("hero.upcoming")} ({upcomingMatches.length + wcUpcomingMatches.length})
+                  <span className="text-xl">📅</span> {t("hero.upcoming")} ({upcomingMatches.length})
                 </h2>
                 <div className="flex-1 h-px bg-gradient-to-r from-green-500/30 to-transparent" />
               </div>
               <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
-                {upcomingMatches.map((match) => (
+                {upcomingMatches.slice(0, 20).map((match) => (
                   <MatchCard key={match._index} match={match} onGoal={handleGoal} onVarCancel={handleVarCancellation} localizeTeamFn={localizeTeam} tFn={t} />
-                ))}
-                {wcUpcomingMatches.slice(0, 10).map((match, idx) => (
-                  <MatchCard key={`wc-up-${idx}`} match={match as Match} onGoal={handleGoal} onVarCancel={handleVarCancellation} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
               </div>
             </div>
