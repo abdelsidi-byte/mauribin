@@ -1,11 +1,58 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { MATCH_DATA, localizeTeam, getFlag } from "./matchData";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
-type Tab = "overview" | "stats" | "events" | "h2h";
+type Tab = "overview" | "stats" | "events" | "cards" | "h2h";
+
+interface LiveStats {
+  home: {
+    possession: string;
+    shots: string;
+    shotsOnTarget: string;
+    corners: string;
+    fouls: string;
+    yellowCards: string;
+    redCards: string;
+    offsides: string;
+    passes: string;
+    passAccuracy: string;
+  };
+  away: {
+    possession: string;
+    shots: string;
+    shotsOnTarget: string;
+    corners: string;
+    fouls: string;
+    yellowCards: string;
+    redCards: string;
+    offsides: string;
+    passes: string;
+    passAccuracy: string;
+  };
+}
+
+interface LiveEvent {
+  type: string;
+  minute: string;
+  text: string;
+  team?: "home" | "away";
+  scorer?: string;
+}
+
+interface LiveData {
+  id: string;
+  date: string;
+  venue: string;
+  status: string;
+  homeTeam: { name: string; abbr: string; logo: string; score: string };
+  awayTeam: { name: string; abbr: string; logo: string; score: string };
+  stats: LiveStats;
+  goals: LiveEvent[];
+  events: LiveEvent[];
+}
 
 // ─── Event Icon ───────────────────────────────────────────────────────────────
 function getEventIcon(type: string): string {
@@ -63,9 +110,19 @@ const STAT_LABELS: Record<string, string> = {
 function tStat(s: string): string { return STAT_LABELS[s] || s; }
 
 // ─── Tab: Overview ────────────────────────────────────────────────────────────
-function TabOverview({ m }: { m: typeof MATCH_DATA[0] }) {
+function TabOverview({ m, liveData }: { m: typeof MATCH_DATA[0]; liveData?: LiveData | null }) {
   const statsEntries = Object.entries(m.stats ?? {});
   const hasStats = statsEntries.length > 0;
+  // Prefer live stats when available
+  const useLive = liveData?.stats;
+  const liveStats = useLive ? [
+    { type: "Ball Possession", home: `${liveData!.stats.home.possession}%`, away: `${liveData!.stats.away.possession}%` },
+    { type: "Shots", home: liveData!.stats.home.shots, away: liveData!.stats.away.shots },
+    { type: "Shots on Goal", home: liveData!.stats.home.shotsOnTarget, away: liveData!.stats.away.shotsOnTarget },
+    { type: "Corner Kicks", home: liveData!.stats.home.corners, away: liveData!.stats.away.corners },
+    { type: "Fouls", home: liveData!.stats.home.fouls, away: liveData!.stats.away.fouls },
+    { type: "Offsides", home: liveData!.stats.home.offsides, away: liveData!.stats.away.offsides },
+  ] : null;
 
   return (
     <div className="space-y-4">
@@ -74,7 +131,7 @@ function TabOverview({ m }: { m: typeof MATCH_DATA[0] }) {
           <span className="text-[#FFD700] text-sm font-bold">{m.league || "كأس العالم 2026"}</span>
           {m.group && <span className="text-slate-400 text-xs">{m.group}</span>}
         </div>
-        {m.venue && <p className="text-slate-400 text-sm mb-3">🏟️ {m.venue}</p>}
+        {liveData?.venue && <p className="text-slate-400 text-sm mb-3">🏟️ {liveData.venue}</p>}
         <div className="flex items-center justify-center gap-3">
           {m.state === "live" && (
             <div className="flex items-center gap-2 bg-red-600 text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -87,8 +144,43 @@ function TabOverview({ m }: { m: typeof MATCH_DATA[0] }) {
         </div>
       </div>
 
-      {/* Stats Bars */}
-      {hasStats && statsEntries.length > 0 && (
+      {/* Live Stats Bars (real-time) */}
+      {liveStats && liveStats.length > 0 && (
+        <div className="bg-slate-800 rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-bold text-[#FFD700]">📊 إحصائيات مباشرة</h3>
+            <span className="flex items-center gap-1 text-xs text-green-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+              مباشر
+            </span>
+          </div>
+          <div className="space-y-5">
+            {liveStats.map(({ type, home, away }) => {
+              const homeNum = parseFloat(String(home).replace("%","")) || 0;
+              const awayNum = parseFloat(String(away).replace("%","")) || 0;
+              const total = homeNum + awayNum || 1;
+              const homePct = Math.round((homeNum / total) * 100);
+
+              return (
+                <div key={type}>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-white font-bold w-16 text-left">{home}</span>
+                    <span className="text-slate-400 text-xs text-center">{tStat(type)}</span>
+                    <span className="text-white font-bold w-16 text-right">{away}</span>
+                  </div>
+                  <div className="flex h-2 rounded-full overflow-hidden bg-slate-700">
+                    <div className="bg-[#006233] h-full transition-all duration-500" style={{ width: `${homePct}%` }} />
+                    <div className="bg-[#D01C1F] h-full transition-all duration-500" style={{ width: `${100-homePct}%` }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Fallback: embedded stats */}
+      {!liveStats && hasStats && statsEntries.length > 0 && (
         <div className="bg-slate-800 rounded-2xl p-5">
           <h3 className="text-lg font-bold text-[#FFD700] mb-4">📊 الإحصائيات</h3>
           <div className="space-y-5">
@@ -116,7 +208,7 @@ function TabOverview({ m }: { m: typeof MATCH_DATA[0] }) {
         </div>
       )}
 
-      {(!hasStats || statsEntries.length === 0) && (
+      {(!liveStats && (!hasStats || statsEntries.length === 0)) && (
         <div className="bg-slate-800 rounded-2xl p-5 text-center">
           <p className="text-slate-400">الإحصائيات غير متوفرة لهذه المباراة</p>
         </div>
@@ -126,24 +218,183 @@ function TabOverview({ m }: { m: typeof MATCH_DATA[0] }) {
 }
 
 // ─── Tab: Events ──────────────────────────────────────────────────────────────
-function TabEvents({ events }: { events: typeof MATCH_DATA[0]["events"] }) {
-  if (!events || events.length === 0) return <div className="text-center text-slate-400 py-10">لا توجد أحداث</div>;
+function TabEvents({ events, liveEvents }: { events: typeof MATCH_DATA[0]["events"]; liveEvents?: LiveEvent[] }) {
+  // Prefer live events from ESPN
+  const allEvents = liveEvents && liveEvents.length > 0 ? liveEvents : events || [];
+  if (!allEvents || allEvents.length === 0) return <div className="text-center text-slate-400 py-10">لا توجد أحداث</div>;
   return (
     <div className="bg-slate-800 rounded-2xl p-5">
-      <h3 className="text-lg font-bold text-[#FFD700] mb-4">📋 أحداث المباراة</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-[#FFD700]">📋 أحداث المباراة</h3>
+        {liveEvents && liveEvents.length > 0 && (
+          <span className="flex items-center gap-1 text-xs text-green-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            مباشر
+          </span>
+        )}
+      </div>
       <div className="space-y-2">
-        {events.map((ev, i) => (
-          <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${ev.type?.includes("goal") ? "bg-[#006233]/20" : "bg-slate-700/50"}`}>
-            <span className="text-[#FFD700] font-black text-sm w-10 text-center">{ev.minute}'</span>
-            <span className="text-2xl">{getEventIcon(ev.type || "")}</span>
+        {allEvents.map((ev, i) => (
+          <div key={i} className={`flex items-center gap-3 p-3 rounded-xl ${
+            (ev as any).type?.includes("goal") ? "bg-[#006233]/20" : "bg-slate-700/50"
+          }`}>
+            <span className="text-[#FFD700] font-black text-sm w-10 text-center">{(ev as any).minute}'</span>
+            <span className="text-2xl">{getEventIcon((ev as any).type || "")}</span>
             <div className="flex-1">
-              <p className="text-white font-medium text-sm">{ev.player}</p>
-              {ev.assist && <p className="text-slate-400 text-xs">⬆️ {ev.assist}</p>}
+              <p className="text-white font-medium text-sm">{(ev as any).player || (ev as any).text || (ev as any).scorer || "—"}</p>
+              {(ev as any).assist && <p className="text-slate-400 text-xs">⬆️ {(ev as any).assist}</p>}
             </div>
-            <span className="text-slate-400 text-xs">{ev.team === "home" ? localizeTeam(events[0]?.team || "") : ""}</span>
           </div>
         ))}
       </div>
+    </div>
+  );
+}
+
+// ─── Tab: Cards (Yellow/Red) ──────────────────────────────────────────────────
+function TabCards({ liveData, m }: { liveData?: LiveData | null; m: typeof MATCH_DATA[0] }) {
+  // Use live data if available
+  const liveHomeYellow = parseInt(liveData?.stats.home.yellowCards || "0");
+  const liveAwayYellow = parseInt(liveData?.stats.away.yellowCards || "0");
+  const liveHomeRed = parseInt(liveData?.stats.home.redCards || "0");
+  const liveAwayRed = parseInt(liveData?.stats.away.redCards || "0");
+
+  // Fallback to embedded events
+  const cardEvents = (liveData?.events || m.events || []).filter((e: any) =>
+    e.type?.includes("card") || e.type?.includes("yellow") || e.type?.includes("red")
+  );
+
+  return (
+    <div className="space-y-4">
+      {/* Summary */}
+      <div className="bg-slate-800 rounded-2xl p-5">
+        <h3 className="text-lg font-bold text-[#FFD700] mb-4">🟨🟥 ملخص البطاقات</h3>
+
+        {/* Home team cards */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-xl">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{getFlag(m.home)}</span>
+              <span className="text-white font-bold">{localizeTeam(m.home)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <span className="text-2xl">🟨</span>
+                <span className="text-white font-black text-lg">{liveHomeYellow}</span>
+              </div>
+              {liveHomeRed > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-2xl">🟥</span>
+                  <span className="text-white font-black text-lg">{liveHomeRed}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Away team cards */}
+          <div className="flex items-center justify-between p-3 bg-slate-700/50 rounded-xl">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl">{getFlag(m.away)}</span>
+              <span className="text-white font-bold">{localizeTeam(m.away)}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1">
+                <span className="text-2xl">🟨</span>
+                <span className="text-white font-black text-lg">{liveAwayYellow}</span>
+              </div>
+              {liveAwayRed > 0 && (
+                <div className="flex items-center gap-1">
+                  <span className="text-2xl">🟥</span>
+                  <span className="text-white font-black text-lg">{liveAwayRed}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {!liveData && (
+          <p className="text-slate-400 text-xs text-center mt-4">
+            ℹ️ العدّ التفصيلي متاح للمباريات المباشرة فقط
+          </p>
+        )}
+      </div>
+
+      {/* Individual card events */}
+      {cardEvents.length > 0 && (
+        <div className="bg-slate-800 rounded-2xl p-5">
+          <h3 className="text-lg font-bold text-[#FFD700] mb-4">📋 البطاقات بالتفصيل</h3>
+          <div className="space-y-2">
+            {cardEvents.map((ev: any, i: number) => (
+              <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-slate-700/50">
+                <span className="text-[#FFD700] font-black text-sm w-10 text-center">{ev.minute}'</span>
+                <span className="text-2xl">{getEventIcon(ev.type || "")}</span>
+                <div className="flex-1">
+                  <p className="text-white font-medium text-sm">{ev.text || "—"}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ─── Tab: Stats (Detailed) ────────────────────────────────────────────────────
+function TabStatsDetailed({ m, liveData }: { m: typeof MATCH_DATA[0]; liveData?: LiveData | null }) {
+  const statsEntries = Object.entries(m.stats ?? {});
+  const useLive = liveData?.stats;
+
+  const detailedStats = useLive ? [
+    { type: "Ball Possession", home: `${liveData!.stats.home.possession}%`, away: `${liveData!.stats.away.possession}%` },
+    { type: "Shots", home: liveData!.stats.home.shots, away: liveData!.stats.away.shots },
+    { type: "Shots on Goal", home: liveData!.stats.home.shotsOnTarget, away: liveData!.stats.away.shotsOnTarget },
+    { type: "Passes", home: liveData!.stats.home.passes, away: liveData!.stats.away.passes },
+    { type: "Pass Accuracy", home: `${liveData!.stats.home.passAccuracy}%`, away: `${liveData!.stats.away.passAccuracy}%` },
+    { type: "Corner Kicks", home: liveData!.stats.home.corners, away: liveData!.stats.away.corners },
+    { type: "Fouls", home: liveData!.stats.home.fouls, away: liveData!.stats.away.fouls },
+    { type: "Offsides", home: liveData!.stats.home.offsides, away: liveData!.stats.away.offsides },
+    { type: "Yellow Cards", home: liveData!.stats.home.yellowCards, away: liveData!.stats.away.yellowCards },
+    { type: "Red Cards", home: liveData!.stats.home.redCards, away: liveData!.stats.away.redCards },
+  ] : statsEntries.map(([type, vals]) => ({ type, home: (vals as any).home, away: (vals as any).away }));
+
+  return (
+    <div className="bg-slate-800 rounded-2xl p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-lg font-bold text-[#FFD700]">📊 جميع الإحصائيات</h3>
+        {useLive && (
+          <span className="flex items-center gap-1 text-xs text-green-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            مباشر
+          </span>
+        )}
+      </div>
+      {detailedStats.length > 0 ? (
+        <div className="space-y-3">
+          {detailedStats.map(({ type, home, away }) => {
+            const homeNum = parseFloat(String(home).replace("%","")) || 0;
+            const awayNum = parseFloat(String(away).replace("%","")) || 0;
+            const total = homeNum + awayNum || 1;
+            const homePct = Math.round((homeNum / total) * 100);
+
+            return (
+              <div key={type}>
+                <div className="flex items-center justify-between text-xs mb-1">
+                  <span className="text-white font-bold w-16 text-left">{home}</span>
+                  <span className="text-slate-300 text-xs text-center">{tStat(type)}</span>
+                  <span className="text-white font-bold w-16 text-right">{away}</span>
+                </div>
+                <div className="flex h-2 rounded-full overflow-hidden bg-slate-700">
+                  <div className="bg-[#006233] h-full transition-all duration-500" style={{ width: `${homePct}%` }} />
+                  <div className="bg-[#D01C1F] h-full transition-all duration-500" style={{ width: `${100-homePct}%` }} />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      ) : (
+        <p className="text-slate-400 text-center py-8">الإحصائيات غير متوفرة</p>
+      )}
     </div>
   );
 }
@@ -154,6 +405,8 @@ export default function MatchPage() {
   const router = useRouter();
   const id = params?.id || "";
   const [tab, setTab] = useState<Tab>("overview");
+  const [liveData, setLiveData] = useState<LiveData | null>(null);
+  const [liveLoading, setLiveLoading] = useState(false);
 
   // Find match from embedded data using slug
   const match = MATCH_DATA.find(m => {
@@ -162,6 +415,40 @@ export default function MatchPage() {
     if (m.id && String(m.id) === id) return true;
     return false;
   });
+
+  // Fetch live stats from ESPN API (real-time)
+  useEffect(() => {
+    if (!match?.espnId && !match?.id) return;
+
+    let cancelled = false;
+    setLiveLoading(true);
+
+    const fetchLive = async () => {
+      try {
+        // Try ESPN first using espnId or match id
+        const espnId = match.espnId || match.id;
+        const res = await fetch(`/api/match-detail/${espnId}`, { cache: "no-store" });
+        if (!res.ok) throw new Error("ESPN failed");
+        const data = await res.json();
+        if (!cancelled && data && data.stats) {
+          setLiveData(data);
+        }
+      } catch (err) {
+        console.warn("[match-page] ESPN live fetch failed:", err);
+      } finally {
+        if (!cancelled) setLiveLoading(false);
+      }
+    };
+
+    fetchLive();
+    // Refresh every 30s if match is live
+    const interval = match?.state === "live" ? setInterval(fetchLive, 30000) : null;
+
+    return () => {
+      cancelled = true;
+      if (interval) clearInterval(interval);
+    };
+  }, [match?.id, match?.espnId, match?.state]);
 
   if (!match) {
     return <ErrorState onBack={() => router.push("/")} />;
@@ -183,6 +470,7 @@ export default function MatchPage() {
     { key: "overview", label: "نظرة عامة" },
     { key: "stats", label: "الإحصائيات" },
     { key: "events", label: "الأحداث" },
+    { key: "cards", label: "🟨 البطاقات" },
     { key: "h2h", label: "مواجهات سابقة" },
   ];
 
@@ -275,26 +563,10 @@ export default function MatchPage() {
 
       {/* Tab Content */}
       <div className="max-w-4xl mx-auto p-4">
-        {tab === "overview" && <TabOverview m={match} />}
-        {tab === "stats" && (
-          <div className="bg-slate-800 rounded-2xl p-5">
-            <h3 className="text-lg font-bold text-[#FFD700] mb-4">📊 جميع الإحصائيات</h3>
-            {match.stats && Object.entries(match.stats).length > 0 ? (
-              <div className="space-y-3">
-                {Object.entries(match.stats).map(([type, vals]) => (
-                  <div key={type} className="flex items-center justify-between py-2 border-b border-slate-700 last:border-0">
-                    <span className="text-white text-sm w-24 text-left">{(vals as any).home}</span>
-                    <span className="text-slate-400 text-xs text-center w-40">{tStat(type)}</span>
-                    <span className="text-white text-sm w-24 text-right">{(vals as any).away}</span>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-slate-400 text-center">الإحصائيات غير متوفرة</p>
-            )}
-          </div>
-        )}
-        {tab === "events" && <TabEvents events={match.events || []} />}
+        {tab === "overview" && <TabOverview m={match} liveData={liveData} />}
+        {tab === "stats" && <TabStatsDetailed m={match} liveData={liveData} />}
+        {tab === "events" && <TabEvents events={match.events || []} liveEvents={liveData?.events} />}
+        {tab === "cards" && <TabCards liveData={liveData} m={match} />}
         {tab === "h2h" && (
           <div className="text-center text-slate-400 py-10">
             <p>المواجهات السابقة غير متوفرة</p>

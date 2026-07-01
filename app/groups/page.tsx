@@ -1,4 +1,4 @@
-import { calculateStandings } from "@/lib/standings";
+import { calculateStandings, getBestThirds } from "@/lib/standings";
 import type { TeamStanding } from "@/lib/standings";
 import { fetchScores } from "@/lib/data";
 
@@ -90,6 +90,7 @@ export default async function GroupsPage() {
   // Calculate standings from real match results
   const scoresData = await fetchScores();
   const groupStandings = calculateStandings(scoresData.matches);
+  const bestThirds = getBestThirds(groupStandings);
   
   return (
     <div className="min-h-screen pb-16">
@@ -127,13 +128,77 @@ export default async function GroupsPage() {
           ))}
         </div>
 
+        {/* Best 8 Thirds - Round of 32 Qualifiers */}
+        <div className="mt-10 glass rounded-2xl overflow-hidden">
+          <div className="bg-gradient-to-r from-yellow-700/40 to-yellow-900/20 px-6 py-4 border-b border-yellow-700/30">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <h2 className="text-xl font-bold text-white flex items-center gap-2">
+                <span className="text-2xl">🌟</span>
+                <span>أفضل 8 ثوالث — المتأهلون لدور الـ 32</span>
+              </h2>
+              <span className="text-xs text-yellow-300 bg-yellow-500/10 border border-yellow-500/30 rounded-full px-3 py-1 font-bold">
+                {bestThirds.length} / 8
+              </span>
+            </div>
+            <p className="text-slate-400 text-sm mt-1">
+              من أصل 12 فريق يحتل المركز الثالث — أفضل 8 منهم يتأهلون لدور الـ 32 مع أول + ثاني كل مجموعة (32 فريقاً)
+            </p>
+          </div>
+          <div className="p-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              {bestThirds.map((t, idx) => (
+                <div
+                  key={t.team}
+                  className="flex items-center gap-3 bg-slate-800/40 rounded-xl p-3 border border-yellow-700/20 hover:border-yellow-500/50 transition-colors"
+                >
+                  <div className="flex flex-col items-center justify-center min-w-[2.5rem]">
+                    <span className="text-yellow-400 font-black text-lg leading-none">
+                      {idx + 1}
+                    </span>
+                    <span className="text-[10px] text-slate-500 mt-0.5">
+                      {t.group}
+                    </span>
+                  </div>
+                  <span className="text-2xl">{t.flag}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-bold text-sm truncate">
+                      {TEAM_AR[t.team] || t.team}
+                    </div>
+                    <div className="text-xs text-slate-400 flex items-center gap-2">
+                      <span className="text-yellow-400 font-bold">
+                        {t.points}
+                      </span>
+                      <span>•</span>
+                      <span className={t.gd > 0 ? "text-green-400" : t.gd < 0 ? "text-red-400" : ""}>
+                        {t.gd > 0 ? "+" : ""}{t.gd}
+                      </span>
+                      <span>•</span>
+                      <span>{t.gf}:{t.ga}</span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+              {Array.from({ length: Math.max(0, 8 - bestThirds.length) }).map((_, i) => (
+                <div
+                  key={`empty-${i}`}
+                  className="flex items-center justify-center bg-slate-900/40 rounded-xl p-3 border border-dashed border-slate-700 min-h-[4rem]"
+                >
+                  <span className="text-slate-600 text-xs">—</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
         {/* Info */}
         <div className="mt-8 glass rounded-2xl p-6">
           <h3 className="text-white font-bold mb-3">ℹ️ معلومات الترتيب</h3>
           <ul className="text-slate-400 text-sm space-y-1">
-            <li>• أفضل فريقين من كل مجموعة يتأهلان لثمن النهائي</li>
+            <li>• أفضل فريقين من كل مجموعة يتأهلان لثمن النهائي (24 فريق)</li>
+            <li>• <span className="text-yellow-400 font-bold">+ أفضل 8 ثوالث</span> من المجموعات الـ 12 → <span className="text-yellow-400 font-bold">32 فريقاً</span> في دور الـ 32</li>
             <li>• النقاط: فوز = 3، تعادل = 1، خسارة = 0</li>
             <li>• +/- = فارق الأهداف (له - عليه)</li>
+            <li>• ترتيب الثوالث: نقاط ← فارق أهداف ← أهداف مسجلة ← أهداف مُستقبَلة (أقل)</li>
           </ul>
         </div>
       </div>

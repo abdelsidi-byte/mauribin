@@ -341,7 +341,7 @@ export function formatMatchLabel(locale: Locale, utcDate: string, state: string)
 }
 
 // Localized team name translation (some teams have alternate names)
-const TEAM_LABELS: Record<string, Partial<Record<Locale, string>>> = {
+export const TEAM_LABELS: Record<string, Partial<Record<Locale, string>>> = {
   "USA": { en: "USA", fr: "États-Unis", ar: "أمريكا" },
   "United States": { en: "United States", fr: "États-Unis", ar: "أمريكا" },
   "South Korea": { en: "South Korea", fr: "Corée du Sud", ar: "كوريا الجنوبية" },

@@ -165,6 +165,7 @@ export function WorldCupBanner() {
 
   const stageLabel: Record<string, string> = {
     group: "دور المجموعات",
+    round32: "دور الـ 32 🆕",
     round16: "دور الـ16",
     quarter: "ربع النهائي",
     semi: "نصف النهائي",

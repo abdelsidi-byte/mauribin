@@ -42,6 +42,54 @@ function getMatchState(status: string): { state: string; label: string } {
   return { state: "upcoming", label: "قادم" };
 }
 
+/**
+ * Get the CURRENT score for a match, handling live updates correctly.
+ * Priority for LIVE matches:
+ *   1. halfTime + regularTime + extraTime (current cumulative score)
+ *   2. If regularTime is missing but fullTime differs from halfTime,
+ *      assume the difference is goals scored in the 2nd half
+ *   3. As last resort, use fullTime
+ * Priority for FINISHED matches:
+ *   1. fullTime (final score)
+ */
+function getCurrentScore(m: any): { home: number | null; away: number | null } {
+  const status = (m.status || "").toUpperCase();
+  const score = m.score || {};
+
+  if (status === "IN_PLAY" || status === "LIVE" || status === "PAUSED" || status === "HALFTIME") {
+    const ht = score.halfTime;
+    const reg = score.regularTime;
+    const ext = score.extraTime;
+    const ft = score.fullTime;
+
+    // Case 1: regularTime exists - sum all parts
+    if (reg && (reg.home !== null || reg.away !== null)) {
+      const home = (ht?.home ?? 0) + (reg.home ?? 0) + (ext?.home ?? 0);
+      const away = (ht?.away ?? 0) + (reg.away ?? 0) + (ext?.away ?? 0);
+      return { home, away };
+    }
+
+    // Case 2: regularTime missing but fullTime has values
+    // The difference between fullTime and halfTime represents goals scored in 2nd half
+    if (ft && (ft.home !== null || ft.away !== null)) {
+      const home = ft.home ?? 0;
+      const away = ft.away ?? 0;
+      return { home, away };
+    }
+
+    // Case 3: Only halfTime available
+    if (ht) {
+      return { home: ht.home ?? 0, away: ht.away ?? 0 };
+    }
+  }
+
+  // For FINISHED or SCHEDULED matches, use fullTime
+  return {
+    home: score.fullTime?.home ?? null,
+    away: score.fullTime?.away ?? null,
+  };
+}
+
 function formatLabel(utcDate: string): string {
   try {
     const d = new Date(utcDate);
@@ -119,8 +167,9 @@ export async function GET() {
     const matches = unique.map((m, idx) => {
       const home = m.homeTeam?.name || m.homeTeam?.shortName || "Unknown";
       const away = m.awayTeam?.name || m.awayTeam?.shortName || "Unknown";
-      const score = m.score?.fullTime || {};
       const { state, label } = getMatchState(m.status);
+      // Use getCurrentScore to handle live matches correctly (with VAR cancellations)
+      const currentScore = getCurrentScore(m);
       const utcDate = m.utcDate;
       const matchLabel = state === "upcoming" ? formatLabel(utcDate) : label;
       // Calculate elapsed minutes for live matches
@@ -135,8 +184,8 @@ export async function GET() {
         _index: idx,
         home,
         away,
-        homeScore: score.home ?? null,
-        awayScore: score.away ?? null,
+        homeScore: currentScore.home,
+        awayScore: currentScore.away,
         state,
         label: matchLabel,
         utcDate,

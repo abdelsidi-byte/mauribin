@@ -44,6 +44,7 @@ export type MatchStats = Record<string, { home: string; away: string }>;
 
 export type MatchEntry = {
   id?: number;
+  espnId?: string;  // ESPN event ID for live stats
   slug: string;
   home: string;
   away: string;
@@ -636,6 +637,7 @@ export const MATCH_DATA: MatchEntry[] = [
     homeScore: 5, awayScore: 0, state: "ft", label: "انتهت 5-0",
     date: "2026-06-23T15:00:00Z", league: "كأس العالم 2026", group: "المجموعة ك",
     venue: "ملعب لشبونة", elapsed: 90,
+    espnId: "760482",  // ESPN: Congo DR vs Uzbekistan (test)
     events: [
       {minute:"18",team:"home",player:"Cristiano Ronaldo",type:"goal"},
       {minute:"32",team:"home",player:"Bruno Fernandes",type:"goal"},
@@ -649,6 +651,7 @@ export const MATCH_DATA: MatchEntry[] = [
     homeScore: 1, awayScore: 0, state: "ft", label: "انتهت 1-0",
     date: "2026-06-24T15:00:00Z", league: "كأس العالم 2026", group: "المجموعة ك",
     venue: "ملعب بوغوتا", elapsed: 90,
+    espnId: "760481",  // ESPN: Colombia vs Portugal (test)
     events: [
       {minute:"66",team:"home",player:"Jhon Córdoba",type:"goal"},
     ],
@@ -674,6 +677,7 @@ export const MATCH_DATA: MatchEntry[] = [
     homeScore: 1, awayScore: 0, state: "ft", label: "انتهت 1-0",
     date: "2026-06-17T17:00:00Z", league: "كأس العالم 2026", group: "المجموعة ل",
     venue: "ملعب أكرا", elapsed: 90,
+    espnId: "760485",  // ESPN: Panama vs England (test)
     events: [
       {minute:"52",team:"home",player:"Mohammed Kudus",type:"goal"},
     ],
@@ -683,12 +687,14 @@ export const MATCH_DATA: MatchEntry[] = [
     homeScore: 0, awayScore: 0, state: "ft", label: "انتهت 0-0",
     date: "2026-06-23T14:00:00Z", league: "كأس العالم 2026", group: "المجموعة ل",
     venue: "ملعب لندن", elapsed: 90,
+    espnId: "760485",  // ESPN: Panama vs England (test)
   },
   {
     slug: "croatia-vs-panama", home: "Croatia", away: "Panama",
     homeScore: 1, awayScore: 0, state: "ft", label: "انتهت 1-0",
     date: "2026-06-25T17:00:00Z", league: "كأس العالم 2026", group: "المجموعة ل",
     venue: "ملعب زغرب", elapsed: 90,
+    espnId: "760480",  // ESPN: Croatia vs Ghana (test - similar match)
     events: [
       {minute:"71",team:"home",player:"Luka Modrić",type:"goal"},
     ],

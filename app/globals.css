@@ -372,26 +372,25 @@ header {
   vertical-align: middle;
 }
 
-/* White tint for upcoming matches - desaturate + brighten + white overlay */
-.fi-white {
-  filter: brightness(0) invert(1) !important;
-  opacity: 0.95;
-  /* Make it stand out on dark backgrounds with subtle glow */
-  box-shadow: 0 0 8px rgba(255, 255, 255, 0.15);
+/* Flags use their natural colors (no white tint) */
+
+/* VAR cancellation flash - red pulse animation */
+@keyframes var-flash {
+  0%, 100% { opacity: 0.3; }
+  10%, 30%, 50%, 70%, 90% { opacity: 1; }
+  20%, 40%, 60%, 80% { opacity: 0.4; }
+}
+.animate-var-flash {
+  animation: var-flash 4s ease-out forwards;
 }
 
-/* Subtle gold tint for featured */
-.fi-gold {
-  filter: brightness(0) invert(1) sepia(1) saturate(10) hue-rotate(20deg) !important;
-  box-shadow: 0 0 8px rgba(255, 215, 0, 0.3);
+/* Slide-down animation for toasts */
+@keyframes slide-down {
+  from { transform: translateY(-100%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
 }
-
-/* Hover effect - revert to original colors */
-.fi-white:hover, .fi-gold:hover {
-  filter: none !important;
-  transform: scale(1.1);
-  transition: all 0.2s ease;
-  box-shadow: 0 0 12px rgba(255, 215, 0, 0.4);
+.animate-slide-down {
+  animation: slide-down 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .comment-enter {

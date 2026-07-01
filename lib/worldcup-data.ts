@@ -16,7 +16,7 @@ export interface Match {
   time: string;
   venue: string;
   city: string;
-  stage: "group" | "round16" | "quarter" | "semi" | "third" | "final";
+  stage: "group" | "round32" | "round16" | "quarter" | "semi" | "third" | "final";
   group?: string;
   status: "ft" | "live" | "upcoming";
   label?: string;
@@ -305,19 +305,32 @@ function generateSchedule(): Match[] {
     }
   }
 
-  // Round of 16
-  const round16: [string, string, string][] = [
-    ["1A", "2B", "Round of 16 1"],
-    ["1C", "2D", "Round of 16 2"],
-    ["1E", "2F", "Round of 16 3"],
-    ["1G", "2H", "Round of 16 4"],
-    ["1B", "2A", "Round of 16 5"],
-    ["1D", "2C", "Round of 16 6"],
-    ["1F", "2E", "Round of 16 7"],
-    ["1H", "2G", "Round of 16 8"],
+  // Round of 32 - 16 matches between 32 teams (Top 2 + Best 8 Thirds from 12 groups)
+  // كأس العالم 2026 الجديد: 48 فريقاً → 32 يتأهلون → دور الـ 32 (16 مباراة)
+  const round32: [string, string, string][] = [
+    // Match 1-4: Group A/B/C/D winners vs runners-up
+    ["1A", "2C", "دور الـ 32 - مباراة 1"],
+    ["1B", "3A/C/D/E", "دور الـ 32 - مباراة 2"],
+    ["1D", "3B/E/F/I", "دور الـ 32 - مباراة 3"],
+    ["1C", "2F", "دور الـ 32 - مباراة 4"],
+    // Match 5-8
+    ["1E", "2D", "دور الـ 32 - مباراة 5"],
+    ["1G", "3A/B/C/H", "دور الـ 32 - مباراة 6"],
+    ["1F", "2A", "دور الـ 32 - مباراة 7"],
+    ["1H", "2G", "دور الـ 32 - مباراة 8"],
+    // Match 9-12
+    ["1I", "2E", "دور الـ 32 - مباراة 9"],
+    ["1K", "3D/E/G/I", "دور الـ 32 - مباراة 10"],
+    ["1J", "2H", "دور الـ 32 - مباراة 11"],
+    ["1L", "2B", "دور الـ 32 - مباراة 12"],
+    // Match 13-16
+    ["2I", "3A/C/F/H", "دور الـ 32 - مباراة 13"],
+    ["2J", "3B/D/G/L", "دور الـ 32 - مباراة 14"],
+    ["2K", "3C/E/F/J", "دور الـ 32 - مباراة 15"],
+    ["2L", "3E/H/I/K", "دور الـ 32 - مباراة 16"],
   ];
 
-  for (const [p1, p2, label] of round16) {
+  for (const [p1, p2, label] of round32) {
     matches.push({
       id: id++,
       home: p1,
@@ -328,6 +341,35 @@ function generateSchedule(): Match[] {
       time: "18:00",
       venue: "Levi's Stadium",
       city: "Santa Clara",
+      stage: "round32",
+      status: "upcoming",
+      label,
+    });
+  }
+
+  // Round of 16 - Winners of Round of 32 face off (8 matches)
+  const round16: [string, string, string][] = [
+    ["W57", "W58", "ثمن النهائي 1"],
+    ["W59", "W60", "ثمن النهائي 2"],
+    ["W61", "W62", "ثمن النهائي 3"],
+    ["W63", "W64", "ثمن النهائي 4"],
+    ["W65", "W66", "ثمن النهائي 5"],
+    ["W67", "W68", "ثمن النهائي 6"],
+    ["W69", "W70", "ثمن النهائي 7"],
+    ["W71", "W72", "ثمن النهائي 8"],
+  ];
+
+  for (const [p1, p2, label] of round16) {
+    matches.push({
+      id: id++,
+      home: p1,
+      away: p2,
+      homeFlag: "🏳️",
+      awayFlag: "🏳️",
+      date: "2026-07-02",
+      time: "18:00",
+      venue: "AT&T Stadium",
+      city: "Dallas",
       stage: "round16",
       status: "upcoming",
       label,

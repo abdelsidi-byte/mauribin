@@ -57,6 +57,7 @@ export default function SchedulePage() {
 
       const stageLabels: Record<string, string> = {
         group: "دور المجموعات",
+        round32: "دور الـ 32",
         round16: "دور الـ 16",
         quarter: "ربع النهائي",
         semi: "نصف النهائي",
@@ -171,6 +172,7 @@ export default function SchedulePage() {
   const knockoutMatches = SCHEDULE.filter((m) => m.stage !== "group");
 
   const stageLabels: Record<string, { title: string; icon: string }> = {
+    round32: { title: "دور الـ 32", icon: "32" },
     round16: { title: "دور الـ 16", icon: "16" },
     quarter: { title: "ربع النهائي", icon: "¼" },
     semi: { title: "نصف النهائي", icon: "½" },
@@ -178,7 +180,7 @@ export default function SchedulePage() {
     final: { title: "النهائي", icon: "🏆" },
   };
 
-  const stageOrder = ["round16", "quarter", "semi", "third", "final"];
+  const stageOrder = ["round32", "round16", "quarter", "semi", "third", "final"];
 
   return (
     <div className="min-h-screen pb-16">

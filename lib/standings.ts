@@ -14,6 +14,7 @@ export interface TeamStanding {
 
 export interface GroupStanding {
   group: string;
+  letter?: string;
   teams: TeamStanding[];
 }
 
@@ -141,7 +142,51 @@ export function calculateStandings(matches: {
     });
     return {
       group: `المجموعة ${arName}`,
+      letter,
       teams: groupTeams,
     };
   });
+}
+
+/**
+ * Best 8 third-placed teams across all 12 groups (qualify for Round of 32)
+ * كأس العالم 2026: 24 فريق (أول+ثاني من كل مجموعة) + أفضل 8 ثوالث = 32 فريقاً
+ */
+export function getBestThirds(standings: GroupStanding[]): Array<{
+  team: string;
+  flag: string;
+  group: string;
+  points: number;
+  gd: number;
+  gf: number;
+  ga: number;
+  played: number;
+}> {
+  const thirds = standings
+    .map((g) => {
+      const third = g.teams[2]; // index 2 = 3rd place (sorted by points)
+      return third
+        ? {
+            team: third.team,
+            flag: third.flag,
+            group: g.letter || g.group.replace("المجموعة ", ""),
+            points: third.points,
+            gd: third.gd,
+            gf: third.gf,
+            ga: third.ga,
+            played: third.played,
+          }
+        : null;
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  // Sort by FIFA tie-breaker: points → goal diff → goals scored → goals conceded (fewer is better)
+  thirds.sort((a, b) => {
+    if (b.points !== a.points) return b.points - a.points;
+    if (b.gd !== a.gd) return b.gd - a.gd;
+    if (b.gf !== a.gf) return b.gf - a.gf;
+    return a.ga - b.ga;
+  });
+
+  return thirds.slice(0, 8);
 }

@@ -5,8 +5,7 @@ import { useI18n } from "./I18nProvider";
 import { NewsSection } from "./NewsSection";
 import { YesterdayResults } from "./YesterdayResults";
 import { PhotosSection } from "./PhotosSection";
-import { LiveScoresTicker } from "./LiveScoresTicker";
-import { getFlagClass } from "@/lib/flagIcons";
+import { getFlagClass, getFlagUrl } from "@/lib/flagIcons";
 import VideoAdBanner from "./VideoAdBanner";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -130,9 +129,22 @@ function NextMatchHero({ match }: { match: Match }) {
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
               {(() => {
-                const flagCls = getFlagClass(homeTeam, "white");
+                const flagCls = getFlagClass(homeTeam, "normal");
+                const flagUrl = getFlagUrl(homeTeam);
                 if (flagCls) {
-                  return <span className={`${flagCls}`} style={{ width: "80px", height: "80px", borderRadius: "8px" }} />;
+                  return (
+                    <span
+                      className={`${flagCls} bg-slate-800`}
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        borderRadius: "8px",
+                        backgroundImage: flagUrl ? `url(${flagUrl})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                  );
                 }
                 if (isHomeUrl) {
                   return <img src={homeLogo} alt={homeTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />;
@@ -161,9 +173,22 @@ function NextMatchHero({ match }: { match: Match }) {
           <div className="flex-1 text-center">
             <div className="h-24 w-24 mx-auto mb-3 flex items-center justify-center">
               {(() => {
-                const flagCls = getFlagClass(awayTeam, "white");
+                const flagCls = getFlagClass(awayTeam, "normal");
+                const flagUrl = getFlagUrl(awayTeam);
                 if (flagCls) {
-                  return <span className={`${flagCls}`} style={{ width: "80px", height: "80px", borderRadius: "8px" }} />;
+                  return (
+                    <span
+                      className={`${flagCls} bg-slate-800`}
+                      style={{
+                        width: "80px",
+                        height: "80px",
+                        borderRadius: "8px",
+                        backgroundImage: flagUrl ? `url(${flagUrl})` : undefined,
+                        backgroundSize: "cover",
+                        backgroundPosition: "center",
+                      }}
+                    />
+                  );
                 }
                 if (isAwayUrl) {
                   return <img src={awayLogo} alt={awayTeam} loading="lazy" className="max-h-full max-w-full object-contain" onError={(e) => { e.currentTarget.style.display='none'; }} />;
@@ -193,11 +218,13 @@ function NextMatchHero({ match }: { match: Match }) {
 function MatchCard({
   match,
   onGoal,
+  onVarCancel,
   localizeTeamFn,
   tFn,
 }: {
   match: Match;
   onGoal: (team: string, side: "home" | "away") => void;
+  onVarCancel?: (team: string, side: "home" | "away") => void;
   localizeTeamFn: (name: string) => string;
   tFn: (key: string) => string;
 }) {
@@ -216,15 +243,17 @@ function MatchCard({
 
   const isLive = match.state === "live";
   const [showGoal, setShowGoal] = useState<"home" | "away" | null>(null);
+  const [showVarCancel, setShowVarCancel] = useState<"home" | "away" | null>(null);
   const cardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Detect goal
+    // Detect goal or VAR cancellation
     if (
       match.state === "live" &&
       prevScore.current.home !== null &&
       prevScore.current.away !== null
     ) {
+      // Forward: goal scored (home or away)
       if (
         match.homeScore !== null &&
         match.homeScore > (prevScore.current.home ?? 0)
@@ -240,14 +269,49 @@ function MatchCard({
         onGoal(match.away, "away");
         setTimeout(() => setShowGoal(null), 3000);
       }
+      // Backward: VAR cancels goal (home or away)
+      else if (
+        match.homeScore !== null &&
+        match.homeScore < (prevScore.current.home ?? 0)
+      ) {
+        setShowVarCancel("home");
+        onVarCancel?.(match.home, "home");
+        setTimeout(() => setShowVarCancel(null), 4000);
+      } else if (
+        match.awayScore !== null &&
+        match.awayScore < (prevScore.current.away ?? 0)
+      ) {
+        setShowVarCancel("away");
+        onVarCancel?.(match.away, "away");
+        setTimeout(() => setShowVarCancel(null), 4000);
+      }
     }
+    // Always update prev score, even if state is not live (handles transitions)
     prevScore.current = { home: match.homeScore, away: match.awayScore };
-  }, [match.homeScore, match.awayScore, match.state, match.home, match.away, onGoal]);
+  }, [match.homeScore, match.awayScore, match.state, match.home, match.away, onGoal, onVarCancel]);
 
   return (
     <div ref={cardRef} className="relative">
       {showGoal && (
         <GoalCelebration team={showGoal === "home" ? match.home : match.away} side={showGoal} localizeTeamFn={localizeTeamFn} />
+      )}
+      {/* VAR Cancellation Overlay */}
+      {showVarCancel && (
+        <div className="absolute inset-0 z-40 pointer-events-none rounded-2xl overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-red-600/60 via-red-700/50 to-red-600/60 animate-var-flash backdrop-blur-[2px] flex items-center justify-center">
+            <div className="bg-black/80 rounded-2xl px-4 py-3 border-2 border-red-500 shadow-2xl shadow-red-600/50">
+              <div className="flex items-center gap-2 text-white">
+                <span className="text-3xl animate-pulse">🚫</span>
+                <div className="flex flex-col">
+                  <span className="text-[#FFD700] text-xs font-black">VAR</span>
+                  <span className="text-white text-sm font-bold">
+                    إلغاء هدف {showVarCancel === "home" ? localizeTeamFn(match.home) : localizeTeamFn(match.away)}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       <Link
         href={`/match/${match.slug || match._index}`}
@@ -268,9 +332,21 @@ function MatchCard({
           {/* Home */}
           <div className="flex items-center gap-2 min-w-0">
             {(() => {
-              const flagCls = getFlagClass(homeTeam, "white");
+              const flagCls = getFlagClass(homeTeam, "normal");
+              const flagUrl = getFlagUrl(homeTeam);
               if (flagCls) {
-                return <span className={`${flagCls} shrink-0 rounded`} style={{ width: "20px", height: "20px" }} />;
+                return (
+                  <span
+                    className={`${flagCls} shrink-0 rounded bg-slate-800`}
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      backgroundImage: flagUrl ? `url(${flagUrl})` : undefined,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                );
               }
               if (isHomeUrl) {
                 return <img src={homeFlag} alt={homeTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />;
@@ -288,9 +364,21 @@ function MatchCard({
           {/* Away */}
           <div className="flex items-center gap-2 min-w-0">
             {(() => {
-              const flagCls = getFlagClass(awayTeam, "white");
+              const flagCls = getFlagClass(awayTeam, "normal");
+              const flagUrl = getFlagUrl(awayTeam);
               if (flagCls) {
-                return <span className={`${flagCls} shrink-0 rounded`} style={{ width: "20px", height: "20px" }} />;
+                return (
+                  <span
+                    className={`${flagCls} shrink-0 rounded bg-slate-800`}
+                    style={{
+                      width: "20px",
+                      height: "20px",
+                      backgroundImage: flagUrl ? `url(${flagUrl})` : undefined,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                );
               }
               if (isAwayUrl) {
                 return <img src={awayFlag} alt={awayTeam} loading="lazy" className="w-6 h-6 object-contain shrink-0 rounded" onError={(e) => { e.currentTarget.style.display = 'none'; }} />;
@@ -343,6 +431,25 @@ function GoalToast({ goals, localizeTeamFn }: { goals: { team: string; side: "ho
   );
 }
 
+// VAR cancellation toast (distinct red style)
+function VarCancellationToast({ cancellations, localizeTeamFn }: { cancellations: { team: string; side: "home" | "away" }[]; localizeTeamFn: (n: string) => string }) {
+  if (cancellations.length === 0) return null;
+  return (
+    <div className="fixed top-20 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2">
+      {cancellations.map((c, i) => (
+        <div
+          key={i}
+          className="bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black px-6 py-3 rounded-xl shadow-2xl shadow-red-600/50 animate-slide-down border-2 border-white/30 flex items-center gap-2"
+        >
+          <span className="text-2xl">🚫</span>
+          <span className="text-sm">VAR إلغاء هدف</span>
+          <span className="text-yellow-300">{localizeTeamFn(c.team)}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 interface ClientHomeProps {
   matches: Match[];
   articles: Article[];
@@ -354,6 +461,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   const [matches, setMatches] = useState<Match[]>(initialMatches);
   const [countdown, setCountdown] = useState(10);
   const [recentGoals, setRecentGoals] = useState<{ team: string; side: "home" | "away" }[]>([]);
+  const [varCancellations, setVarCancellations] = useState<{ team: string; side: "home" | "away" }[]>([]);
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
@@ -382,13 +490,15 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
         const res = await fetch("/api/live-scores");
         const data = await res.json();
         if (data.matches && data.matches.length > 0) {
-          // Detect new goals using current (fresh) matches
+          // Detect new goals AND VAR cancellations using current (fresh) matches
           const newGoals: { team: string; side: "home" | "away" }[] = [];
+          const newVarCancellations: { team: string; side: "home" | "away" }[] = [];
           data.matches.forEach((newMatch: Match) => {
             const oldMatch = currentMatches.find(
               (m) => m.home === newMatch.home && m.away === newMatch.away
             );
             if (oldMatch && newMatch.state === "live") {
+              // Goal scored
               if (
                 newMatch.homeScore !== null &&
                 oldMatch.homeScore !== null &&
@@ -403,11 +513,31 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               ) {
                 newGoals.push({ team: newMatch.away, side: "away" });
               }
+              // VAR cancellation (score decreased)
+              if (
+                newMatch.homeScore !== null &&
+                oldMatch.homeScore !== null &&
+                newMatch.homeScore < oldMatch.homeScore
+              ) {
+                newVarCancellations.push({ team: newMatch.home, side: "home" });
+              }
+              if (
+                newMatch.awayScore !== null &&
+                oldMatch.awayScore !== null &&
+                newMatch.awayScore < oldMatch.awayScore
+              ) {
+                newVarCancellations.push({ team: newMatch.away, side: "away" });
+              }
             }
           });
           if (newGoals.length > 0) {
             setRecentGoals(newGoals);
             setTimeout(() => setRecentGoals([]), 4000);
+          }
+          if (newVarCancellations.length > 0) {
+            setVarCancellations(newVarCancellations);
+            setTimeout(() => setVarCancellations([]), 5000);
+            console.log("[VAR] Cancellations detected:", newVarCancellations);
           }
 
           setMatches(data.matches);
@@ -459,6 +589,13 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
     }, 4000);
   }, []);
 
+  const handleVarCancellation = useCallback((team: string, side: "home" | "away") => {
+    setVarCancellations((prev) => [...prev, { team, side }]);
+    setTimeout(() => {
+      setVarCancellations((prev) => prev.filter((g) => !(g.team === team && g.side === side)));
+    }, 5000);
+  }, []);
+
   // Combine and deduplicate live matches by slug
   const liveMatches = matches.filter((m) => m.state === "live");
   const finishedMatches = matches.filter((m) => m.state === "ft" || m.state === "finished");
@@ -498,6 +635,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#006233]/8 via-slate-950 to-slate-950">
       <GoalToast goals={recentGoals} localizeTeamFn={localizeTeam} />
+      <VarCancellationToast cancellations={varCancellations} localizeTeamFn={localizeTeam} />
       <RefreshIndicator countdown={countdown} />
 
       <section className="relative overflow-hidden">
@@ -521,19 +659,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
             </p>
           </div>
 
-          {/* Live Scores Ticker - Marquee */}
-          <div className="mb-8">
-            <LiveScoresTicker initialMatches={
-              [
-                ...liveMatches,
-                ...wcLiveMatches,
-                ...finishedMatches.slice(0, 15),
-                ...wcFinishedMatches.slice(0, 15),
-                ...upcomingMatches.slice(0, 15),
-                ...wcUpcomingMatches.slice(0, 15),
-              ] as any
-            } />
-          </div>
+          {/* Live Scores Ticker moved to layout.tsx (top of page) */}
 
           {/* Featured LIVE Matches - Sofascore Style */}
           {uniqueLiveMatches.length > 0 && (
@@ -548,7 +674,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
                 {uniqueLiveMatches.map((match) => (
                   <div key={match.slug || match._index} className="w-full">
-                    <MatchCard match={match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
+                    <MatchCard match={match} onGoal={handleGoal} onVarCancel={handleVarCancellation} localizeTeamFn={localizeTeam} tFn={t} />
                   </div>
                 ))}
               </div>
@@ -578,10 +704,10 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
               </div>
               <div className="flex gap-4 overflow-x-auto pb-2 hide-scrollbar">
                 {upcomingMatches.map((match) => (
-                  <MatchCard key={match._index} match={match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
+                  <MatchCard key={match._index} match={match} onGoal={handleGoal} onVarCancel={handleVarCancellation} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
                 {wcUpcomingMatches.slice(0, 10).map((match, idx) => (
-                  <MatchCard key={`wc-up-${idx}`} match={match as Match} onGoal={handleGoal} localizeTeamFn={localizeTeam} tFn={t} />
+                  <MatchCard key={`wc-up-${idx}`} match={match as Match} onGoal={handleGoal} onVarCancel={handleVarCancellation} localizeTeamFn={localizeTeam} tFn={t} />
                 ))}
               </div>
             </div>
