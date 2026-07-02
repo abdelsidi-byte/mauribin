@@ -1,5 +1,5 @@
-// Mauribin Service Worker - PWA
-const CACHE_NAME = 'mauribin-v2';
+// Mauribin Service Worker v4 — Robust PWA + Push
+const CACHE_NAME = 'mauribin-v4';
 const STATIC_ASSETS = [
   '/',
   '/news',
@@ -9,151 +9,183 @@ const STATIC_ASSETS = [
   '/icons/icon-512.png',
 ];
 
-// Install: cache static assets
+// ─── Install ───────────────────────────────────────────────────────────────
 self.addEventListener('install', (event) => {
+  console.log('[SW] Installing v4...');
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => {
-      return cache.addAll(STATIC_ASSETS);
-    })
+    caches.open(CACHE_NAME)
+      .then(async (cache) => {
+        // Add assets individually so one failure doesn't block the whole SW
+        const results = await Promise.allSettled(
+          STATIC_ASSETS.map(url => cache.add(url).catch(err => ({ url, err })))
+        );
+        const failed = results.filter(r => r.status === 'rejected');
+        if (failed.length) {
+          console.warn('[SW] Some assets failed to cache:', failed.length, 'failures');
+        }
+      })
+      .then(() => {
+        console.log('[SW] Install complete, skipping waiting');
+        return self.skipWaiting();
+      })
+      .catch((err) => {
+        console.error('[SW] Install failed:', err);
+        // Don't throw — let SW still activate even if caching partially fails
+      })
   );
-  self.skipWaiting();
 });
 
-// Activate: clean old caches
+// ─── Activate ──────────────────────────────────────────────────────────────
 self.addEventListener('activate', (event) => {
+  console.log('[SW] Activating v4...');
   event.waitUntil(
-    caches.keys().then((keys) => {
-      return Promise.all(
-        keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))
-      );
+    Promise.all([
+      // Clean old caches
+      caches.keys().then((keys) =>
+        Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
+      ),
+      // Take control of all clients immediately
+      self.clients.claim(),
+    ]).then(() => {
+      console.log('[SW] Activate complete, now controlling clients');
     })
   );
-  self.clients.claim();
 });
 
-// Fetch: Stale While Revalidate (perfect for Next.js ISR)
+// ─── Fetch ─────────────────────────────────────────────────────────────────
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
 
-  // Skip non-GET and cross-origin requests
-  if (request.method !== 'GET') return;
-  if (url.origin !== location.origin) return;
+  // Only handle same-origin GET
+  if (request.method !== 'GET' || url.origin !== location.origin) return;
 
-  // API calls: network only (always fresh scores)
+  // API routes → always network, no caching
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request).catch(() => {
-        // Return cached API data if available
-        return caches.match(request).then(cached => {
-          if (cached) return cached;
-          return new Response(JSON.stringify({ error: 'offline', matches: [] }), {
-            headers: { 'Content-Type': 'application/json' }
-          });
-        });
+        return caches.match(request).then(cached =>
+          cached || new Response(
+            JSON.stringify({ error: 'offline', matches: [] }),
+            { headers: { 'Content-Type': 'application/json' } }
+          )
+        );
       })
     );
     return;
   }
 
-  // Static assets: cache first
+  // Static assets → cache first, update in background
   if (url.pathname.match(/\.(js|css|png|jpg|jpeg|svg|ico|woff2?)$/)) {
     event.respondWith(
-      caches.match(request).then(cached => {
-        if (cached) return cached;
-        return fetch(request).then(network => {
+      caches.match(request).then((cached) => {
+        const networkFetch = fetch(request).then((network) => {
           if (network.ok) {
             const clone = network.clone();
             caches.open(CACHE_NAME).then(c => c.put(request, clone));
           }
           return network;
-        });
+        }).catch(() => cached); // fallback to cache on network failure
+
+        return cached || networkFetch;
       })
     );
     return;
   }
 
-  // HTML pages: Stale While Revalidate
+  // HTML pages → stale-while-revalidate
   event.respondWith(
-    caches.match(request).then(cached => {
-      const fetchPromise = fetch(request).then(network => {
-        // Update cache with fresh version
+    caches.match(request).then((cached) => {
+      const networkFetch = fetch(request).then((network) => {
         if (network.ok) {
           const clone = network.clone();
-          caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
+          caches.open(CACHE_NAME).then(c => c.put(request, clone));
         }
         return network;
-      }).catch(() => {
-        // Network failed, return cached or offline page
-        return cached || caches.match('/');
-      });
-      
-      // Return cached immediately, update in background
-      return cached || fetchPromise;
+      }).catch(() => cached || caches.match('/'));
+
+      return cached || networkFetch;
     })
   );
 });
 
-// Push notifications
+// ─── Push ───────────────────────────────────────────────────────────────────
 self.addEventListener('push', (event) => {
-  if (!event.data) return;
-  
-  const data = event.data.json();
+  if (!event.data) {
+    console.warn('[SW] Push received with no data');
+    return;
+  }
+
+  let data;
+  try {
+    data = event.data.json();
+  } catch {
+    data = { title: 'Mauribin', body: event.data.text() };
+  }
+
   const options = {
-    body: data.body || 'تحديث جديد من Mauribin',
+    body: data.body || 'تحديث جديد',
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-192.png',
     vibrate: [100, 50, 100],
+    tag: 'mauribin-notif',
+    requireInteraction: data.type === 'goal' || data.type === 'redCard',
     data: { url: data.url || '/' },
     actions: [
-      { action: 'open', title: 'فتح' },
-      { action: 'close', title: 'إغلاق' },
+      { action: 'open', title: '⚽ فتح' },
+      { action: 'close', title: '✕ إغلاق' },
     ],
   };
 
   event.waitUntil(
-    self.registration.showNotification(data.title || 'Mauribin', options)
+    self.registration.showNotification(data.title || '⚽ Mauribin', options)
   );
 });
 
-// Notification click
+// ─── Notification click ─────────────────────────────────────────────────────
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  
+
   if (event.action === 'close') return;
-  
-  const url = event.notification.data?.url || '/';
-  
+
+  const targetUrl = event.notification.data?.url || '/';
+
   event.waitUntil(
-    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clientList) => {
-      for (const client of clientList) {
-        if (client.url === url && 'focus' in client) {
-          return client.focus();
+    clients.matchAll({ type: 'window', includeUncontrolled: true })
+      .then((clientList) => {
+        // Focus existing window if open
+        for (const client of clientList) {
+          if (client.url.includes(targetUrl) && 'focus' in client) {
+            return client.focus();
+          }
         }
-      }
-      if (clients.openWindow) {
-        return clients.openWindow(url);
-      }
-    })
+        // Otherwise open new window
+        if (clients.openWindow) {
+          return clients.openWindow(targetUrl);
+        }
+      })
   );
 });
 
-// Background sync
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-matches') {
-    event.waitUntil(syncMatches());
+// ─── Message handler (communication with main thread) ───────────────────────
+self.addEventListener('message', (event) => {
+  const { type, payload } = event.data || {};
+
+  if (type === 'SKIP_WAITING') {
+    console.log('[SW] Skip waiting requested');
+    self.skipWaiting();
+  }
+
+  if (type === 'GET_VERSION') {
+    event.ports[0]?.postMessage({ version: CACHE_NAME });
+  }
+
+  if (type === 'CLEAR_CACHE') {
+    caches.delete(CACHE_NAME).then(() => {
+      console.log('[SW] Cache cleared');
+      event.ports[0]?.postMessage({ ok: true });
+    });
   }
 });
 
-async function syncMatches() {
-  try {
-    const res = await fetch('/api/live-scores');
-    const data = await res.json();
-    const cache = await caches.open(CACHE_NAME);
-    await cache.put('/api/live-scores', new Response(JSON.stringify(data), {
-      headers: { 'Content-Type': 'application/json' }
-    }));
-  } catch (e) {
-    console.log('Sync failed:', e);
-  }
-}
+console.log('[SW] Mauribin SW v4 loaded');

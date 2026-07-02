@@ -3,6 +3,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useI18n } from "./I18nProvider";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { NotificationButton } from "./NotificationButton";
 
 export function Navigation() {
   const { t } = useI18n();
@@ -20,6 +21,7 @@ export function Navigation() {
     { href: "/stats", label: t("nav.stats"), icon: "📊" },
     { href: "/predict", label: t("nav.predict"), icon: "⚽" },
     { href: "/search", label: t("nav.search"), icon: "🔍" },
+    { href: "/notifications", label: "🔔", icon: "🔔" },
   ];
 
   return (
@@ -111,6 +113,7 @@ export function Navigation() {
 
           {/* Live indicator + Language switcher */}
           <div className="hidden md:flex items-center gap-3">
+            <NotificationButton />
             <div className="flex items-center gap-2 px-4 py-1.5 rounded-full bg-[#d01c1f]/20 border border-[#d01c1f]/40 glow-red">
               <span className="w-2.5 h-2.5 rounded-full bg-[#d01c1f] live-dot" />
               <span className="text-xs text-[#d01c1f] font-bold tracking-wider">LIVE</span>
@@ -121,6 +124,7 @@ export function Navigation() {
 
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-2">
+            <NotificationButton />
             <LanguageSwitcher />
             <button
               className="w-11 h-11 flex items-center justify-center rounded-xl bg-[#006233]/40 hover:bg-[#007a40]/50 border border-[#006233]/30 transition-all"
