@@ -231,12 +231,40 @@ export function NotificationButton({ forceOpen = false }: NotificationButtonProp
 
   // ─── 7. Test notification ───
   async function sendTest() {
+    const log = (msg: string, type: "ok" | "err" | "info" = "info") => {
+      console.log(`[sendTest] ${msg}`);
+      // Also show on screen for mobile users
+      const div = document.getElementById("debug-log");
+      if (div) {
+        const ts = new Date().toLocaleTimeString();
+        const color = type === "ok" ? "#4ade80" : type === "err" ? "#f87171" : "#60a5fa";
+        div.innerHTML += `<div style="color:${color};font-size:11px;margin:2px 0">[${ts}] ${msg}</div>`;
+        div.scrollTop = div.scrollHeight;
+      }
+    };
+
+    log("Button clicked ✅");
+    log("state: " + state);
+
     if (!("serviceWorker" in navigator)) {
+      log("❌ Service Worker not supported", "err");
       alert("هذا المتصفح لا يدعم Service Worker.");
       return;
     }
+    log("✅ Service Worker supported");
+
     try {
+      log("Getting serviceWorker.ready...");
       const reg = await navigator.serviceWorker.ready;
+      log("✅ ready resolved | active.state: " + (reg.active?.state ?? "null"), "ok");
+
+      if (!reg.active || reg.active.state !== "activated") {
+        log("⚠️ SW not activated. State: " + (reg.active?.state ?? "null"), "err");
+        alert("Service Worker غير جاهز بعد.\n\n💡 الحل: أغلق هذه النافذة وأعد فتحها، ثم جرب مرة أخرى.");
+        return;
+      }
+
+      log("Calling registration.showNotification()...");
       await reg.showNotification("⚽ Mauribin - إشعار اختباري", {
         body: "هذا إشعار اختباري ✅ نظام الإشعارات يعمل!",
         icon: "/icons/icon-192.png",
@@ -244,10 +272,12 @@ export function NotificationButton({ forceOpen = false }: NotificationButtonProp
         tag: "mauribin-test",
         requireInteraction: true,
       });
+      log("✅ Notification shown! 🎉", "ok");
+
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : String(err);
-      console.error("[Notif] Test notification failed:", msg);
-      alert("فشل في إرسال الإشعار الاختباري:\n\n" + msg);
+      log("❌ Error: " + msg, "err");
+      alert("فشل:\n\n" + msg);
     }
   }
 

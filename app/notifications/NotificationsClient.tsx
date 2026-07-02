@@ -56,6 +56,28 @@ export function NotificationsClient() {
           </div>
         </div>
 
+        {/* Debug log — visible while testing */}
+        <div className="bg-black/60 border border-blue-500/40 rounded-xl p-4 mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="text-sm font-bold text-blue-400">🔍 Debug Log (للاختبار)</h3>
+            <button
+              onClick={() => {
+                const div = document.getElementById("debug-log");
+                if (div) div.innerHTML = "";
+              }}
+              className="text-[10px] text-slate-500 hover:text-white"
+            >
+              مسح
+            </button>
+          </div>
+          <div
+            id="debug-log"
+            className="bg-black/80 rounded-lg p-3 min-h-[80px] max-h-[200px] overflow-y-auto font-mono text-[11px]"
+          >
+            <div className="text-slate-500 text-[10px]">[] اضغط "تجربة" لرؤية الخطوات...</div>
+          </div>
+        </div>
+
         {/* How it works */}
         <div className="bg-slate-800/40 rounded-2xl p-6 border border-slate-700/50 mb-6">
           <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">

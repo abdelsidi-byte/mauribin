@@ -43,11 +43,16 @@ function NextMatchHero({ match }: { match: Match }) {
   const { t, localizeTeam } = useI18n();
   if (!match) return null;
   
-  // DEFENSIVE: never show a finished match as "next match"
+  // DEFENSIVE: never show a live or finished match as "next match"
   const matchDate = new Date(match.utcDate || match.date);
   const now = new Date();
   const diffMs = matchDate.getTime() - now.getTime();
-  
+
+  // CRITICAL: never show a match that is already live or finished as "next match"
+  if (match.state === "live" || match.state === "ft" || match.state === "finished") {
+    return null;
+  }
+
   // If kickoff was more than 30 minutes ago, this is NOT a next match
   if (diffMs < -30 * 60 * 1000) {
     return null;
@@ -612,8 +617,18 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   const now = Date.now();
   const upcomingSorted = allUpcoming
     .filter((m) => {
-      // Filter out matches that are already past (more than 30 min ago)
+      // NEVER show live or finished matches as "upcoming"
+      if (m.state === "live" || m.state === "ft" || m.state === "finished") {
+        return false;
+      }
+      // If match time has passed by more than 2 minutes but state is still "upcoming",
+      // treat it as live — the data source is stale
       const matchTime = new Date(m.utcDate || m.date || 0).getTime();
+      const isStale = matchTime - now < -2 * 60 * 1000;
+      if (isStale) {
+        return false;
+      }
+      // Filter out matches that started more than 30 min ago
       return matchTime - now > -30 * 60 * 1000;
     })
     .sort((a, b) => new Date(a.utcDate || a.date || 0).getTime() - new Date(b.utcDate || b.date || 0).getTime());
