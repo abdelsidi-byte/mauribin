@@ -2,6 +2,15 @@ import { NextResponse } from "next/server";
 
 const API_KEY = "74324d6063934f75b808c611780d7b68";
 
+// Simple in-memory cache for serverless (survives ~10s warm Lambda window)
+// Key: date string, Value: { timestamp, data }
+const cache = new Map<string, { timestamp: number; data: any }>();
+const CACHE_TTL_MS = 15_000; // 15 seconds — balance between freshness and load
+
+function getCacheKey(from: string, to: string): string {
+  return `${from}→${to}`;
+}
+
 function slugify(home: string, away: string): string {
   return `${home.toLowerCase().replace(/\s+/g, "-")}-vs-${away.toLowerCase().replace(/\s+/g, "-")}`;
 }
@@ -123,9 +132,22 @@ export async function GET() {
 
     const userTimezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-    console.log(`[LIVE-SCORES] Today local: ${todayLocal.toDateString()}`);
-    console.log(`[LIVE-SCORES] Timezone: ${userTimezone}`);
-    console.log(`[LIVE-SCORES] Fetch range: ${fromUTC} → ${toUTC}`);
+    // ── CACHE: serve fresh data to all clients from one API call ──
+    const cacheKey = getCacheKey(fromUTC, toUTC);
+    const cached = cache.get(cacheKey);
+    const nowMs = Date.now();
+    const isCacheValid = cached && (nowMs - cached.timestamp < CACHE_TTL_MS);
+
+    if (isCacheValid) {
+      console.log(`[LIVE-SCORES] ✅ Cache hit (${Math.round((nowMs - cached.timestamp) / 1000)}s old)`);
+      return NextResponse.json({
+        ...cached.data,
+        _cached: true,
+        _age_seconds: Math.round((nowMs - cached.timestamp) / 1000),
+      });
+    }
+    console.log(`[LIVE-SCORES] 🔄 Cache miss — fetching from football-data.org`);
+    // ── End cache ──
 
     const res = await fetch(
       `https://api.football-data.org/v4/competitions/WC/matches?dateFrom=${fromUTC}&dateTo=${toUTC}`,
@@ -211,7 +233,7 @@ export async function GET() {
       console.log(`  -> ${m.home} vs ${m.away} [${m.state}] at ${m.utcDate}`);
     });
 
-    return NextResponse.json({
+    const responseBody = {
       matches,
       source: "api",
       debug: {
@@ -221,7 +243,14 @@ export async function GET() {
         filteredCount: todayMatches.length,
         finalCount: matches.length,
       },
-    });
+    };
+
+    // ── Save to cache ──
+    cache.set(cacheKey, { timestamp: nowMs, data: responseBody });
+    console.log(`[LIVE-SCORES] 💾 Cached with TTL=${CACHE_TTL_MS / 1000}s`);
+    // ── End cache ──
+
+    return NextResponse.json(responseBody);
   } catch (e) {
     console.error("[LIVE-SCORES] Error:", e);
     return NextResponse.json({ matches: [], source: "error", error: String(e) }, { status: 500 });

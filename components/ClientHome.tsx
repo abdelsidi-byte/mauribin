@@ -470,16 +470,22 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
   const [lastUpdate, setLastUpdate] = useState<Date>(new Date());
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Polling: 8s when live matches exist, 30s when idle
+  const hasLive = matches.some((m) => m.state === "live") || worldCupMatches.some((m) => m.state === "live");
+  const pollIntervalMs = hasLive ? 8_000 : 30_000;
+
   // Use ref to avoid stale closure in intervals
   const matchesRef = useRef<Match[]>(initialMatches);
   matchesRef.current = matches;
+  const pollIntervalRef = useRef(pollIntervalMs);
+  pollIntervalRef.current = pollIntervalMs; // Update ref when live status changes
 
   // Track last manual refresh to pause auto-refresh briefly
   const lastManualRefresh = useRef<number>(0);
 
   const shouldSkipRefresh = () => Date.now() - lastManualRefresh.current < 10000;
 
-  // Auto-refresh every 30 seconds
+  // Auto-refresh: 8s for live matches, 30s when idle
   useEffect(() => {
     const interval = setInterval(async () => {
       if (shouldSkipRefresh()) {
@@ -489,6 +495,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
 
       const scrollY = window.scrollY;
       const currentMatches = matchesRef.current;
+      const pollMs = pollIntervalRef.current;
 
       try {
         setIsRefreshing(true);
@@ -557,8 +564,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
       } finally {
         setIsRefreshing(false);
       }
-      setCountdown(10);
-    }, 10000);
+      // Countdown resets based on actual polling interval
+      setCountdown(Math.round(pollIntervalRef.current / 1000));
+    }, pollIntervalRef.current);
 
     const countdownInterval = setInterval(() => {
       setCountdown((c) => Math.max(0, c - 1));
