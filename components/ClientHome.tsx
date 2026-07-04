@@ -487,6 +487,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
 
   // Auto-refresh: 8s for live matches, 30s when idle
   useEffect(() => {
+    // Reset countdown whenever poll interval changes
+    setCountdown(Math.round(pollIntervalMs / 1000));
+
     const interval = setInterval(async () => {
       if (shouldSkipRefresh()) {
         console.log("[AUTO-REFRESH] Skipped - recent manual refresh");
@@ -495,7 +498,6 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
 
       const scrollY = window.scrollY;
       const currentMatches = matchesRef.current;
-      const pollMs = pollIntervalRef.current;
 
       try {
         setIsRefreshing(true);
@@ -566,7 +568,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
       }
       // Countdown resets based on actual polling interval
       setCountdown(Math.round(pollIntervalRef.current / 1000));
-    }, pollIntervalRef.current);
+    }, pollIntervalMs); // Use pollIntervalMs (not ref) so interval re-creates when live status changes
 
     const countdownInterval = setInterval(() => {
       setCountdown((c) => Math.max(0, c - 1));
@@ -576,7 +578,7 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
       clearInterval(interval);
       clearInterval(countdownInterval);
     };
-  }, []); // Empty deps - interval uses refs, not closure values
+  }, [pollIntervalMs]); // Re-create interval when live status changes (8s ↔ 30s)
 
   // Manual refresh handler (call this from a button)
   const handleManualRefresh = useCallback(() => {
