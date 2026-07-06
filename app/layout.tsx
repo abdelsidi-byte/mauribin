@@ -5,6 +5,7 @@ import { Navigation } from "@/components/Navigation";
 import { LiveScoresTicker } from "@/components/LiveScoresTicker";
 import { Footer } from "@/components/Footer";
 import { BankilyAd } from "@/components/BankilyAd";
+import { AdsterraSocialBar } from "@/components/AdsterraSocialBar";
 import { GoogleAdSense, AdSlot } from "@/components/GoogleAdSense";
 import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
@@ -82,6 +83,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
             {children}
           </main>
           <BankilyAd variant="float" />
+          <AdsterraSocialBar />
           <Footer />
         </body>
       </html>
