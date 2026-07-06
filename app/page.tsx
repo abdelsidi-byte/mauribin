@@ -1,5 +1,5 @@
 import { fetchScores, fetchArticles } from "@/lib/data";
-import { ClientHome } from "@/components/ClientHome";
+import { HomeClient } from "@/components/HomeClient";
 import { getMatchState } from "@/lib/matchState";
 
 // Direct fetch from football-data.org API
@@ -92,6 +92,6 @@ export default async function HomePage() {
   });
   
   return (
-    <ClientHome matches={matches} articles={articles} worldCupMatches={worldCupMatches} />
+    <HomeClient matches={matches} articles={articles} worldCupMatches={worldCupMatches} />
   );
 }
