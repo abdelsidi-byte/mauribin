@@ -2,42 +2,33 @@
 
 import { useEffect } from "react";
 
-declare global {
-  interface Window {
-    gb?: {
-      q: unknown[];
-      show?: (b: number) => void;
-    };
-  }
-}
-
 export function AdsterraSocialBar() {
   useEffect(() => {
-    // Adsterra Social Bar widget
     const publisherId = "5874939";
-    const w = window;
-    const d = document;
-    const s = "socialbar";
+    const campaignId = "29787519";
 
-    (function tick() {
-      if (d.readyState === "complete" || d.readyState === "interactive") {
-        init();
-      } else {
-        d.addEventListener("readystatechange", tick);
-      }
-    })();
+    const w = window as typeof window & { gb?: { q: unknown[] } };
 
-    function init() {
-      if (w.gb) return;
-      w.gb = { q: [] };
-      const u = publisherId;
+    const init = () => {
+      if ((w as typeof w & { gb?: unknown }).gb) return;
+      (w as typeof w & { gb: { q: unknown[] } }).gb = { q: [] };
 
-      const script1 = d.createElement("script");
-      script1.async = true;
-      const b = 0;
-      script1.src = `https://cdn.socialbar.com/widgets/socialbar.js?u=${u}&b=${b}`;
-      script1.onerror = () => console.log("[Adsterra] Socialbar blocked");
-      d.head.appendChild(script1);
+      const script = document.createElement("script");
+      script.async = true;
+      script.src = `https://ads.adsterra.com/socialbar/widgets/socialbar.js?u=${publisherId}&b=${campaignId}`;
+      script.onerror = () => console.log("[Adsterra] Socialbar script blocked");
+      document.head.appendChild(script);
+    };
+
+    if (document.readyState === "complete" || document.readyState === "interactive") {
+      init();
+    } else {
+      document.addEventListener("readystatechange", function tick() {
+        if (document.readyState === "complete" || document.readyState === "interactive") {
+          document.removeEventListener("readystatechange", tick);
+          init();
+        }
+      });
     }
   }, []);
 
