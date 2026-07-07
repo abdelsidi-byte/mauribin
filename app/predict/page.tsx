@@ -139,7 +139,7 @@ export default function PredictPage() {
     });
     
     // LIVE first → priority date → rest
-    return [...liveClean, ...priority, ...others].slice(0, 12);
+    return [...liveClean, ...priority, ...others].slice(0, 24);
   }, [matches]);
 
   const totalVoters = useMemo(() => {
