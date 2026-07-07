@@ -262,7 +262,22 @@ function getFallbackMatches(): Match[] {
     { home: "Portugal", away: "Colombia", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 17:00", utcDate: "2026-06-30T17:00:00Z", _index: 73 },
     { home: "DR Congo", away: "Uzbekistan", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 14:00", utcDate: "2026-06-30T14:00:00Z", _index: 74 },
     { home: "England", away: "Panama", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 14:00", utcDate: "2026-06-30T14:00:00Z", _index: 75 },
-    { home: "Ghana", away: "Croatia", homeScore: null, awayScore: null, state: "upcoming", label: "الإثنين 17:00", utcDate: "2026-06-30T17:00:00Z", _index: 76 },
+    // === LAST 16 KNOCKOUT ===
+    { home: "Canada", away: "Morocco", homeScore: 1, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-07-04T14:00:00Z", _index: 200 },
+    { home: "Paraguay", away: "France", homeScore: 0, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-07-04T20:00:00Z", _index: 201 },
+    { home: "Brazil", away: "Norway", homeScore: 2, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-07-05T14:00:00Z", _index: 202 },
+    { home: "Mexico", away: "England", homeScore: 0, awayScore: 1, state: "ft", label: "انتهت", utcDate: "2026-07-06T14:00:00Z", _index: 203 },
+    { home: "Portugal", away: "Spain", homeScore: 1, awayScore: 3, state: "ft", label: "انتهت", utcDate: "2026-07-06T20:00:00Z", _index: 204 },
+    { home: "USA", away: "Belgium", homeScore: 1, awayScore: 2, state: "ft", label: "انتهت", utcDate: "2026-07-07T02:00:00Z", _index: 205 },
+    { home: "Argentina", away: "Egypt", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 16:00", utcDate: "2026-07-07T16:00:00Z", _index: 206 },
+    { home: "Switzerland", away: "Colombia", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 20:00", utcDate: "2026-07-07T20:00:00Z", _index: 207 },
+    // === QUARTER FINALS ===
+    { home: "France", away: "Morocco", homeScore: null, awayScore: null, state: "upcoming", label: "الخميس 20:00", utcDate: "2026-07-09T20:00:00Z", _index: 208 },
+    { home: "Brazil", away: "England", homeScore: null, awayScore: null, state: "upcoming", label: "الجمعة 19:00", utcDate: "2026-07-10T19:00:00Z", _index: 209 },
+    { home: "Norway", away: "Spain", homeScore: null, awayScore: null, state: "upcoming", label: "السبت 21:00", utcDate: "2026-07-11T21:00:00Z", _index: 210 },
+    { home: "Portugal", away: "Argentina", homeScore: null, awayScore: null, state: "upcoming", label: "الأحد 01:00", utcDate: "2026-07-12T01:00:00Z", _index: 211 },
+    // === SEMI FINALS ===
+    { home: "France/England winner", away: "Norway/Spain winner", homeScore: null, awayScore: null, state: "upcoming", label: "الثلاثاء 19:00", utcDate: "2026-07-14T19:00:00Z", _index: 212 },
   ];
   return matches.map(m => ({
     ...m,

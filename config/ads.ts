@@ -3,7 +3,7 @@
 
 export const VIDEO_AD_CONFIG = {
   // Video URL (Streamable or any direct video link)
-  videoUrl: "https://streamable.com/9kuoqf?autoplay=1&muted=1&loop=1",
+  videoUrl: "https://streamable.com/e/9ig05r",
   
   // Skip allowed after N seconds
   skipAfterSeconds: 5,

@@ -14,9 +14,13 @@ export function VideoAdOverlay({ onComplete, isEnabled = true }: VideoAdOverlayP
   const [countdown, setCountdown] = useState<number>(VIDEO_AD_CONFIG.skipAfterSeconds);
   const [canSkip, setCanSkip] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
-  const videoRef = useRef<HTMLVideoElement>(null);
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const fadeRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Build iframe src from config video URL (supports /e/, /v/, direct mp4)
+  const videoSrc = VIDEO_AD_CONFIG.videoUrl.includes("?")
+    ? VIDEO_AD_CONFIG.videoUrl + "&autoplay=1&muted=1"
+    : VIDEO_AD_CONFIG.videoUrl + "?autoplay=1&muted=1";
 
   const closeAd = useCallback(() => {
     if (countdownRef.current) clearInterval(countdownRef.current);
@@ -98,18 +102,14 @@ export function VideoAdOverlay({ onComplete, isEnabled = true }: VideoAdOverlayP
     >
       {/* Video container */}
       <div className="relative w-full h-full max-w-6xl max-h-screen mx-4 my-4 rounded-2xl overflow-hidden shadow-2xl border border-yellow-500/30">
-        {/* Video */}
-        <video
-          ref={videoRef}
-          src={VIDEO_AD_CONFIG.videoUrl}
+        {/* Video — iframe for Streamable */}
+        <iframe
+          src={videoSrc}
           className="w-full h-full object-contain bg-black"
-          autoPlay
-          muted
-          playsInline
-          onEnded={handleVideoEnded}
-          onCanPlay={handleCanPlay}
-          onWaiting={handleWaiting}
-          onPlaying={handlePlaying}
+          allow="autoplay; fullscreen; picture-in-picture"
+          title="Mauribin VIP"
+          frameBorder="0"
+          scrolling="no"
         />
 
         {/* Loading spinner */}
