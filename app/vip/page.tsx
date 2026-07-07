@@ -1,8 +1,14 @@
 import Link from "next/link";
+import { VideoSection } from "@/components/VideoSection";
 
 export default function VIPPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 text-white" dir="rtl">
+      {/* VIP Video + Ad at top */}
+      <div className="max-w-7xl mx-auto px-4 pt-6">
+        <VideoSection />
+      </div>
+
       {/* Hero */}
       <div className="relative overflow-hidden bg-gradient-to-r from-yellow-900 via-yellow-800 to-yellow-900 py-16">
         <div className="absolute inset-0 opacity-20">
