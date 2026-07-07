@@ -11,7 +11,7 @@ import { fetchScores } from "@/lib/data";
 import { Analytics } from "@vercel/analytics/react";
 import { PWAProvider, ScrollRestoration } from "@/components/PWAProvider";
 import { I18nProvider } from "@/components/I18nProvider";
-import { VideoAdOverlay } from "@/components/VideoAdOverlay";
+import { VIPPopupWrapper } from "@/components/VIPPopupWrapper";
 
 // Layout fetches fresh data per request to keep the live ticker accurate
 // (ticker still refreshes client-side every 30s via /api/live-scores)
@@ -86,7 +86,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <BankilyAd variant="float" />
           <AdsterraSocialBar />
           <Footer />
-          <VideoAdOverlay onComplete={() => {}} />
+          <VIPPopupWrapper />
         </body>
       </html>
     </I18nProvider>
