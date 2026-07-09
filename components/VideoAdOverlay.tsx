@@ -17,10 +17,21 @@ export function VideoAdOverlay({ onComplete, isEnabled = true }: VideoAdOverlayP
   const countdownRef = useRef<NodeJS.Timeout | null>(null);
   const fadeRef = useRef<NodeJS.Timeout | null>(null);
 
-  // Build iframe src from config video URL (supports /e/, /v/, direct mp4)
-  const videoSrc = VIDEO_AD_CONFIG.videoUrl.includes("?")
-    ? VIDEO_AD_CONFIG.videoUrl + "&autoplay=1&muted=1"
-    : VIDEO_AD_CONFIG.videoUrl + "?autoplay=1&muted=1";
+  // Build iframe src from config video URL (supports Streamable, YouTube embed)
+  const getVideoSrc = (url: string) => {
+    if (url.includes("youtube.com/embed/")) {
+      // Extract video ID and build proper YouTube embed URL
+      const match = url.match(/youtube\.com\/embed\/([a-zA-Z0-9_-]+)/);
+      if (match) {
+        const videoId = match[1];
+        return `https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&loop=1&playlist=${videoId}`;
+      }
+    }
+    // Streamable: add autoplay params
+    const separator = url.includes("?") ? "&" : "?";
+    return `${url}${separator}autoplay=1&muted=1`;
+  };
+  const videoSrc = getVideoSrc(VIDEO_AD_CONFIG.videoUrl);
 
   const closeAd = useCallback(() => {
     if (countdownRef.current) clearInterval(countdownRef.current);

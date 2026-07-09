@@ -3,6 +3,7 @@
 
 export const VIDEO_AD_CONFIG = {
   // Video URL (Streamable or any direct video link)
+  // For YouTube Shorts use embed URL: https://www.youtube.com/embed/VIDEO_ID
   videoUrl: "https://streamable.com/e/9ig05r",
   
   // Skip allowed after N seconds
