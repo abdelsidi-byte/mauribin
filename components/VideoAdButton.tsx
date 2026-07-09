@@ -12,7 +12,18 @@ interface VideoAdButtonProps {
 export function VideoAdButton({ videoUrl, youtubeId, thumbnail, title }: VideoAdButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
 
-  const thumb = thumbnail || (youtubeId ? `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg` : "");
+  // Default thumbnail based on video type
+  const getDefaultThumb = () => {
+    if (youtubeId) return `https://i.ytimg.com/vi/${youtubeId}/maxresdefault.jpg`;
+    if (videoUrl.includes("streamable.com")) {
+      // Extract video ID from streamable URL
+      const match = videoUrl.match(/streamable\.com\/[ev]\/([a-zA-Z0-9]+)/);
+      if (match) return `https://cdn-cf-east.streamable.com/image/${match[1]}.jpg`;
+    }
+    return "";
+  };
+
+  const thumb = thumbnail || getDefaultThumb();
 
   return (
     <>
