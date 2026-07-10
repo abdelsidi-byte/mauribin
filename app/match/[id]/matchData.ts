@@ -706,6 +706,7 @@ export function findMatch(id: string): MatchEntry | undefined {
   return MATCH_DATA.find(m => {
     if (m.slug?.toLowerCase() === id.toLowerCase()) return true;
     if (m.id && String(m.id) === id) return true;
+    if (m.espnId === id) return true;
     return false;
   });
 }

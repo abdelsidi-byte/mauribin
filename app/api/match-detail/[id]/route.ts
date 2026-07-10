@@ -1,198 +1,144 @@
 import { NextResponse } from "next/server";
-
-const ESPN_BASE = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world";
+import { MATCH_DATA, localizeTeam, getFlag } from "@/app/match/[id]/matchData";
 
 export const dynamic = "force-dynamic";
-
-function getEventType(e: any): string {
-  if (!e.type) return "";
-  if (typeof e.type === "string") return e.type;
-  return e.type?.type || "";
-}
-
-function getEventText(e: any): string {
-  if (!e.type) return "";
-  if (typeof e.type === "string") return "";
-  return e.type?.text || "";
-}
 
 export async function GET(
   request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params;
-  if (!id) {
-    return NextResponse.json({ error: "Match ID required" }, { status: 400 });
+
+  // Find in matchData first (has embedded stats)
+  const match = MATCH_DATA.find(m => {
+    if (m.slug?.toLowerCase() === id.toLowerCase()) return true;
+    if (m.id && String(m.id) === id) return true;
+    if (m.espnId === id) return true;
+    return false;
+  });
+
+  if (match) {
+    const home = {
+      name: localizeTeam(match.home),
+      originalName: match.home,
+      flag: getFlag(match.home),
+      logo: "",
+    };
+    const away = {
+      name: localizeTeam(match.away),
+      originalName: match.away,
+      flag: getFlag(match.away),
+      logo: "",
+    };
+    const isLive = match.state === "live";
+    const isFinished = match.state === "ft";
+    const isUpcoming = match.state === "upcoming";
+
+    return NextResponse.json({
+      fixture_id: match.id || 0,
+      espnId: match.espnId || String(match.id || ""),
+      slug: match.slug,
+      league: { id: 1, name: match.league || "كأس العالم 2026", flag: "" },
+      round: match.group || "",
+      date: match.date || "",
+      venue: match.venue || "",
+      referee: "",
+      home,
+      away,
+      status: isLive ? "1st Half" : isFinished ? "FT" : isUpcoming ? "Scheduled" : "",
+      statusShort: match.state === "ft" ? "FT" : match.state === "live" ? "LIVE" : match.state,
+      elapsed: match.elapsed || 0,
+      homeScore: match.homeScore ?? 0,
+      awayScore: match.awayScore ?? 0,
+      isLive,
+      isFinished,
+      isUpcoming,
+      formattedDate: match.label || match.date || "",
+      statistics: Object.entries(match.stats || {}).map(([type, vals]) => ({
+        type,
+        home: (vals as any).home,
+        away: (vals as any).away,
+      })),
+      events: (match.events || []).map((ev: any) => ({
+        elapsed: parseInt(ev.minute) || 0,
+        minute: ev.minute,
+        team_name: localizeTeam(ev.team === "home" ? match.home : match.away),
+        player: ev.player,
+        assist: ev.assist || "",
+        type: ev.type,
+        detail: ev.player,
+        icon: ev.type === "goal" ? "⚽" : ev.type === "yellow-card" ? "🟨" : ev.type === "red-card" ? "🟥" : "•",
+      })),
+      lineups: [],
+      h2h: [],
+    });
   }
 
+  // Fallback: try ESPN scoreboard API
   try {
-    const eventId = id.replace(/^wc-/, "");
-    const url = `${ESPN_BASE}/summary?event=${eventId}`;
-    const res = await fetch(url, {
-      next: { revalidate: 30 },
-      headers: { "Accept": "application/json" },
-    });
+    const ESPN_API = "https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard";
+    const res = await fetch(ESPN_API, { next: { revalidate: 30 } });
+    if (!res.ok) throw new Error(`ESPN error: ${res.status}`);
 
-    if (!res.ok) {
+    const data = await res.json();
+    const events = data.events || [];
+    const event = events.find((e: any) => String(e.id) === id);
+
+    if (!event) {
       return NextResponse.json({ error: "Match not found" }, { status: 404 });
     }
 
-    const data = await res.json();
-    const header = data.header || {};
-    const headerComps = header.competitions || [];
-    const competition = headerComps[0] || {};
+    const comp = event.competitions?.[0] || {};
+    const statusType = comp.status?.type || {};
+    const competitors = comp.competitors || [];
+    const home = competitors.find((c: any) => c.homeAway === "home");
+    const away = competitors.find((c: any) => c.homeAway === "away");
 
-    // Extract competitors
-    const competitors = competition.competitors || [];
-    const homeComp = competitors.find((c: any) => c.homeAway === "home") || competitors[0];
-    const awayComp = competitors.find((c: any) => c.homeAway === "away") || competitors[1];
-    const homeTeamData = homeComp.team || {};
-    const awayTeamData = awayComp.team || {};
-
-    const homeTeam = {
-      name: homeTeamData.displayName || "Home",
-      abbr: homeTeamData.abbreviation || "HOM",
-      logo: (homeTeamData.logos || [])[0]?.href || "",
-      score: homeComp.score || "0",
-      winner: homeComp.winner || false,
-    };
-
-    const awayTeam = {
-      name: awayTeamData.displayName || "Away",
-      abbr: awayTeamData.abbreviation || "AWY",
-      logo: (awayTeamData.logos || [])[0]?.href || "",
-      score: awayComp.score || "0",
-      winner: awayComp.winner || false,
-    };
-
-    // Extract status
-    const statusType = competition.status?.type || {};
-    const status = statusType.detail || statusType.description || "FT";
-    const date = competition.date || header.date || "";
-
-    // Extract venue and gameInfo
-    const gameInfo = data.gameInfo || {};
-    const venue = gameInfo.venue?.fullName || "";
-
-    // Extract goals from keyEvents
-    const goals: any[] = [];
-    const keyEvents = data.keyEvents || [];
-    for (const event of keyEvents) {
-      const eventType = getEventType(event);
-      if (eventType === "goal") {
-        const eventText = getEventText(event);
-        const clock = event.clock?.displayValue || event.time?.value || "?";
-        const teamName = event.team?.displayName || "";
-        const team: "home" | "away" = teamName === homeTeam.name ? "home" : "away";
-
-        // Extract scorer from text: "Goal! Curaçao 0, Côte d'Ivoire 1. Nicolas Pépé..."
-        let scorer = "Unknown";
-        const fullText = eventText || event.text || "";
-        const goalMatch = fullText.match(/Goal!\s*(?:[^ ]+\s+\d+,\s*[^ ]+\s+\d+\.\s*)?(.+?)(?:\s+\(|left footed|right footed|header|penalty|own goal| Assisted)/);
-        if (goalMatch) {
-          scorer = goalMatch[1].trim();
-        }
-
-        goals.push({ scorer, team, minute: String(clock), text: eventText });
-      }
-    }
-
-    // Build events list
-    const events: any[] = [];
-    for (const event of keyEvents) {
-      const eventType = getEventType(event);
-      if (["goal", "yellow-card", "red-card", "kickoff", "start-2nd-half", "halftime", "end-regular-time"].includes(eventType)) {
-        const clock = event.clock?.displayValue || event.time?.value || "";
-        const eventText = getEventText(event) || event.text || "";
-        events.push({
-          type: eventType,
-          minute: String(clock),
-          text: eventText,
-        });
-      }
-    }
-
-    // Extract stats from commentary (count events per team)
-    let homeShots = 0, awayShots = 0, homeShotsOnTarget = 0, awayShotsOnTarget = 0;
-    let homeCorners = 0, awayCorners = 0, homeFouls = 0, awayFouls = 0;
-    let homeYellowCards = 0, awayYellowCards = 0, homeRedCards = 0, awayRedCards = 0;
-    let homeOffsides = 0, awayOffsides = 0;
-
-    const commentary = data.commentary || [];
-    for (const c of commentary) {
-      const text: string = (c.text || "").toLowerCase();
-      const teamKey = c.competitor?.id === homeTeamData.id ? "home" : c.competitor?.id === awayTeamData.id ? "away" : null;
-
-      if (text.includes("attempt") || text.includes("shot")) {
-        if (teamKey === "home") homeShots++;
-        else if (teamKey === "away") awayShots++;
-      }
-      if (text.includes("corner") || text.includes("corners")) {
-        if (teamKey === "home") homeCorners++;
-        else if (teamKey === "away") awayCorners++;
-      }
-      if (text.includes("yellow card")) {
-        if (teamKey === "home") homeYellowCards++;
-        else if (teamKey === "away") awayYellowCards++;
-      }
-      if (text.includes("red card")) {
-        if (teamKey === "home") homeRedCards++;
-        else if (teamKey === "away") awayRedCards++;
-      }
-      if (text.includes("offside")) {
-        if (teamKey === "home") homeOffsides++;
-        else if (teamKey === "away") awayOffsides++;
-      }
-      if (text.includes("foul")) {
-        if (teamKey === "home") homeFouls++;
-        else if (teamKey === "away") awayFouls++;
-      }
-    }
-
-    // Cap stats to reasonable values
-    const cap = (v: number) => Math.max(0, Math.min(v, 30));
-
-    const result = {
-      id: String(eventId),
-      date,
-      competition: competition.name || "FIFA World Cup 2026",
-      venue,
-      status,
-      homeTeam,
-      awayTeam,
-      stats: {
-        home: {
-          possession: "42",
-          shots: String(cap(homeShots)),
-          shotsOnTarget: String(cap(Math.floor(homeShots * 0.4))),
-          corners: String(cap(homeCorners)),
-          fouls: String(cap(homeFouls)),
-          yellowCards: String(cap(homeYellowCards)),
-          redCards: String(cap(homeRedCards)),
-          offsides: String(cap(homeOffsides)),
-          passes: "215",
-          passAccuracy: "71",
-        },
-        away: {
-          possession: "58",
-          shots: String(cap(awayShots)),
-          shotsOnTarget: String(cap(Math.floor(awayShots * 0.4))),
-          corners: String(cap(awayCorners)),
-          fouls: String(cap(awayFouls)),
-          yellowCards: String(cap(awayYellowCards)),
-          redCards: String(cap(awayRedCards)),
-          offsides: String(cap(awayOffsides)),
-          passes: "312",
-          passAccuracy: "83",
-        },
+    return NextResponse.json({
+      fixture_id: event.id,
+      espnId: event.id,
+      slug: event.name?.toLowerCase().replace(/\s+/g, "-"),
+      league: { id: 1, name: "كأس العالم 2026", flag: "" },
+      round: comp.round || "",
+      date: event.date,
+      venue: comp.venue?.fullName || "",
+      referee: "",
+      home: {
+        name: home?.team?.displayName || "Home",
+        originalName: home?.team?.displayName || "Home",
+        flag: "",
+        logo: home?.team?.logos?.[0]?.href || "",
       },
-      goals,
-      events,
-    };
-
-    return NextResponse.json(result);
-  } catch (error) {
-    console.error("[match-detail API] Error:", error);
-    return NextResponse.json({ error: "Failed to fetch match details" }, { status: 500 });
+      away: {
+        name: away?.team?.displayName || "Away",
+        originalName: away?.team?.displayName || "Away",
+        flag: "",
+        logo: away?.team?.logos?.[0]?.href || "",
+      },
+      status: statusType.detail || "",
+      statusShort: statusType.state || "",
+      elapsed: statusType.clock?.value || 0,
+      homeScore: parseInt(home?.score || "0"),
+      awayScore: parseInt(away?.score || "0"),
+      isLive: statusType.state === "in",
+      isFinished: statusType.state === "post",
+      isUpcoming: statusType.state === "pre",
+      formattedDate: event.date || "",
+      statistics: [],
+      events: (comp.plays || []).slice(0, 20).map((play: any) => ({
+        elapsed: play.clock?.value || 0,
+        minute: play.clock?.displayValue || "",
+        team_name: play.team?.displayName || "",
+        player: play.athletesInvolved?.[0]?.displayName || play.text || "",
+        type: play.type?.toLowerCase() || "",
+        detail: play.text || "",
+        icon: play.type?.toLowerCase()?.includes("goal") ? "⚽" : "•",
+      })),
+      lineups: [],
+      h2h: [],
+    });
+  } catch (err) {
+    console.error("[/api/match-detail/id]", err);
+    return NextResponse.json({ error: "Failed to fetch" }, { status: 500 });
   }
 }
