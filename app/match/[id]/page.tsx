@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import { MATCH_DATA, localizeTeam, getFlag } from "./matchData";
+import { MatchStatsPanel } from "@/components/MatchStatsPanel";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 type Tab = "overview" | "stats" | "events" | "cards" | "h2h";
@@ -144,68 +145,15 @@ function TabOverview({ m, liveData }: { m: typeof MATCH_DATA[0]; liveData?: Live
         </div>
       </div>
 
-      {/* Live Stats Bars (real-time) */}
-      {liveStats && liveStats.length > 0 && (
-        <div className="bg-slate-800 rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-bold text-[#FFD700]">📊 إحصائيات مباشرة</h3>
-            <span className="flex items-center gap-1 text-xs text-green-400">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-              مباشر
-            </span>
-          </div>
-          <div className="space-y-5">
-            {liveStats.map(({ type, home, away }) => {
-              const homeNum = parseFloat(String(home).replace("%","")) || 0;
-              const awayNum = parseFloat(String(away).replace("%","")) || 0;
-              const total = homeNum + awayNum || 1;
-              const homePct = Math.round((homeNum / total) * 100);
-
-              return (
-                <div key={type}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-white font-bold w-16 text-left">{home}</span>
-                    <span className="text-slate-400 text-xs text-center">{tStat(type)}</span>
-                    <span className="text-white font-bold w-16 text-right">{away}</span>
-                  </div>
-                  <div className="flex h-2 rounded-full overflow-hidden bg-slate-700">
-                    <div className="bg-[#006233] h-full transition-all duration-500" style={{ width: `${homePct}%` }} />
-                    <div className="bg-[#D01C1F] h-full transition-all duration-500" style={{ width: `${100-homePct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Fallback: embedded stats */}
-      {!liveStats && hasStats && statsEntries.length > 0 && (
-        <div className="bg-slate-800 rounded-2xl p-5">
-          <h3 className="text-lg font-bold text-[#FFD700] mb-4">📊 الإحصائيات</h3>
-          <div className="space-y-5">
-            {statsEntries.map(([type, vals]) => {
-              const homeNum = parseFloat(String((vals as any).home).replace("%","")) || 0;
-              const awayNum = parseFloat(String((vals as any).away).replace("%","")) || 0;
-              const total = homeNum + awayNum || 1;
-              const homePct = Math.round((homeNum / total) * 100);
-
-              return (
-                <div key={type}>
-                  <div className="flex items-center justify-between text-xs mb-1">
-                    <span className="text-white font-medium w-20 text-left truncate">{(vals as any).home}</span>
-                    <span className="text-slate-400 text-xs text-center">{tStat(type)}</span>
-                    <span className="text-white font-medium w-20 text-right truncate">{(vals as any).away}</span>
-                  </div>
-                  <div className="flex h-2 rounded-full overflow-hidden bg-slate-700">
-                    <div className="bg-[#006233] h-full transition-all duration-500" style={{ width: `${homePct}%` }} />
-                    <div className="bg-[#D01C1F] h-full transition-all duration-500" style={{ width: `${100-homePct}%` }} />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+      {/* Live Stats — using MatchStatsPanel */}
+      {(liveStats || (hasStats && statsEntries.length > 0)) && (
+        <MatchStatsPanel
+          homeTeam={{ name: localizeTeam(m.home), flag: getFlag(m.home) }}
+          awayTeam={{ name: localizeTeam(m.away), flag: getFlag(m.away) }}
+          stats={(liveStats || statsEntries.map(([type, vals]) => ({ type, home: (vals as any).home, away: (vals as any).away })))}
+          isLive={m.state === "live"}
+          elapsed={m.elapsed}
+        />
       )}
 
       {(!liveStats && (!hasStats || statsEntries.length === 0)) && (
@@ -358,44 +306,18 @@ function TabStatsDetailed({ m, liveData }: { m: typeof MATCH_DATA[0]; liveData?:
     { type: "Red Cards", home: liveData!.stats.home.redCards, away: liveData!.stats.away.redCards },
   ] : statsEntries.map(([type, vals]) => ({ type, home: (vals as any).home, away: (vals as any).away }));
 
-  return (
-    <div className="bg-slate-800 rounded-2xl p-5">
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-bold text-[#FFD700]">📊 جميع الإحصائيات</h3>
-        {useLive && (
-          <span className="flex items-center gap-1 text-xs text-green-400">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-            مباشر
-          </span>
-        )}
-      </div>
-      {detailedStats.length > 0 ? (
-        <div className="space-y-3">
-          {detailedStats.map(({ type, home, away }) => {
-            const homeNum = parseFloat(String(home).replace("%","")) || 0;
-            const awayNum = parseFloat(String(away).replace("%","")) || 0;
-            const total = homeNum + awayNum || 1;
-            const homePct = Math.round((homeNum / total) * 100);
+  if (detailedStats.length === 0) {
+    return <p className="text-slate-400 text-center py-8">الإحصائيات غير متوفرة</p>;
+  }
 
-            return (
-              <div key={type}>
-                <div className="flex items-center justify-between text-xs mb-1">
-                  <span className="text-white font-bold w-16 text-left">{home}</span>
-                  <span className="text-slate-300 text-xs text-center">{tStat(type)}</span>
-                  <span className="text-white font-bold w-16 text-right">{away}</span>
-                </div>
-                <div className="flex h-2 rounded-full overflow-hidden bg-slate-700">
-                  <div className="bg-[#006233] h-full transition-all duration-500" style={{ width: `${homePct}%` }} />
-                  <div className="bg-[#D01C1F] h-full transition-all duration-500" style={{ width: `${100-homePct}%` }} />
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        <p className="text-slate-400 text-center py-8">الإحصائيات غير متوفرة</p>
-      )}
-    </div>
+  return (
+    <MatchStatsPanel
+      homeTeam={{ name: localizeTeam(m.home), flag: getFlag(m.home) }}
+      awayTeam={{ name: localizeTeam(m.away), flag: getFlag(m.away) }}
+      stats={detailedStats}
+      isLive={m.state === "live"}
+      elapsed={m.elapsed}
+    />
   );
 }
 
