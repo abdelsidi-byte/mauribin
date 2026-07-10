@@ -71,7 +71,9 @@ export function RecentResults() {
         {matches.map((match) => (
           <Link
             key={match.id}
-            href={`/match/${match.id}`}
+            href={`https://www.espn.com/soccer/match/_/gameId/${match.id}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="flex items-center gap-3 px-5 py-3.5 hover:bg-slate-700/30 transition-colors active:bg-slate-700/50"
           >
             {/* Date */}
@@ -112,6 +114,9 @@ export function RecentResults() {
                 {match.status}
               </span>
             </div>
+
+            {/* Arrow */}
+            <span className="text-slate-500 text-sm">→</span>
           </Link>
         ))}
       </div>
