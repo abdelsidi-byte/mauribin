@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useI18n } from "./I18nProvider";
 import { NewsSection } from "./NewsSection";
 import { YesterdayResults } from "./YesterdayResults";
+import { RecentResults } from "./RecentResults";
 import { PhotosSection } from "./PhotosSection";
 import { getFlagClass, getFlagUrl } from "@/lib/flagIcons";
 import VideoAdBanner from "./VideoAdBanner";
@@ -718,6 +719,9 @@ export function ClientHome({ matches: initialMatches, articles, worldCupMatches 
           {/* Results - Horizontal Scroll */}
           {/* Yesterday's Results */}
           <YesterdayResults />
+
+          {/* Recent Results — last 10 matches */}
+          <RecentResults />
 
           {/* Photos of the Day */}
           <PhotosSection />
