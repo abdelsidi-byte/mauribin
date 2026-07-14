@@ -173,7 +173,10 @@ export function WorldCupBanner() {
     final: "النهائي الكبير 🏆",
   };
 
-  const matchDay = nextMatch.label ? `${nextMatch.label}` : stageLabel[nextMatch.stage] ?? "مباراة قادمة";
+  // Format matchDay — always use English numerals 123 for time
+  const matchDay = nextMatch.label
+    ? nextMatch.label.replace(/[\u0660-\u0669]/g, (d: string) => String(d.charCodeAt(0) - 0x0660))
+    : stageLabel[nextMatch.stage] ?? "مباراة قادمة";
 
   return (
     <section
@@ -252,7 +255,7 @@ export function WorldCupBanner() {
                 {matchDay}
               </span>
               <span className="text-xs text-slate-400">
-                {nextMatch.date} • {nextMatch.time} UTC
+                {nextMatch.date.replace(/[\u0660-\u0669]/g, (d: string) => String(d.charCodeAt(0) - 0x0660))} • {nextMatch.time.replace(/[\u0660-\u0669]/g, (d: string) => String(d.charCodeAt(0) - 0x0660))} UTC
               </span>
             </div>
 
