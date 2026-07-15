@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { SCHEDULE, GROUP_STANDINGS, TEAMS } from "@/lib/worldcup-data";
+import { SCHEDULE, GROUP_STANDINGS, TEAMS, TEAM_FLAGS } from "@/lib/worldcup-data";
 
 // Mauritanian flag palette
 const MAURI = {
@@ -47,11 +47,15 @@ export function WorldCupBanner() {
         parseMatchDateTime(a.date, a.time).getTime() -
         parseMatchDateTime(b.date, b.time).getTime()
     );
-    return (
-      upcoming.find((m) => parseMatchDateTime(m.date, m.time).getTime() > now) ??
+    const match = upcoming.find((m) => parseMatchDateTime(m.date, m.time).getTime() > now) ??
       upcoming[0] ??
-      SCHEDULE[SCHEDULE.length - 1]
-    );
+      SCHEDULE[SCHEDULE.length - 1];
+    // Use real TEAM_FLAGS for all rounds (fixes blank flags in quarter/semi/final)
+    return {
+      ...match,
+      homeFlag: TEAM_FLAGS[match.home] ?? match.homeFlag ?? "🏳️",
+      awayFlag: TEAM_FLAGS[match.away] ?? match.awayFlag ?? "🏳️",
+    };
   }, []);
 
   const targetDate = useMemo(

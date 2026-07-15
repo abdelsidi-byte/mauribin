@@ -449,4 +449,23 @@ function generateSchedule(): Match[] {
   return matches;
 }
 
+// Real team flags map for quarter/semi/final rounds
+export const TEAM_FLAGS: Record<string, string> = {
+  France: "🇫🇷", England: "🏴󠁧󠁢󠁥󠁮󠁧󠁿", Spain: "🇪🇸", Belgium: "🇧🇪",
+  Morocco: "🇲🇦", Portugal: "🇵🇹", Germany: "🇩🇪", Italy: "🇮🇹",
+  Brazil: "🇧🇷", Argentina: "🇦🇷", Netherlands: "🇳🇱", Croatia: "🇭🇷",
+  Norway: "🇳🇴", Senegal: "🇸🇳", USA: "🇺🇸", Mexico: "🇲🇽",
+  Japan: "🇯🇵", Uruguay: "🇺🇾", Switzerland: "🇨🇭", Ghana: "🇬🇭",
+  "South Korea": "🇰🇷", Iran: "🇮🇷", Colombia: "🇨🇴", Egypt: "🇪🇬",
+  Nigeria: "🇳🇬", "Saudi Arabia": "🇸🇦", "Cape Verde": "🇨🇻", Peru: "🇵🇪",
+  Cameroon: "🇨🇲", Chile: "🇨🇱", Ecuador: "🇪🇨", Paraguay: "🇵🇾",
+  Panama: "🇵🇦", Jamaica: "🇯🇲", Canada: "🇨🇦", Qatar: "🇶🇦",
+  "Bosnia-Herzegovina": "🇧🇦", Scotland: "🏴󠁧󠁢󠁳󠁣󠁴󠁿", Haiti: "🇭🇹",
+  "Ivory Coast": "🇨🇮", Tunisia: "🇹🇳", Algeria: "🇩🇿", Sweden: "🇸🇪",
+  Denmark: "🇩🇰", Serbia: "🇷🇸", Ukraine: "🇺🇦", Poland: "🇵🇱",
+  Austria: "🇦🇹", Hungary: "🇭🇺", "Czech Republic": "🇨🇿", "Curaçao": "🇨🇼",
+  "DR Congo": "🇨🇩", Iraq: "🇮🇶", "South Africa": "🇿🇦", Australia: "🇦🇺",
+  Wales: "🏴󠁧󠁢󠁷󠁬󠁳󠁿", Jordan: "🇯🇴", Oman: "🇴🇲", "New Zealand": "🇳🇿",
+  Venezuela: "🇻🇪", Bolivia: "🇧🇴", "Costa Rica": "🇨🇷", Iceland: "🇮🇸",
+};
 export const SCHEDULE = generateSchedule();
